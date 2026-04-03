@@ -47,43 +47,66 @@ export default async function DashboardPage() {
     );
   }
 
+  const hasAnyWorkout = recent.length > 0;
+
   return (
-    <div className="space-y-10">
-      <section>
-        <h2 className="font-display mb-4 text-lg font-bold uppercase tracking-wide text-zinc-300">
-          Сьогодні
-        </h2>
-        {todayWorkouts.length === 0 ? (
-          <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">
-            На сьогодні ще немає тренування. Створи нове або скопіюй з іншої дати в блоці нижче.
-          </div>
-        ) : (
-          <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-            {todayWorkouts.map(workoutRow)}
-          </ul>
-        )}
-      </section>
+    <div className="space-y-8 md:space-y-10">
+      {!hasAnyWorkout ? (
+        <div className="sbd-card rounded-2xl border border-[#e31e24]/20 bg-[#e31e24]/[0.06] p-6 text-center sm:p-8">
+          <p className="font-display text-lg font-semibold text-white">Почнімо з першого тренування</p>
+          <p className="mt-2 text-sm text-zinc-400">Натисни — відкриється запис підходів і ваги.</p>
+          <Link
+            href="/workouts/new"
+            className="mt-5 inline-flex min-h-[52px] w-full max-w-xs touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-6 text-base font-bold text-white shadow-lg shadow-red-950/30 active:bg-[#a0151a] sm:w-auto"
+          >
+            Додати тренування
+          </Link>
+        </div>
+      ) : null}
 
-      <DashboardDuplicateActions />
+      {hasAnyWorkout ? (
+        <>
+          <section>
+            <h2 className="font-display mb-3 text-base font-bold uppercase tracking-wide text-zinc-300 md:mb-4 md:text-lg">
+              Сьогодні
+            </h2>
+            {todayWorkouts.length === 0 ? (
+              <div className="sbd-card rounded-xl p-5 text-sm text-zinc-500 md:p-6">
+                Сьогодні ще порожньо. Нижче — копія з іншої дати або{" "}
+                <Link href="/workouts/new" className="font-medium text-[#e31e24] underline-offset-2 hover:underline">
+                  нове тренування
+                </Link>
+                .
+              </div>
+            ) : (
+              <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
+                {todayWorkouts.map(workoutRow)}
+              </ul>
+            )}
+          </section>
 
-      <section>
-        <h2 className="font-display mb-4 text-lg font-bold uppercase tracking-wide text-zinc-300">
-          Останні тренування
-        </h2>
-        {otherRecent.length === 0 && todayWorkouts.length === 0 ? (
-          <div className="sbd-card rounded-xl p-8 text-center text-zinc-500">
-            Поки немає записів. Створи перше тренування через пункт «Тренування» у меню.
-          </div>
-        ) : otherRecent.length === 0 ? (
-          <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">
-            Інших нещодавніх тренувань у списку немає — переглянь блок «Сьогодні» або календар.
-          </div>
-        ) : (
-          <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-            {otherRecent.map(workoutRow)}
-          </ul>
-        )}
-      </section>
+          <DashboardDuplicateActions />
+
+          <section>
+            <h2 className="font-display mb-3 text-base font-bold uppercase tracking-wide text-zinc-300 md:mb-4 md:text-lg">
+              Останні тренування
+            </h2>
+            {otherRecent.length === 0 && todayWorkouts.length === 0 ? (
+              <div className="sbd-card rounded-xl p-6 text-center text-sm text-zinc-500 md:p-8">
+                Інших записів ще немає — див. блок вище або «Тренування» внизу.
+              </div>
+            ) : otherRecent.length === 0 ? (
+              <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">
+                Інших нещодавніх у списку немає — глянь «Сьогодні» або календар.
+              </div>
+            ) : (
+              <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
+                {otherRecent.map(workoutRow)}
+              </ul>
+            )}
+          </section>
+        </>
+      ) : null}
     </div>
   );
 }

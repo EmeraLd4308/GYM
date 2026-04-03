@@ -55,8 +55,10 @@ type WorkoutPayload = {
 const inp =
   "rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-zinc-100 outline-none focus:border-[#e31e24]/35 focus:ring-1 focus:ring-[#e31e24]/25";
 
+const inpMobile = `${inp} min-h-[48px] w-full px-3 text-base`;
+
 const setMoveBtn =
-  "flex min-h-[36px] min-w-[36px] touch-manipulation items-center justify-center rounded border border-white/15 bg-black/40 text-base leading-none text-zinc-300 transition enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35";
+  "flex min-h-9 min-w-9 touch-manipulation items-center justify-center rounded-lg border border-white/15 bg-black/40 text-base leading-none text-zinc-300 transition enabled:active:scale-95 enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35 md:min-h-[36px] md:min-w-[36px]";
 
 function formatWeightForInput(w: unknown): string {
   if (w == null) return "";
@@ -586,8 +588,8 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               }
             />
           ) : null}
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
+            <div className="min-w-0 w-full flex-1 sm:max-w-xl">
               <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
                 Назва вправи
               </label>
@@ -597,7 +599,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                 maxLength={200}
                 spellCheck={false}
                 autoCapitalize="sentences"
-                className="font-display w-full min-w-0 max-w-xl border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
+                className="font-display w-full min-w-0 border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
                 value={ex.name}
                 onChange={(e) =>
                   setWorkout((w) =>
@@ -623,15 +625,185 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
             </div>
             <button
               type="button"
-              className="text-xs font-medium uppercase tracking-wide text-red-400/90 hover:text-red-300"
+              className="min-h-[44px] shrink-0 self-start touch-manipulation text-xs font-medium uppercase tracking-wide text-red-400/90 hover:text-red-300 sm:min-h-0"
               onClick={() => setConfirm({ kind: "ex", id: ex.id })}
             >
               Видалити вправу
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[320px] text-sm">
+          <div className="space-y-3 md:hidden">
+            {ex.sets.map((s, setIndex) => (
+              <div
+                key={s.id}
+                className="rounded-xl border border-white/[0.1] bg-black/25 p-3"
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-zinc-500">
+                    Підхід {setIndex + 1}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      className={setMoveBtn}
+                      aria-label="Підхід вгору"
+                      disabled={setIndex === 0}
+                      onClick={() => moveSetRelative(ex.id, s.id, -1)}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className={setMoveBtn}
+                      aria-label="Підхід вниз"
+                      disabled={setIndex >= ex.sets.length - 1}
+                      onClick={() => moveSetRelative(ex.id, s.id, 1)}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      className="min-h-9 min-w-9 touch-manipulation rounded-lg text-lg text-red-400/90 hover:bg-red-500/10 hover:text-red-300"
+                      aria-label="Видалити підхід"
+                      onClick={() => setConfirm({ kind: "set", id: s.id })}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`w-${s.id}`}>
+                      Вага (кг)
+                    </label>
+                    <input
+                      id={`w-${s.id}`}
+                      className={inpMobile}
+                      value={s.weightKg}
+                      inputMode="decimal"
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setWorkout((w) =>
+                          w
+                            ? {
+                                ...w,
+                                exercises: w.exercises.map((x) =>
+                                  x.id === ex.id
+                                    ? {
+                                        ...x,
+                                        sets: x.sets.map((row) =>
+                                          row.id === s.id ? { ...row, weightKg: v } : row,
+                                        ),
+                                      }
+                                    : x,
+                                ),
+                              }
+                            : w,
+                        );
+                      }}
+                      onBlur={() => {
+                        const num = parseFloat(s.weightKg.replace(",", "."));
+                        if (!Number.isFinite(num)) return;
+                        updateSet(s.id, { weightKg: num });
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`r-${s.id}`}>
+                      Повтори
+                    </label>
+                    <input
+                      id={`r-${s.id}`}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      spellCheck={false}
+                      className={inpMobile}
+                      value={s.reps < 1 ? "" : String(s.reps)}
+                      onChange={(e) => {
+                        const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                        const num = t === "" ? 0 : Math.min(999, parseInt(t, 10) || 0);
+                        setWorkout((w) =>
+                          w
+                            ? {
+                                ...w,
+                                exercises: w.exercises.map((x) =>
+                                  x.id === ex.id
+                                    ? {
+                                        ...x,
+                                        sets: x.sets.map((row) =>
+                                          row.id === s.id ? { ...row, reps: num } : row,
+                                        ),
+                                      }
+                                    : x,
+                                ),
+                              }
+                            : w,
+                        );
+                      }}
+                      onBlur={() => {
+                        let reps = s.reps;
+                        if (reps < 1) reps = 1;
+                        if (reps > 999) reps = 999;
+                        if (reps !== s.reps) {
+                          setWorkout((w) =>
+                            w
+                              ? {
+                                  ...w,
+                                  exercises: w.exercises.map((x) =>
+                                    x.id === ex.id
+                                      ? {
+                                          ...x,
+                                          sets: x.sets.map((row) =>
+                                            row.id === s.id ? { ...row, reps } : row,
+                                          ),
+                                        }
+                                      : x,
+                                  ),
+                                }
+                              : w,
+                          );
+                        }
+                        updateSet(s.id, { reps });
+                      }}
+                    />
+                  </div>
+                </div>
+                <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3 touch-manipulation">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 shrink-0 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
+                    checked={s.isWarmup}
+                    onChange={(e) => {
+                      const isWarmup = e.target.checked;
+                      setWorkout((w) =>
+                        w
+                          ? {
+                              ...w,
+                              exercises: w.exercises.map((x) =>
+                                x.id === ex.id
+                                  ? {
+                                      ...x,
+                                      sets: x.sets.map((row) =>
+                                        row.id === s.id ? { ...row, isWarmup } : row,
+                                      ),
+                                    }
+                                  : x,
+                              ),
+                            }
+                          : w,
+                      );
+                      updateSet(s.id, { isWarmup });
+                    }}
+                  />
+                  <span className="text-sm text-zinc-300">Розминка</span>
+                </label>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
                   <th className="w-[2.75rem] py-2 pr-1 text-center">Пор.</th>
@@ -798,7 +970,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           </div>
           <button
             type="button"
-            className="mt-4 text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:text-[#ff6b6b]"
+            className="mt-4 min-h-[44px] touch-manipulation text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:text-[#ff6b6b] md:min-h-0"
             onClick={() => addSet(ex.id)}
           >
             + Підхід

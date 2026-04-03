@@ -9,7 +9,7 @@ export default async function Home() {
   if (user) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-start px-4 pt-10 pb-[calc(3rem+env(safe-area-inset-bottom,0px))] sm:justify-center sm:py-16 sm:pb-16">
+    <main className="flex min-h-dvh flex-col items-center justify-start px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:justify-center sm:py-16 sm:pb-16">
       <Suspense fallback={null}>
         <LoginToast />
       </Suspense>

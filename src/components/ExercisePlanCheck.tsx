@@ -89,7 +89,7 @@ export function ExercisePlanCheck({
         aria-checked={done}
         disabled={pending}
         onClick={toggle}
-        className={`group flex w-full max-w-md items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e31e24]/35 disabled:opacity-60 ${
+        className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e31e24]/35 disabled:opacity-60 md:max-w-md ${
           done
             ? "border-[#e31e24]/45 bg-[#e31e24]/[0.12] shadow-[0_0_24px_-8px_rgba(227,30,36,0.35)]"
             : "border-white/[0.08] bg-black/35 hover:border-white/15 hover:bg-black/45"
