@@ -1,40 +1,67 @@
 "use client";
 
+import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
 
 /**
- * POST на login-form / register-form. Валідація в клієнті + тости (без нативних підказок браузера).
+ * Логін/реєстрація через fetch + редірект у верхньому вікні (без нативного POST форми),
+ * щоб уникати обмежень same-origin для навігації з iframe / chrome-error.
  */
 export function AuthForm() {
   const { error } = useToast();
+  const [pending, setPending] = useState(false);
 
   return (
     <form
       className="w-full max-w-md space-y-6 rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-5 shadow-2xl shadow-black/60 sm:space-y-8 sm:p-8"
-      method="post"
       noValidate
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
+        e.preventDefault();
         const form = e.currentTarget;
-        const login = String(new FormData(form).get("login") ?? "").trim();
         const ne = e.nativeEvent as SubmitEvent;
         const submitter = ne.submitter as HTMLButtonElement | null;
-        const action = submitter?.getAttribute("formaction") ?? "";
-        const isRegister = action.includes("register-form");
+        const mode = submitter?.dataset.action ?? "register";
+        const isRegister = mode === "register";
 
+        const login = String(new FormData(form).get("login") ?? "").trim();
         if (!login) {
-          e.preventDefault();
           error("Введіть логін.");
           return;
         }
         if (login.length > 40) {
-          e.preventDefault();
           error("Логін занадто довгий (максимум 40 символів).");
           return;
         }
         if (isRegister && login.length < 2) {
-          e.preventDefault();
           error("Логін занадто короткий (мінімум 2 символи для реєстрації).");
           return;
+        }
+
+        const endpoint = isRegister ? "/api/auth/register-form" : "/api/auth/login-form";
+        setPending(true);
+        try {
+          const fd = new FormData(form);
+          const res = await fetch(endpoint, {
+            method: "POST",
+            body: fd,
+            credentials: "include",
+            redirect: "manual",
+          });
+
+          if (res.status === 303 || res.status === 302 || res.status === 307 || res.status === 308) {
+            const loc = res.headers.get("Location");
+            if (loc) {
+              const next = new URL(loc, window.location.origin).href;
+              window.location.assign(next);
+              return;
+            }
+          }
+
+          error("Не вдалося виконати запит. Спробуй ще раз.");
+        } catch {
+          error("Мережа недоступна. Перевір з'єднання.");
+        } finally {
+          setPending(false);
         }
       }}
     >
@@ -65,22 +92,23 @@ export function AuthForm() {
           className="min-h-[48px] w-full rounded-md border border-white/10 bg-black/50 px-4 py-3 text-base text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/20"
           placeholder="наприклад, anatolich"
           autoComplete="username"
+          disabled={pending}
         />
       </div>
       <div className="relative z-10 flex flex-col gap-3 sm:flex-row">
         <button
           type="submit"
-          formAction="/api/auth/register-form"
-          formMethod="post"
-          className="min-h-[48px] flex-1 touch-manipulation rounded-md bg-[#e31e24] px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/40 transition active:bg-[#a0151a]"
+          data-action="register"
+          disabled={pending}
+          className="min-h-[48px] flex-1 touch-manipulation rounded-md bg-[#e31e24] px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/40 transition enabled:active:bg-[#a0151a] disabled:opacity-50"
         >
           Реєстрація
         </button>
         <button
           type="submit"
-          formAction="/api/auth/login-form"
-          formMethod="post"
-          className="min-h-[48px] flex-1 touch-manipulation rounded-md border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold uppercase tracking-wider text-zinc-200 transition active:bg-white/15"
+          data-action="login"
+          disabled={pending}
+          className="min-h-[48px] flex-1 touch-manipulation rounded-md border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold uppercase tracking-wider text-zinc-200 transition enabled:active:bg-white/15 disabled:opacity-50"
         >
           Увійти
         </button>
