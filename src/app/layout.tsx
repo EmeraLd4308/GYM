@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Rubik } from "next/font/google";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const body = Inter({
@@ -17,6 +18,16 @@ const display = Rubik({
 export const metadata: Metadata = {
   title: "SBD · Облік тренувань",
   description: "Журнал тренувань: присід, жим, тяга та твій план.",
+  applicationName: "SBD",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SBD",
+  },
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon.svg" }],
+  },
 };
 
 export const viewport = {
@@ -33,7 +44,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uk" className={`${body.variable} ${display.variable} min-h-dvh antialiased`}>
-      <body className="flex min-h-dvh flex-col font-sans">{children}</body>
+      <body className="flex min-h-dvh flex-col font-sans">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

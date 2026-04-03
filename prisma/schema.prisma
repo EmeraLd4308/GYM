@@ -64,6 +64,8 @@ model Workout {
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   date       DateTime          @default(now())
   title      String?
+  /** Нотатки (самопочуття, сон, RPE тощо) — необов'язково. */
+  notes      String?           @db.Text
   templateId String?
   exercises  WorkoutExercise[]
   createdAt  DateTime          @default(now())
@@ -79,6 +81,8 @@ model WorkoutExercise {
   sortOrder Int
   name      String
   baseLift  BaseLift       @default(NONE)
+  /** Для небазових вправ: «зроблено з плану» (синхронізується між пристроями). */
+  planDone  Boolean        @default(false)
   sets      ExerciseSet[]
 
   @@index([workoutId])

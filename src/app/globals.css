@@ -65,6 +65,21 @@ select {
   animation: content-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast-slide-in {
+  animation: toast-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* Картки з ледь помітним градієнтом по краю */
 .sbd-card {
   border-radius: 0.75rem;
@@ -101,4 +116,12 @@ select {
   height: 2px;
   border-radius: 1px;
   background: linear-gradient(90deg, transparent, #e31e24, transparent);
+}
+
+/* Next.js dev: кнопка з логотипом «N» (якщо в light DOM) — див. також MobileHideNextDevLogo */
+@media (max-width: 767px) {
+  #next-logo,
+  button[data-nextjs-dev-tools-button] {
+    display: none !important;
+  }
 }

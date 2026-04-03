@@ -14,30 +14,53 @@ export function newSessionToken(): string {
   return randomBytes(32).toString("hex");
 }
 
-export async function createSession(userId: string): Promise<string> {
+/** Чи з’єднання HTTPS (з урахуванням проксі). На http://localhost / next start без TLS cookie з Secure не зберігається. */
+export function isRequestHttps(req: Request): boolean {
+  const forwarded = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwarded) return forwarded === "https";
+  try {
+    return new URL(req.url).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function getCookieOptionsForRequest(req: Request) {
+  return {
+    httpOnly: false,
+    secure: isRequestHttps(req),
+    sameSite: "lax" as const,
+    maxAge: SESSION_SECONDS,
+    path: "/",
+  };
+}
+
+export function getClearCookieOptionsForRequest(req: Request) {
+  return {
+    httpOnly: false,
+    secure: isRequestHttps(req),
+    sameSite: "lax" as const,
+    maxAge: 0,
+    path: "/",
+  };
+}
+
+/** Лише БД + токен (cookie ставить викликник — важливо для POST + redirect на мобілці). */
+export async function createSessionRecord(userId: string): Promise<string> {
   const token = newSessionToken();
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + SESSION_SECONDS * 1000);
   await prisma.session.create({
     data: { userId, tokenHash, expiresAt },
   });
-  const store = await cookies();
-  // httpOnly: false — сумісність із моб. Safari/WebView (часто ріже httpOnly після XHR + редірект).
-  // Токен довгий випадковий; клієнт додатково ставить cookie через persistSessionCookie.
-  store.set(SESSION_COOKIE, token, {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: SESSION_SECONDS,
-    path: "/",
-  });
   return token;
 }
 
-export async function destroySession(): Promise<void> {
-  const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
-  store.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
+/**
+ * Видалити сесію в БД за значенням cookie (без зміни Set-Cookie).
+ * Очистити cookie — лише через `NextResponse.cookies.set` у Route Handler.
+ */
+export async function deleteSessionInDbForCookieToken(token: string | undefined): Promise<void> {
   if (!token) return;
   const tokenHash = hashToken(token);
   await prisma.session.deleteMany({ where: { tokenHash } });
@@ -56,7 +79,7 @@ export async function getSessionUser(): Promise<User | null> {
     if (session) {
       await prisma.session.deleteMany({ where: { tokenHash } });
     }
-    store.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
+    /** Не викликати cookies().set() тут: getSessionUser використовується в RSC, а зміну cookie дозволено лише в Route Handler / Server Action. */
     return null;
   }
   return session.user;

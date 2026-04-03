@@ -18,5 +18,8 @@ export function persistSessionCookie(token: string): void {
 
 export function clearSessionCookieClient(): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${SESSION_COOKIE_NAME}=; Path=/; Max-Age=0`;
+  const secure = window.location.protocol === "https:";
+  const parts = [`${SESSION_COOKIE_NAME}=`, "Path=/", "Max-Age=0", "SameSite=Lax"];
+  if (secure) parts.push("Secure");
+  document.cookie = parts.join("; ");
 }

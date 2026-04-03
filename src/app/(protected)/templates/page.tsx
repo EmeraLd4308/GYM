@@ -17,12 +17,17 @@ export default async function TemplatesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="max-w-xl text-zinc-500">
-          Структура на тиждень або окремі дні — як зручно. Шаблон можна вибрати при створенні
-          тренування.
-        </p>
-        <Link href="/templates/new" className={`${btnPrimary} shrink-0`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-bold uppercase tracking-tight text-white md:text-4xl">
+            Шаблони тренувань
+          </h1>
+          <p className="mt-3 max-w-xl text-zinc-500">
+            Структура на тиждень або окремі дні — як зручно. Шаблон можна вибрати при створенні
+            тренування.
+          </p>
+        </div>
+        <Link href="/templates/new" className={`${btnPrimary} inline-flex min-h-[44px] shrink-0 items-center justify-center`}>
           Новий шаблон
         </Link>
       </div>

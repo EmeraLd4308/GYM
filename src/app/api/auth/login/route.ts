@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/auth";
+import { createSessionRecord, getCookieOptionsForRequest, SESSION_COOKIE } from "@/lib/auth";
 import { normalizeLogin } from "@/lib/login-utils";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +27,13 @@ export async function POST(req: Request) {
         { status: 404, headers: noStore },
       );
     }
-    const token = await createSession(user.id);
-    return NextResponse.json(
+    const token = await createSessionRecord(user.id);
+    const res = NextResponse.json(
       { ok: true, token, user: { id: user.id, login: user.login } },
       { headers: noStore },
     );
+    res.cookies.set(SESSION_COOKIE, token, getCookieOptionsForRequest(req));
+    return res;
   } catch {
     return NextResponse.json({ error: "Помилка сервера." }, { status: 500, headers: noStore });
   }

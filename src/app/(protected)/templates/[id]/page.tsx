@@ -18,6 +18,7 @@ export default async function EditTemplatePage({
   if (!template) notFound();
 
   const initialRows = template.exercises.map((e) => ({
+    id: e.id,
     name: e.name,
     baseLift: e.baseLift,
   }));

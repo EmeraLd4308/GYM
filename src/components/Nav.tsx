@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { clearSessionCookieClient } from "@/lib/session-client";
 
 const base =
   "relative text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-white";
@@ -10,28 +9,23 @@ const base =
 export function Nav({ login }: { login: string }) {
   const pathname = usePathname();
 
-  async function logout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } finally {
-      clearSessionCookieClient();
-      window.location.assign("/");
-    }
-  }
-
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
     if (href === "/templates") return pathname.startsWith("/templates");
-    if (href === "/workouts/new")
-      return pathname === "/workouts/new" || /^\/workouts\/[^/]+$/.test(pathname);
+    if (href === "/workouts")
+      return (
+        pathname === "/workouts" || pathname === "/workouts/new" || /^\/workouts\/[^/]+$/.test(pathname)
+      );
     if (href === "/stats") return pathname === "/stats";
+    if (href === "/calendar") return pathname === "/calendar";
     return pathname === href;
   }
 
   const links = [
     { href: "/dashboard", label: "Головна" },
+    { href: "/calendar", label: "Календар" },
     { href: "/templates", label: "Шаблони" },
-    { href: "/workouts/new", label: "Тренування" },
+    { href: "/workouts", label: "Тренування" },
     { href: "/stats", label: "Статистика" },
   ] as const;
 
@@ -59,13 +53,14 @@ export function Nav({ login }: { login: string }) {
               {label}
             </Link>
           ))}
-          <button
-            type="button"
-            className="text-sm font-medium uppercase tracking-wide text-zinc-600 transition-colors hover:text-zinc-300"
-            onClick={logout}
-          >
-            Вийти
-          </button>
+          <form action="/api/auth/logout" method="post" className="inline">
+            <button
+              type="submit"
+              className="text-sm font-medium uppercase tracking-wide text-zinc-600 transition-colors hover:text-zinc-300"
+            >
+              Вийти
+            </button>
+          </form>
         </nav>
       </div>
     </header>

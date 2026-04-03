@@ -4,6 +4,8 @@ import type { BaseLift } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
+import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
+import { workoutListWhere } from "@/lib/workout-list-where";
 
 const createSchema = z.object({
   templateId: z.string().cuid().optional(),
@@ -12,21 +14,37 @@ const createSchema = z.object({
   date: z.string().optional(),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
-  const workouts = await prisma.workout.findMany({
-    where: { userId: user.id },
-    orderBy: { date: "desc" },
-    take: 50,
-    include: {
-      exercises: {
-        orderBy: { sortOrder: "asc" },
-        include: { sets: { orderBy: { sortOrder: "asc" } } },
+
+  const { searchParams } = new URL(req.url);
+  const filters = parseStatsFiltersFromSearchParams(Object.fromEntries(searchParams.entries()));
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const rawPs = parseInt(searchParams.get("pageSize") ?? "100", 10);
+  const pageSize = Math.min(500, Math.max(1, Number.isFinite(rawPs) ? rawPs : 100));
+
+  const where = workoutListWhere(user.id, filters);
+  const [total, workouts] = await prisma.$transaction([
+    prisma.workout.count({ where }),
+    prisma.workout.findMany({
+      where,
+      orderBy: { date: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        exercises: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            _count: { select: { sets: true } },
+          },
+        },
       },
-    },
-  });
-  return NextResponse.json({ workouts });
+    }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  return NextResponse.json({ workouts, total, page, pageSize, totalPages });
 }
 
 export async function POST(req: Request) {

@@ -8,6 +8,7 @@ const patchSchema = z.object({
   title: z.string().trim().max(200).nullable().optional(),
   /** YYYY-MM-DD або ISO */
   date: z.string().optional(),
+  notes: z.string().max(8000).nullable().optional(),
 });
 
 export async function GET(
@@ -45,7 +46,7 @@ export async function PATCH(
     if (!parsed.success) {
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
     }
-    const { title, date: dateRaw } = parsed.data;
+    const { title, date: dateRaw, notes } = parsed.data;
     let nextDate: Date | undefined;
     if (dateRaw !== undefined && dateRaw.trim() !== "") {
       try {
@@ -59,6 +60,7 @@ export async function PATCH(
       data: {
         ...(title !== undefined ? { title } : {}),
         ...(nextDate !== undefined ? { date: nextDate } : {}),
+        ...(notes !== undefined ? { notes } : {}),
       },
       include: {
         exercises: {
