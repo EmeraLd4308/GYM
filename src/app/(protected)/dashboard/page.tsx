@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { localDayBoundsFromInput, todayDateInput } from "@/lib/date-local";
+import { effectiveCalendarDayFromRequest } from "@/lib/calendar-day-cookie";
+import { localDayBoundsFromInput } from "@/lib/date-local";
 import { DashboardDuplicateActions } from "@/components/DashboardDuplicateActions";
 
 export default async function DashboardPage() {
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
     },
   } as const;
 
-  const todayStr = todayDateInput();
+  const todayStr = await effectiveCalendarDayFromRequest();
   const { start: todayStart, end: todayEnd } = localDayBoundsFromInput(todayStr);
 
   /* Окремо від «останніх 16»: майбутні дати йдуть першими в desc, сьогодні могло випасти з take(16). */
