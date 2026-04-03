@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Vercel (Linux / OpenSSL 3) — без цього часто «Engine not found» і 500 на API
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
