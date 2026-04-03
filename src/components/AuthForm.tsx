@@ -90,7 +90,7 @@ export function AuthForm() {
           autoCorrect="off"
           spellCheck="false"
           className="min-h-[52px] w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-base text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/50 focus:ring-2 focus:ring-[#e31e24]/20"
-          placeholder="Як тебе звати в апі"
+          placeholder="Придумай нік або введи ім'я"
           autoComplete="username"
           disabled={pending}
         />

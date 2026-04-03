@@ -29,6 +29,14 @@ export function todayDateInput(): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Межі календарного дня YYYY-MM-DD у локальному часі сервера (для Prisma `date` gte/lte). */
+export function localDayBoundsFromInput(yyyyMmDd: string): { start: Date; end: Date } {
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  const start = new Date(y, m - 1, d, 0, 0, 0, 0);
+  const end = new Date(y, m - 1, d, 23, 59, 59, 999);
+  return { start, end };
+}
+
 /** Вчора (локальний календар) — для дублювання тренування. */
 export function yesterdayDateInput(): string {
   const d = new Date();

@@ -1,26 +1,40 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { formatDateForInput, todayDateInput } from "@/lib/date-local";
+import { localDayBoundsFromInput, todayDateInput } from "@/lib/date-local";
 import { DashboardDuplicateActions } from "@/components/DashboardDuplicateActions";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const recent = await prisma.workout.findMany({
-    where: { userId: user.id },
-    orderBy: { date: "desc" },
-    take: 16,
-    include: {
-      exercises: {
-        include: { sets: true },
-      },
+  const includeSets = {
+    exercises: {
+      include: { sets: true },
     },
-  });
+  } as const;
 
   const todayStr = todayDateInput();
-  const todayWorkouts = recent.filter((w) => formatDateForInput(w.date.toISOString()) === todayStr);
+  const { start: todayStart, end: todayEnd } = localDayBoundsFromInput(todayStr);
+
+  /* Окремо від «останніх 16»: майбутні дати йдуть першими в desc, сьогодні могло випасти з take(16). */
+  const [todayWorkouts, recent] = await Promise.all([
+    prisma.workout.findMany({
+      where: {
+        userId: user.id,
+        date: { gte: todayStart, lte: todayEnd },
+      },
+      orderBy: { date: "asc" },
+      include: includeSets,
+    }),
+    prisma.workout.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+      take: 16,
+      include: includeSets,
+    }),
+  ]);
+
   const todayIds = new Set(todayWorkouts.map((w) => w.id));
   const otherRecent = recent.filter((w) => !todayIds.has(w.id)).slice(0, 6);
 
@@ -47,7 +61,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const hasAnyWorkout = recent.length > 0;
+  const hasAnyWorkout = todayWorkouts.length > 0 || recent.length > 0;
 
   return (
     <div className="space-y-8 md:space-y-10">
