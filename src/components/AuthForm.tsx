@@ -41,20 +41,27 @@ export function AuthForm() {
         setPending(true);
         try {
           const fd = new FormData(form);
+          /* follow: після POST сервер відповідає 303; manual дає opaqueredirect/status 0 у частини браузерів — без Location. */
           const res = await fetch(endpoint, {
             method: "POST",
             body: fd,
             credentials: "include",
-            redirect: "manual",
+            redirect: "follow",
           });
 
-          if (res.status === 303 || res.status === 302 || res.status === 307 || res.status === 308) {
-            const loc = res.headers.get("Location");
-            if (loc) {
-              const next = new URL(loc, window.location.origin).href;
-              window.location.assign(next);
-              return;
-            }
+          const finalUrl = new URL(res.url, window.location.origin);
+          if (finalUrl.pathname === "/dashboard" || finalUrl.pathname.startsWith("/dashboard/")) {
+            window.location.assign(res.url);
+            return;
+          }
+          if (finalUrl.pathname === "/" && finalUrl.searchParams.has("err")) {
+            window.location.assign(res.url);
+            return;
+          }
+
+          if (!res.ok) {
+            error("Сервер відхилив запит. Перевір логи Vercel або спробуй пізніше.");
+            return;
           }
 
           error("Не вдалося виконати запит. Спробуй ще раз.");
