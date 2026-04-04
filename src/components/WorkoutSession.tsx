@@ -380,12 +380,47 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      set?: {
+        id: string;
+        sortOrder: number;
+        weightKg: unknown;
+        reps: number;
+        isWarmup: boolean;
+      };
+    };
     if (!res.ok) {
-      const data = await res.json();
       toastError(data.error ?? "Помилка оновлення.");
+      await load();
       return;
     }
-    await load();
+    const raw = data.set;
+    if (!raw) {
+      await load();
+      return;
+    }
+    /* Не викликати load(): повне перезавантаження з сервера скидало б інші ще не збережені поля (вага/повтори) і давало гонки при blur. */
+    setWorkout((w) => {
+      if (!w) return w;
+      return {
+        ...w,
+        exercises: w.exercises.map((ex) => ({
+          ...ex,
+          sets: ex.sets.map((row) =>
+            row.id === setId
+              ? {
+                  ...row,
+                  weightKg: formatWeightForInput(raw.weightKg),
+                  reps: raw.reps,
+                  isWarmup: raw.isWarmup,
+                  sortOrder: raw.sortOrder,
+                }
+              : row,
+          ),
+        })),
+      };
+    });
   }
 
   async function deleteSet(setId: string) {
@@ -701,10 +736,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                             : w,
                         );
                       }}
-                      onBlur={() => {
-                        const num = parseFloat(s.weightKg.replace(",", "."));
+                      onBlur={(e) => {
+                        const num = parseFloat(e.target.value.replace(",", "."));
                         if (!Number.isFinite(num)) return;
-                        updateSet(s.id, { weightKg: num });
+                        void updateSet(s.id, { weightKg: num });
                       }}
                     />
                   </div>
@@ -741,8 +776,9 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                             : w,
                         );
                       }}
-                      onBlur={() => {
-                        let reps = s.reps;
+                      onBlur={(e) => {
+                        const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                        let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
                         if (reps < 1) reps = 1;
                         if (reps > 999) reps = 999;
                         if (reps !== s.reps) {
@@ -764,7 +800,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               : w,
                           );
                         }
-                        updateSet(s.id, { reps });
+                        void updateSet(s.id, { reps });
                       }}
                     />
                   </div>
@@ -863,10 +899,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               : w,
                           );
                         }}
-                        onBlur={() => {
-                          const num = parseFloat(s.weightKg.replace(",", "."));
+                        onBlur={(e) => {
+                          const num = parseFloat(e.target.value.replace(",", "."));
                           if (!Number.isFinite(num)) return;
-                          updateSet(s.id, { weightKg: num });
+                          void updateSet(s.id, { weightKg: num });
                         }}
                       />
                     </td>
@@ -899,8 +935,9 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               : w,
                           );
                         }}
-                        onBlur={() => {
-                          let reps = s.reps;
+                        onBlur={(e) => {
+                          const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                          let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
                           if (reps < 1) reps = 1;
                           if (reps > 999) reps = 999;
                           if (reps !== s.reps) {
@@ -922,7 +959,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                                 : w,
                             );
                           }
-                          updateSet(s.id, { reps });
+                          void updateSet(s.id, { reps });
                         }}
                       />
                     </td>
