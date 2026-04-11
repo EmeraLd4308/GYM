@@ -8,12 +8,10 @@ const bodySchema = z.object({
   weightKg: z.number(),
   reps: z.number().int().min(1).max(999),
   isWarmup: z.boolean().optional(),
+  rpe: z.number().min(1).max(10).optional(),
 });
 
-export async function POST(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id: exerciseId } = await ctx.params;
@@ -38,6 +36,7 @@ export async function POST(
         weightKg: new Prisma.Decimal(parsed.data.weightKg),
         reps: parsed.data.reps,
         isWarmup: parsed.data.isWarmup ?? false,
+        ...(parsed.data.rpe !== undefined ? { rpe: new Prisma.Decimal(parsed.data.rpe) } : {}),
       },
     });
     return NextResponse.json({ set });

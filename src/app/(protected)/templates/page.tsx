@@ -27,7 +27,10 @@ export default async function TemplatesPage() {
             тренування.
           </p>
         </div>
-        <Link href="/templates/new" className={`${btnPrimary} inline-flex min-h-[44px] shrink-0 items-center justify-center`}>
+        <Link
+          href="/templates/new"
+          className={`${btnPrimary} inline-flex min-h-[44px] shrink-0 items-center justify-center`}
+        >
           Новий шаблон
         </Link>
       </div>

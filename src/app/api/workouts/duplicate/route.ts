@@ -4,18 +4,22 @@ import type { BaseLift } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
+import { rateLimitJson } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   sourceWorkoutId: z.string().cuid(),
-  /** YYYY-MM-DD — день нового тренування; за замовчуванням сьогодні (локальна дата на сервері через parse). */
+
   targetDate: z.string().optional(),
 });
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+
+  const limited = rateLimitJson(req, "workouts-duplicate", 20, 60_000);
+  if (limited) return limited;
 
   let json: unknown;
   try {
@@ -75,6 +79,7 @@ export async function POST(req: Request) {
               weightKg: s.weightKg,
               reps: s.reps,
               isWarmup: s.isWarmup,
+              ...(s.rpe != null ? { rpe: s.rpe } : {}),
             })),
           },
         })),

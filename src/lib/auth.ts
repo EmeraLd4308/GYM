@@ -14,7 +14,6 @@ export function newSessionToken(): string {
   return randomBytes(32).toString("hex");
 }
 
-/** Чи з’єднання HTTPS (з урахуванням проксі). На http://localhost / next start без TLS cookie з Secure не зберігається. */
 export function isRequestHttps(req: Request): boolean {
   const forwarded = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   if (forwarded) return forwarded === "https";
@@ -45,7 +44,6 @@ export function getClearCookieOptionsForRequest(req: Request) {
   };
 }
 
-/** Лише БД + токен (cookie ставить викликник — важливо для POST + redirect на мобілці). */
 export async function createSessionRecord(userId: string): Promise<string> {
   const token = newSessionToken();
   const tokenHash = hashToken(token);
@@ -56,10 +54,6 @@ export async function createSessionRecord(userId: string): Promise<string> {
   return token;
 }
 
-/**
- * Видалити сесію в БД за значенням cookie (без зміни Set-Cookie).
- * Очистити cookie — лише через `NextResponse.cookies.set` у Route Handler.
- */
 export async function deleteSessionInDbForCookieToken(token: string | undefined): Promise<void> {
   if (!token) return;
   const tokenHash = hashToken(token);
@@ -79,7 +73,7 @@ export async function getSessionUser(): Promise<User | null> {
     if (session) {
       await prisma.session.deleteMany({ where: { tokenHash } });
     }
-    /** Не викликати cookies().set() тут: getSessionUser використовується в RSC, а зміну cookie дозволено лише в Route Handler / Server Action. */
+
     return null;
   }
   return session.user;

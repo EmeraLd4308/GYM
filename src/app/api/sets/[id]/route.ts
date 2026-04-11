@@ -9,12 +9,10 @@ const patchSchema = z.object({
   reps: z.number().int().min(1).max(999).optional(),
   isWarmup: z.boolean().optional(),
   sortOrder: z.number().int().min(0).optional(),
+  rpe: z.union([z.number().min(1).max(10), z.null()]).optional(),
 });
 
-export async function PATCH(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;
@@ -39,6 +37,7 @@ export async function PATCH(
         ...(d.reps !== undefined ? { reps: d.reps } : {}),
         ...(d.isWarmup !== undefined ? { isWarmup: d.isWarmup } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
+        ...(d.rpe !== undefined ? { rpe: d.rpe === null ? null : new Prisma.Decimal(d.rpe) } : {}),
       },
     });
     return NextResponse.json({ set });
@@ -47,10 +46,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;

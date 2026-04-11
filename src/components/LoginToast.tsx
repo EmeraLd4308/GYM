@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useToast } from "@/components/ToastProvider";
 
-/** Показує помилку логіну/реєстрації тостом і прибирає ?err з URL. */
 export function LoginToast() {
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -7,10 +7,12 @@ import { parseWorkoutDateInput } from "@/lib/date-local";
 export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
-  day: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+  day: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-/** Один тренування за календарним днем (локально), якщо їх кілька — останнє за createdAt. */
 export async function GET(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
@@ -23,8 +25,24 @@ export async function GET(req: Request) {
 
   try {
     const anchor = parseWorkoutDateInput(parsed.data.day);
-    const dayStart = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), 0, 0, 0, 0);
-    const dayEnd = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), 23, 59, 59, 999);
+    const dayStart = new Date(
+      anchor.getFullYear(),
+      anchor.getMonth(),
+      anchor.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
+    const dayEnd = new Date(
+      anchor.getFullYear(),
+      anchor.getMonth(),
+      anchor.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
 
     const workout = await prisma.workout.findFirst({
       where: {

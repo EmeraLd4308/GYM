@@ -38,7 +38,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const existing = new Set(exercise.sets.map((s) => s.id));
 
   if (orderedIds.length !== existing.size || !orderedIds.every((id) => existing.has(id))) {
-    return NextResponse.json({ error: "Список підходів має збігатися з поточним." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Список підходів має збігатися з поточним." },
+      { status: 400 },
+    );
   }
 
   await prisma.$transaction(

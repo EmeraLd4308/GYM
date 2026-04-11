@@ -17,7 +17,6 @@ function readCalDayCookie(): string | undefined {
   return undefined;
 }
 
-/** Синхронізує cookie з локальним днем і перезавантажує RSC на /dashboard, якщо перший рендер був без cookie або після півночі. */
 export function CalendarDaySync() {
   const router = useRouter();
   const pathname = usePathname();

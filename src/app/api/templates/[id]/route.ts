@@ -14,10 +14,7 @@ const patchSchema = z.object({
   exercises: z.array(exerciseSchema).min(1).optional(),
 });
 
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;
@@ -29,10 +26,7 @@ export async function GET(
   return NextResponse.json({ template });
 }
 
-export async function PATCH(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;
@@ -77,10 +71,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;

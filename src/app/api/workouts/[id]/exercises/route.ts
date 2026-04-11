@@ -9,10 +9,7 @@ const bodySchema = z.object({
   baseLift: z.enum(["NONE", "BENCH", "SQUAT", "DEADLIFT"]),
 });
 
-export async function POST(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id: workoutId } = await ctx.params;

@@ -8,9 +8,6 @@ const storageKey = (workoutId: string, exerciseId: string) =>
 
 const migratedFromLs = new Set<string>();
 
-/**
- * «Зроблено з плану» для небазових вправ — зберігається в БД; одноразова міграція з localStorage.
- */
 export function ExercisePlanCheck({
   workoutId,
   exerciseId,
@@ -52,9 +49,7 @@ export function ExercisePlanCheck({
           }
         })
         .catch(() => {});
-    } catch {
-      /* private mode */
-    }
+    } catch {}
   }, [workoutId, exerciseId, planDone, onPlanDoneChange]);
 
   async function toggle() {
@@ -104,13 +99,21 @@ export function ExercisePlanCheck({
           aria-hidden
         >
           {done ? (
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : null}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-200">З плану</span>
+          <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-200">
+            З плану
+          </span>
           <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500">
             Познач для себе, що вправу з плану виконано.
           </span>

@@ -4,7 +4,7 @@ import { startOfWeek } from "date-fns";
 type ExerciseWithSets = WorkoutExercise & { sets: ExerciseSet[] };
 type WorkoutWithEx = Workout & { exercises: ExerciseWithSets[] };
 
-export type WeeklyVolumeRow = {
+export type WeeklySbdPeakRow = {
   weekStartIso: string;
   weekLabel: string;
   bench: number;
@@ -12,13 +12,14 @@ export type WeeklyVolumeRow = {
   deadlift: number;
 };
 
-function addVolume(
-  map: Map<string, WeeklyVolumeRow>,
+function mergePeakKg(
+  map: Map<string, WeeklySbdPeakRow>,
   weekKey: string,
   weekLabel: string,
   lift: BaseLift,
-  volume: number,
+  kg: number,
 ) {
+  if (!Number.isFinite(kg) || kg < 0) return;
   let row = map.get(weekKey);
   if (!row) {
     row = {
@@ -30,14 +31,13 @@ function addVolume(
     };
     map.set(weekKey, row);
   }
-  if (lift === "BENCH") row.bench += volume;
-  else if (lift === "SQUAT") row.squat += volume;
-  else if (lift === "DEADLIFT") row.deadlift += volume;
+  if (lift === "BENCH") row.bench = Math.max(row.bench, kg);
+  else if (lift === "SQUAT") row.squat = Math.max(row.squat, kg);
+  else if (lift === "DEADLIFT") row.deadlift = Math.max(row.deadlift, kg);
 }
 
-/** Робочі підходи: без розминки; об'єм = вага × повтори. Окремо по кожній базовій вправі. */
-export function buildWeeklyVolumeSeries(workouts: WorkoutWithEx[]): WeeklyVolumeRow[] {
-  const map = new Map<string, WeeklyVolumeRow>();
+export function buildWeeklySbdPeakSeries(workouts: WorkoutWithEx[]): WeeklySbdPeakRow[] {
+  const map = new Map<string, WeeklySbdPeakRow>();
 
   for (const w of workouts) {
     const weekStart = startOfWeek(w.date, { weekStartsOn: 1 });
@@ -54,8 +54,7 @@ export function buildWeeklyVolumeSeries(workouts: WorkoutWithEx[]): WeeklyVolume
       if (ex.baseLift === "NONE") continue;
       for (const s of ex.sets) {
         if (s.isWarmup) continue;
-        const vol = Number(s.weightKg) * s.reps;
-        addVolume(map, weekKey, weekLabel, ex.baseLift, vol);
+        mergePeakKg(map, weekKey, weekLabel, ex.baseLift, Number(s.weightKg));
       }
     }
   }

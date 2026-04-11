@@ -4,19 +4,17 @@ import { addWeeks, startOfWeek } from "date-fns";
 export type WeeklyAttendanceRow = {
   weekStartIso: string;
   weekLabel: string;
-  /** Скільки тренувань записано на цей тиждень (по даті тренування). */
+
   workoutCount: number;
-  /** Внесок у криву: +1 якщо ≥3 тренувань, інакше −(3 − count). */
+
   weekDelta: number;
-  /** Накопичений бал від першого тижня в історії. */
+
   cumulative: number;
 };
 
-/**
- * Ціль: мінімум 3 тренування на тиждень.
- * За тиждень: якщо тренувань ≥3 — лінія росте (+1); якщо менше — падає на величину «нестачі» до 3.
- */
-export function buildWeeklyAttendanceSeries(workouts: Pick<Workout, "date">[]): WeeklyAttendanceRow[] {
+export function buildWeeklyAttendanceSeries(
+  workouts: Pick<Workout, "date">[],
+): WeeklyAttendanceRow[] {
   if (workouts.length === 0) return [];
 
   const now = new Date();

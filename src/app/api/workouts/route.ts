@@ -6,11 +6,12 @@ import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
 import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
 import { workoutListWhere } from "@/lib/workout-list-where";
+import { rateLimitJson } from "@/lib/rate-limit";
 
 const createSchema = z.object({
   templateId: z.string().cuid().optional(),
   title: z.string().trim().max(200).optional(),
-  /** YYYY-MM-DD або повний ISO — день тренування (можна наперед). */
+
   date: z.string().optional(),
 });
 
@@ -50,6 +51,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+
+  const limited = rateLimitJson(req, "workouts-create", 40, 60_000);
+  if (limited) return limited;
+
   try {
     const json = await req.json();
     const parsed = createSchema.safeParse(json);

@@ -15,6 +15,11 @@ describe("parseStatsFiltersFromSearchParams", () => {
     expect(out.weightMax).toBe(120.5);
   });
 
+  it("parses q as search", () => {
+    const out = parseStatsFiltersFromSearchParams({ q: "  жим  " });
+    expect(out.search).toBe("жим");
+  });
+
   it("returns empty object when params missing", () => {
     expect(parseStatsFiltersFromSearchParams({})).toEqual({});
   });

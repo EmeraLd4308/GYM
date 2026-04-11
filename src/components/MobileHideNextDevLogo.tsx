@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const STYLE_ID = "hide-next-dev-logo-mobile";
-/** Як Tailwind `max-md`: ширина менше 768px. */
+
 const MOBILE_MQ = "(max-width: 767px)";
 
 const css = `
@@ -40,10 +40,6 @@ function scanPortals(hide: boolean) {
   });
 }
 
-/**
- * Приховує індикатор Next.js Dev Tools (літера «N») на вузьких екранах.
- * Лише development; у production нічого не робить.
- */
 export function MobileHideNextDevLogo() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;

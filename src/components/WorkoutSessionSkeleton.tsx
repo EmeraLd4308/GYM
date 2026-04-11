@@ -1,4 +1,3 @@
-/** Плейсхолдер під час завантаження тренування. */
 export function WorkoutSessionSkeleton() {
   return (
     <div className="space-y-8">

@@ -8,7 +8,6 @@ const body = Inter({
   subsets: ["latin", "cyrillic"],
 });
 
-/** Стислі заголовки + кирилиця для укр. */
 const display = Rubik({
   variable: "--font-display",
   subsets: ["latin", "cyrillic"],

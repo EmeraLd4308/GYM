@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BASE_LIFT_OPTIONS, baseLiftLabel } from "@/lib/base-lift";
 import type { BaseLift } from "@prisma/client";
@@ -33,6 +34,8 @@ type SetRow = {
   weightKg: string;
   reps: number;
   isWarmup: boolean;
+
+  rpe: string;
 };
 
 type ExerciseRow = {
@@ -64,6 +67,13 @@ function formatWeightForInput(w: unknown): string {
   if (w == null) return "";
   const n = typeof w === "number" ? w : Number(w);
   if (Number.isNaN(n)) return String(w);
+  return String(n);
+}
+
+function formatRpeForInput(w: unknown): string {
+  if (w == null || w === "") return "";
+  const n = typeof w === "number" ? w : Number(w);
+  if (!Number.isFinite(n)) return "";
   return String(n);
 }
 
@@ -120,6 +130,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
             weightKg: unknown;
             reps: number;
             isWarmup: boolean;
+            rpe?: unknown;
           }>;
         }) => ({
           ...ex,
@@ -127,6 +138,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           sets: ex.sets.map((s) => ({
             ...s,
             weightKg: formatWeightForInput(s.weightKg),
+            rpe: formatRpeForInput(s.rpe),
           })),
         }),
       ),
@@ -357,10 +369,28 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   }
 
   async function addSet(exerciseId: string) {
+    const ex = workout?.exercises.find((e) => e.id === exerciseId);
+    let weightKg = 0;
+    let reps = 1;
+    let rpeBody: { rpe: number } | Record<string, never> = {};
+    if (ex?.sets.length) {
+      const sorted = [...ex.sets].sort((a, b) => a.sortOrder - b.sortOrder);
+      const prev = sorted[sorted.length - 1];
+      const raw = prev.weightKg.trim().replace(",", ".");
+      const w = raw === "" ? Number.NaN : parseFloat(raw);
+      if (Number.isFinite(w)) weightKg = w;
+      if (prev.reps >= 1 && prev.reps <= 999) reps = prev.reps;
+      const rRaw = prev.rpe.trim().replace(",", ".");
+      if (rRaw !== "") {
+        const r = parseFloat(rRaw);
+        if (Number.isFinite(r) && r >= 1 && r <= 10) rpeBody = { rpe: r };
+      }
+    }
+
     const res = await fetch(`/api/workout-exercises/${exerciseId}/sets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ weightKg: 0, reps: 1, isWarmup: false }),
+      body: JSON.stringify({ weightKg, reps, isWarmup: false, ...rpeBody }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -373,7 +403,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
 
   async function updateSet(
     setId: string,
-    patch: Partial<{ weightKg: number; reps: number; isWarmup: boolean }>,
+    patch: Partial<{ weightKg: number; reps: number; isWarmup: boolean; rpe: number | null }>,
   ) {
     const res = await fetch(`/api/sets/${setId}`, {
       method: "PATCH",
@@ -388,6 +418,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
         weightKg: unknown;
         reps: number;
         isWarmup: boolean;
+        rpe?: unknown;
       };
     };
     if (!res.ok) {
@@ -400,7 +431,6 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       await load();
       return;
     }
-    /* Не викликати load(): повне перезавантаження з сервера скидало б інші ще не збережені поля (вага/повтори) і давало гонки при blur. */
     setWorkout((w) => {
       if (!w) return w;
       return {
@@ -415,6 +445,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                   reps: raw.reps,
                   isWarmup: raw.isWarmup,
                   sortOrder: raw.sortOrder,
+                  rpe: formatRpeForInput(raw.rpe),
                 }
               : row,
           ),
@@ -526,7 +557,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           </button>
         </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="wdate">
+          <label
+            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+            htmlFor="wdate"
+          >
             Дата тренування
           </label>
           <input
@@ -546,7 +580,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           })}
         </p>
         <div className="mt-4 flex flex-col gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="wnotes">
+          <label
+            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+            htmlFor="wnotes"
+          >
             Нотатки (необов&apos;язково)
           </label>
           <textarea
@@ -593,354 +630,244 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={workout.exercises.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={workout.exercises.map((e) => e.id)}
+          strategy={verticalListSortingStrategy}
+        >
           <div className="space-y-8">
-          {workout.exercises.map((ex, exerciseIndex) => (
-            <SortableExerciseSection
-              key={ex.id}
-              id={ex.id}
-              canMoveUp={exerciseIndex > 0}
-              canMoveDown={exerciseIndex < workout.exercises.length - 1}
-              onMoveUp={() => moveExerciseRelative(ex.id, -1)}
-              onMoveDown={() => moveExerciseRelative(ex.id, 1)}
-            >
-          {ex.baseLift === "NONE" ? (
-            <ExercisePlanCheck
-              workoutId={workoutId}
-              exerciseId={ex.id}
-              planDone={ex.planDone}
-              onPlanDoneChange={(next) =>
-                setWorkout((w) =>
-                  w
-                    ? {
-                        ...w,
-                        exercises: w.exercises.map((row) =>
-                          row.id === ex.id ? { ...row, planDone: next } : row,
-                        ),
-                      }
-                    : w,
-                )
-              }
-            />
-          ) : null}
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
-            <div className="min-w-0 w-full flex-1 sm:max-w-xl">
-              <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
-                Назва вправи
-              </label>
-              <input
-                id={`ex-name-${ex.id}`}
-                type="text"
-                maxLength={200}
-                spellCheck={false}
-                autoCapitalize="sentences"
-                className="font-display w-full min-w-0 border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
-                value={ex.name}
-                onChange={(e) =>
-                  setWorkout((w) =>
-                    w
-                      ? {
-                          ...w,
-                          exercises: w.exercises.map((row) =>
-                            row.id === ex.id ? { ...row, name: e.target.value } : row,
-                          ),
-                        }
-                      : w,
-                  )
-                }
-                onBlur={() => patchExerciseName(ex.id, ex.name)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    (e.target as HTMLInputElement).blur();
-                  }
-                }}
-              />
-              <p className="mt-1 text-xs uppercase tracking-wider text-zinc-600">{baseLiftLabel(ex.baseLift)}</p>
-            </div>
-            <button
-              type="button"
-              className="min-h-[44px] shrink-0 self-start touch-manipulation text-xs font-medium uppercase tracking-wide text-red-400/90 hover:text-red-300 sm:min-h-0"
-              onClick={() => setConfirm({ kind: "ex", id: ex.id })}
-            >
-              Видалити вправу
-            </button>
-          </div>
-
-          <div className="space-y-3 md:hidden">
-            {ex.sets.map((s, setIndex) => (
-              <div
-                key={s.id}
-                className="rounded-xl border border-white/[0.1] bg-black/25 p-3"
+            {workout.exercises.map((ex, exerciseIndex) => (
+              <SortableExerciseSection
+                key={ex.id}
+                id={ex.id}
+                canMoveUp={exerciseIndex > 0}
+                canMoveDown={exerciseIndex < workout.exercises.length - 1}
+                onMoveUp={() => moveExerciseRelative(ex.id, -1)}
+                onMoveDown={() => moveExerciseRelative(ex.id, 1)}
               >
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wide text-zinc-500">
-                    Підхід {setIndex + 1}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      className={setMoveBtn}
-                      aria-label="Підхід вгору"
-                      disabled={setIndex === 0}
-                      onClick={() => moveSetRelative(ex.id, s.id, -1)}
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="button"
-                      className={setMoveBtn}
-                      aria-label="Підхід вниз"
-                      disabled={setIndex >= ex.sets.length - 1}
-                      onClick={() => moveSetRelative(ex.id, s.id, 1)}
-                    >
-                      ↓
-                    </button>
-                    <button
-                      type="button"
-                      className="min-h-9 min-w-9 touch-manipulation rounded-lg text-lg text-red-400/90 hover:bg-red-500/10 hover:text-red-300"
-                      aria-label="Видалити підхід"
-                      onClick={() => setConfirm({ kind: "set", id: s.id })}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="min-w-0 space-y-1">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`w-${s.id}`}>
-                      Вага (кг)
-                    </label>
-                    <input
-                      id={`w-${s.id}`}
-                      className={inpMobile}
-                      value={s.weightKg}
-                      inputMode="decimal"
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setWorkout((w) =>
-                          w
-                            ? {
-                                ...w,
-                                exercises: w.exercises.map((x) =>
-                                  x.id === ex.id
-                                    ? {
-                                        ...x,
-                                        sets: x.sets.map((row) =>
-                                          row.id === s.id ? { ...row, weightKg: v } : row,
-                                        ),
-                                      }
-                                    : x,
-                                ),
-                              }
-                            : w,
-                        );
-                      }}
-                      onBlur={(e) => {
-                        const num = parseFloat(e.target.value.replace(",", "."));
-                        if (!Number.isFinite(num)) return;
-                        void updateSet(s.id, { weightKg: num });
-                      }}
-                    />
-                  </div>
-                  <div className="min-w-0 space-y-1">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`r-${s.id}`}>
-                      Повтори
-                    </label>
-                    <input
-                      id={`r-${s.id}`}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      spellCheck={false}
-                      className={inpMobile}
-                      value={s.reps < 1 ? "" : String(s.reps)}
-                      onChange={(e) => {
-                        const t = e.target.value.replace(/\D/g, "").slice(0, 3);
-                        const num = t === "" ? 0 : Math.min(999, parseInt(t, 10) || 0);
-                        setWorkout((w) =>
-                          w
-                            ? {
-                                ...w,
-                                exercises: w.exercises.map((x) =>
-                                  x.id === ex.id
-                                    ? {
-                                        ...x,
-                                        sets: x.sets.map((row) =>
-                                          row.id === s.id ? { ...row, reps: num } : row,
-                                        ),
-                                      }
-                                    : x,
-                                ),
-                              }
-                            : w,
-                        );
-                      }}
-                      onBlur={(e) => {
-                        const t = e.target.value.replace(/\D/g, "").slice(0, 3);
-                        let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
-                        if (reps < 1) reps = 1;
-                        if (reps > 999) reps = 999;
-                        if (reps !== s.reps) {
-                          setWorkout((w) =>
-                            w
-                              ? {
-                                  ...w,
-                                  exercises: w.exercises.map((x) =>
-                                    x.id === ex.id
-                                      ? {
-                                          ...x,
-                                          sets: x.sets.map((row) =>
-                                            row.id === s.id ? { ...row, reps } : row,
-                                          ),
-                                        }
-                                      : x,
-                                  ),
-                                }
-                              : w,
-                          );
-                        }
-                        void updateSet(s.id, { reps });
-                      }}
-                    />
-                  </div>
-                </div>
-                <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3 touch-manipulation">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 shrink-0 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
-                    checked={s.isWarmup}
-                    onChange={(e) => {
-                      const isWarmup = e.target.checked;
+                {ex.baseLift === "NONE" ? (
+                  <ExercisePlanCheck
+                    workoutId={workoutId}
+                    exerciseId={ex.id}
+                    planDone={ex.planDone}
+                    onPlanDoneChange={(next) =>
                       setWorkout((w) =>
                         w
                           ? {
                               ...w,
-                              exercises: w.exercises.map((x) =>
-                                x.id === ex.id
-                                  ? {
-                                      ...x,
-                                      sets: x.sets.map((row) =>
-                                        row.id === s.id ? { ...row, isWarmup } : row,
-                                      ),
-                                    }
-                                  : x,
+                              exercises: w.exercises.map((row) =>
+                                row.id === ex.id ? { ...row, planDone: next } : row,
                               ),
                             }
                           : w,
-                      );
-                      updateSet(s.id, { isWarmup });
-                    }}
+                      )
+                    }
                   />
-                  <span className="text-sm text-zinc-300">Розминка</span>
-                </label>
-              </div>
-            ))}
-          </div>
+                ) : null}
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
+                  <div className="min-w-0 w-full flex-1 sm:max-w-xl">
+                    <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
+                      Назва вправи
+                    </label>
+                    <input
+                      id={`ex-name-${ex.id}`}
+                      type="text"
+                      maxLength={200}
+                      spellCheck={false}
+                      autoCapitalize="sentences"
+                      className="font-display w-full min-w-0 border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
+                      value={ex.name}
+                      onChange={(e) =>
+                        setWorkout((w) =>
+                          w
+                            ? {
+                                ...w,
+                                exercises: w.exercises.map((row) =>
+                                  row.id === ex.id ? { ...row, name: e.target.value } : row,
+                                ),
+                              }
+                            : w,
+                        )
+                      }
+                      onBlur={() => patchExerciseName(ex.id, ex.name)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
+                    />
+                    <p className="mt-1 text-xs uppercase tracking-wider text-zinc-600">
+                      {baseLiftLabel(ex.baseLift)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="min-h-[44px] shrink-0 self-start touch-manipulation text-xs font-medium uppercase tracking-wide text-red-400/90 hover:text-red-300 sm:min-h-0"
+                    onClick={() => setConfirm({ kind: "ex", id: ex.id })}
+                  >
+                    Видалити вправу
+                  </button>
+                </div>
 
-          <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[520px] text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                  <th className="w-[2.75rem] py-2 pr-1 text-center">Пор.</th>
-                  <th className="py-2 pr-2">Вага (кг)</th>
-                  <th className="py-2 pr-2">Повтори</th>
-                  <th className="py-2 pr-2">Розминка</th>
-                  <th className="py-2" />
-                </tr>
-              </thead>
-              <tbody>
-                {ex.sets.map((s, setIndex) => (
-                  <tr key={s.id} className="border-b border-white/[0.04]">
-                    <td className="py-2 pr-1 align-middle">
-                      <div className="flex flex-col gap-0.5">
-                        <button
-                          type="button"
-                          className={setMoveBtn}
-                          aria-label="Підхід вгору"
-                          disabled={setIndex === 0}
-                          onClick={() => moveSetRelative(ex.id, s.id, -1)}
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          className={setMoveBtn}
-                          aria-label="Підхід вниз"
-                          disabled={setIndex >= ex.sets.length - 1}
-                          onClick={() => moveSetRelative(ex.id, s.id, 1)}
-                        >
-                          ↓
-                        </button>
+                <div className="space-y-3 md:hidden">
+                  {ex.sets.map((s, setIndex) => (
+                    <div
+                      key={s.id}
+                      className="rounded-xl border border-white/[0.1] bg-black/25 p-3"
+                    >
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wide text-zinc-500">
+                          Підхід {setIndex + 1}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            className={setMoveBtn}
+                            aria-label="Підхід вгору"
+                            disabled={setIndex === 0}
+                            onClick={() => moveSetRelative(ex.id, s.id, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className={setMoveBtn}
+                            aria-label="Підхід вниз"
+                            disabled={setIndex >= ex.sets.length - 1}
+                            onClick={() => moveSetRelative(ex.id, s.id, 1)}
+                          >
+                            ↓
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-9 min-w-9 touch-manipulation rounded-lg text-lg text-red-400/90 hover:bg-red-500/10 hover:text-red-300"
+                            aria-label="Видалити підхід"
+                            onClick={() => setConfirm({ kind: "set", id: s.id })}
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
-                    </td>
-                    <td className="py-2 pr-2">
-                      <input
-                        className={`w-28 ${inp}`}
-                        value={s.weightKg}
-                        inputMode="decimal"
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setWorkout((w) =>
-                            w
-                              ? {
-                                  ...w,
-                                  exercises: w.exercises.map((x) =>
-                                    x.id === ex.id
-                                      ? {
-                                          ...x,
-                                          sets: x.sets.map((row) =>
-                                            row.id === s.id ? { ...row, weightKg: v } : row,
-                                          ),
-                                        }
-                                      : x,
-                                  ),
-                                }
-                              : w,
-                          );
-                        }}
-                        onBlur={(e) => {
-                          const num = parseFloat(e.target.value.replace(",", "."));
-                          if (!Number.isFinite(num)) return;
-                          void updateSet(s.id, { weightKg: num });
-                        }}
-                      />
-                    </td>
-                    <td className="py-2 pr-2">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        spellCheck={false}
-                        className={`w-20 ${inp}`}
-                        value={s.reps < 1 ? "" : String(s.reps)}
-                        onChange={(e) => {
-                          const t = e.target.value.replace(/\D/g, "").slice(0, 3);
-                          const num = t === "" ? 0 : Math.min(999, parseInt(t, 10) || 0);
-                          setWorkout((w) =>
-                            w
-                              ? {
-                                  ...w,
-                                  exercises: w.exercises.map((x) =>
-                                    x.id === ex.id
-                                      ? {
-                                          ...x,
-                                          sets: x.sets.map((row) =>
-                                            row.id === s.id ? { ...row, reps: num } : row,
-                                          ),
-                                        }
-                                      : x,
-                                  ),
-                                }
-                              : w,
-                          );
-                        }}
-                        onBlur={(e) => {
-                          const t = e.target.value.replace(/\D/g, "").slice(0, 3);
-                          let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
-                          if (reps < 1) reps = 1;
-                          if (reps > 999) reps = 999;
-                          if (reps !== s.reps) {
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="min-w-0 space-y-1">
+                          <label
+                            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                            htmlFor={`w-${s.id}`}
+                          >
+                            Вага (кг)
+                          </label>
+                          <input
+                            id={`w-${s.id}`}
+                            className={inpMobile}
+                            value={s.weightKg}
+                            inputMode="decimal"
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setWorkout((w) =>
+                                w
+                                  ? {
+                                      ...w,
+                                      exercises: w.exercises.map((x) =>
+                                        x.id === ex.id
+                                          ? {
+                                              ...x,
+                                              sets: x.sets.map((row) =>
+                                                row.id === s.id ? { ...row, weightKg: v } : row,
+                                              ),
+                                            }
+                                          : x,
+                                      ),
+                                    }
+                                  : w,
+                              );
+                            }}
+                            onBlur={(e) => {
+                              const num = parseFloat(e.target.value.replace(",", "."));
+                              if (!Number.isFinite(num)) return;
+                              void updateSet(s.id, { weightKg: num });
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <label
+                            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                            htmlFor={`r-${s.id}`}
+                          >
+                            Повтори
+                          </label>
+                          <input
+                            id={`r-${s.id}`}
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            spellCheck={false}
+                            className={inpMobile}
+                            value={s.reps < 1 ? "" : String(s.reps)}
+                            onChange={(e) => {
+                              const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              const num = t === "" ? 0 : Math.min(999, parseInt(t, 10) || 0);
+                              setWorkout((w) =>
+                                w
+                                  ? {
+                                      ...w,
+                                      exercises: w.exercises.map((x) =>
+                                        x.id === ex.id
+                                          ? {
+                                              ...x,
+                                              sets: x.sets.map((row) =>
+                                                row.id === s.id ? { ...row, reps: num } : row,
+                                              ),
+                                            }
+                                          : x,
+                                      ),
+                                    }
+                                  : w,
+                              );
+                            }}
+                            onBlur={(e) => {
+                              const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
+                              if (reps < 1) reps = 1;
+                              if (reps > 999) reps = 999;
+                              if (reps !== s.reps) {
+                                setWorkout((w) =>
+                                  w
+                                    ? {
+                                        ...w,
+                                        exercises: w.exercises.map((x) =>
+                                          x.id === ex.id
+                                            ? {
+                                                ...x,
+                                                sets: x.sets.map((row) =>
+                                                  row.id === s.id ? { ...row, reps } : row,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }
+                                    : w,
+                                );
+                              }
+                              void updateSet(s.id, { reps });
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 min-w-0 space-y-1">
+                        <label
+                          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                          htmlFor={`p-${s.id}`}
+                        >
+                          RPE (1–10, опційно)
+                        </label>
+                        <input
+                          id={`p-${s.id}`}
+                          className={inpMobile}
+                          value={s.rpe}
+                          inputMode="decimal"
+                          placeholder="—"
+                          onChange={(e) => {
+                            const v = e.target.value.replace(/[^\d.,]/g, "");
                             setWorkout((w) =>
                               w
                                 ? {
@@ -950,7 +877,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                                         ? {
                                             ...x,
                                             sets: x.sets.map((row) =>
-                                              row.id === s.id ? { ...row, reps } : row,
+                                              row.id === s.id ? { ...row, rpe: v } : row,
                                             ),
                                           }
                                         : x,
@@ -958,65 +885,316 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                                   }
                                 : w,
                             );
-                          }
-                          void updateSet(s.id, { reps });
-                        }}
-                      />
-                    </td>
-                    <td className="py-2 pr-2">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
-                        checked={s.isWarmup}
-                        onChange={(e) => {
-                          const isWarmup = e.target.checked;
-                          setWorkout((w) =>
-                            w
-                              ? {
-                                  ...w,
-                                  exercises: w.exercises.map((x) =>
-                                    x.id === ex.id
+                          }}
+                          onBlur={() => {
+                            const t = s.rpe.trim().replace(",", ".");
+                            if (t === "") {
+                              void updateSet(s.id, { rpe: null });
+                              return;
+                            }
+                            const n = parseFloat(t);
+                            if (!Number.isFinite(n) || n < 1 || n > 10) {
+                              setWorkout((w) =>
+                                w
+                                  ? {
+                                      ...w,
+                                      exercises: w.exercises.map((x) =>
+                                        x.id === ex.id
+                                          ? {
+                                              ...x,
+                                              sets: x.sets.map((row) =>
+                                                row.id === s.id ? { ...row, rpe: "" } : row,
+                                              ),
+                                            }
+                                          : x,
+                                      ),
+                                    }
+                                  : w,
+                              );
+                              return;
+                            }
+                            void updateSet(s.id, { rpe: n });
+                          }}
+                        />
+                      </div>
+                      <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3 touch-manipulation">
+                        <input
+                          type="checkbox"
+                          className="h-5 w-5 shrink-0 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
+                          checked={s.isWarmup}
+                          onChange={(e) => {
+                            const isWarmup = e.target.checked;
+                            setWorkout((w) =>
+                              w
+                                ? {
+                                    ...w,
+                                    exercises: w.exercises.map((x) =>
+                                      x.id === ex.id
+                                        ? {
+                                            ...x,
+                                            sets: x.sets.map((row) =>
+                                              row.id === s.id ? { ...row, isWarmup } : row,
+                                            ),
+                                          }
+                                        : x,
+                                    ),
+                                  }
+                                : w,
+                            );
+                            updateSet(s.id, { isWarmup });
+                          }}
+                        />
+                        <span className="text-sm text-zinc-300">Розминка</span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        <th className="w-[2.75rem] py-2 pr-1 text-center">Пор.</th>
+                        <th className="py-2 pr-2">Вага (кг)</th>
+                        <th className="py-2 pr-2">Повтори</th>
+                        <th className="py-2 pr-2">RPE</th>
+                        <th className="py-2 pr-2">Розминка</th>
+                        <th className="py-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ex.sets.map((s, setIndex) => (
+                        <tr key={s.id} className="border-b border-white/[0.04]">
+                          <td className="py-2 pr-1 align-middle">
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                type="button"
+                                className={setMoveBtn}
+                                aria-label="Підхід вгору"
+                                disabled={setIndex === 0}
+                                onClick={() => moveSetRelative(ex.id, s.id, -1)}
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                className={setMoveBtn}
+                                aria-label="Підхід вниз"
+                                disabled={setIndex >= ex.sets.length - 1}
+                                onClick={() => moveSetRelative(ex.id, s.id, 1)}
+                              >
+                                ↓
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-2 pr-2">
+                            <input
+                              className={`w-28 ${inp}`}
+                              value={s.weightKg}
+                              inputMode="decimal"
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setWorkout((w) =>
+                                  w
+                                    ? {
+                                        ...w,
+                                        exercises: w.exercises.map((x) =>
+                                          x.id === ex.id
+                                            ? {
+                                                ...x,
+                                                sets: x.sets.map((row) =>
+                                                  row.id === s.id ? { ...row, weightKg: v } : row,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }
+                                    : w,
+                                );
+                              }}
+                              onBlur={(e) => {
+                                const num = parseFloat(e.target.value.replace(",", "."));
+                                if (!Number.isFinite(num)) return;
+                                void updateSet(s.id, { weightKg: num });
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              autoComplete="off"
+                              spellCheck={false}
+                              className={`w-20 ${inp}`}
+                              value={s.reps < 1 ? "" : String(s.reps)}
+                              onChange={(e) => {
+                                const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                                const num = t === "" ? 0 : Math.min(999, parseInt(t, 10) || 0);
+                                setWorkout((w) =>
+                                  w
+                                    ? {
+                                        ...w,
+                                        exercises: w.exercises.map((x) =>
+                                          x.id === ex.id
+                                            ? {
+                                                ...x,
+                                                sets: x.sets.map((row) =>
+                                                  row.id === s.id ? { ...row, reps: num } : row,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }
+                                    : w,
+                                );
+                              }}
+                              onBlur={(e) => {
+                                const t = e.target.value.replace(/\D/g, "").slice(0, 3);
+                                let reps = t === "" ? 1 : Math.min(999, parseInt(t, 10) || 1);
+                                if (reps < 1) reps = 1;
+                                if (reps > 999) reps = 999;
+                                if (reps !== s.reps) {
+                                  setWorkout((w) =>
+                                    w
                                       ? {
-                                          ...x,
-                                          sets: x.sets.map((row) =>
-                                            row.id === s.id ? { ...row, isWarmup } : row,
+                                          ...w,
+                                          exercises: w.exercises.map((x) =>
+                                            x.id === ex.id
+                                              ? {
+                                                  ...x,
+                                                  sets: x.sets.map((row) =>
+                                                    row.id === s.id ? { ...row, reps } : row,
+                                                  ),
+                                                }
+                                              : x,
                                           ),
                                         }
-                                      : x,
-                                  ),
+                                      : w,
+                                  );
                                 }
-                              : w,
-                          );
-                          updateSet(s.id, { isWarmup });
-                        }}
-                      />
-                    </td>
-                    <td className="py-2 text-right">
-                      <button
-                        type="button"
-                        className="text-red-400/90 hover:text-red-300"
-                        onClick={() => setConfirm({ kind: "set", id: s.id })}
-                      >
-                        ×
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <button
-            type="button"
-            className="mt-4 min-h-[44px] touch-manipulation text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:text-[#ff6b6b] md:min-h-0"
-            onClick={() => addSet(ex.id)}
-          >
-            + Підхід
-          </button>
-            </SortableExerciseSection>
-          ))}
+                                void updateSet(s.id, { reps });
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <input
+                              className={`w-16 ${inp}`}
+                              value={s.rpe}
+                              inputMode="decimal"
+                              placeholder="—"
+                              onChange={(e) => {
+                                const v = e.target.value.replace(/[^\d.,]/g, "");
+                                setWorkout((w) =>
+                                  w
+                                    ? {
+                                        ...w,
+                                        exercises: w.exercises.map((x) =>
+                                          x.id === ex.id
+                                            ? {
+                                                ...x,
+                                                sets: x.sets.map((row) =>
+                                                  row.id === s.id ? { ...row, rpe: v } : row,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }
+                                    : w,
+                                );
+                              }}
+                              onBlur={() => {
+                                const t = s.rpe.trim().replace(",", ".");
+                                if (t === "") {
+                                  void updateSet(s.id, { rpe: null });
+                                  return;
+                                }
+                                const n = parseFloat(t);
+                                if (!Number.isFinite(n) || n < 1 || n > 10) {
+                                  setWorkout((w) =>
+                                    w
+                                      ? {
+                                          ...w,
+                                          exercises: w.exercises.map((x) =>
+                                            x.id === ex.id
+                                              ? {
+                                                  ...x,
+                                                  sets: x.sets.map((row) =>
+                                                    row.id === s.id ? { ...row, rpe: "" } : row,
+                                                  ),
+                                                }
+                                              : x,
+                                          ),
+                                        }
+                                      : w,
+                                  );
+                                  return;
+                                }
+                                void updateSet(s.id, { rpe: n });
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
+                              checked={s.isWarmup}
+                              onChange={(e) => {
+                                const isWarmup = e.target.checked;
+                                setWorkout((w) =>
+                                  w
+                                    ? {
+                                        ...w,
+                                        exercises: w.exercises.map((x) =>
+                                          x.id === ex.id
+                                            ? {
+                                                ...x,
+                                                sets: x.sets.map((row) =>
+                                                  row.id === s.id ? { ...row, isWarmup } : row,
+                                                ),
+                                              }
+                                            : x,
+                                        ),
+                                      }
+                                    : w,
+                                );
+                                updateSet(s.id, { isWarmup });
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 text-right">
+                            <button
+                              type="button"
+                              className="text-red-400/90 hover:text-red-300"
+                              onClick={() => setConfirm({ kind: "set", id: s.id })}
+                            >
+                              ×
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button
+                  type="button"
+                  className="mt-4 min-h-[44px] touch-manipulation text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:text-[#ff6b6b] md:min-h-0"
+                  onClick={() => addSet(ex.id)}
+                >
+                  + Підхід
+                </button>
+              </SortableExerciseSection>
+            ))}
           </div>
         </SortableContext>
       </DndContext>
+
+      <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-600 sm:text-left sm:text-xs">
+        RPE можна не вводити — на сторінці статистики тоді підставиться оцінка з ваги та{" "}
+        <Link href="/profile" className="text-[#e31e24] underline-offset-2 hover:underline">
+          максимумів у профілі
+        </Link>
+        .
+      </p>
 
       <div className="rounded-xl border border-dashed border-white/15 bg-black/30 p-5 transition-colors hover:border-[#e31e24]/25">
         <h3 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-zinc-400">

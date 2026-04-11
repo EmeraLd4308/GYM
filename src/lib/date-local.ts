@@ -1,4 +1,3 @@
-/** Локальна дата тренування: YYYY-MM-DD або ISO → Date (полудень локально для стабільності). */
 export function parseWorkoutDateInput(value: string): Date {
   const trimmed = value.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
@@ -12,7 +11,6 @@ export function parseWorkoutDateInput(value: string): Date {
   return new Date(t);
 }
 
-/** Для input type="date" з ISO з сервера. */
 export function formatDateForInput(iso: string): string {
   const d = new Date(iso);
   const y = d.getFullYear();
@@ -29,7 +27,6 @@ export function todayDateInput(): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Межі календарного дня YYYY-MM-DD у локальному часі сервера (для Prisma `date` gte/lte). */
 export function localDayBoundsFromInput(yyyyMmDd: string): { start: Date; end: Date } {
   const [y, m, d] = yyyyMmDd.split("-").map(Number);
   const start = new Date(y, m - 1, d, 0, 0, 0, 0);
@@ -37,7 +34,6 @@ export function localDayBoundsFromInput(yyyyMmDd: string): { start: Date; end: D
   return { start, end };
 }
 
-/** Вчора (локальний календар) — для дублювання тренування. */
 export function yesterdayDateInput(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);

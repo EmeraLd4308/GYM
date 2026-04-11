@@ -1,20 +1,40 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { buildWeeklyVolumeSeries } from "@/lib/weekly-volume";
+import { buildWeeklySbdRpeSeries, type ProfileSbdMaxKg } from "@/lib/weekly-rpe";
 import { buildWeeklyAttendanceSeries } from "@/lib/weekly-attendance";
+import { getProfileMaxHistoryPoints } from "@/lib/profile-max-history";
 import {
   parseStatsFiltersFromSearchParams,
   workoutWhereDateRange,
   applyWeightFilterForVolume,
 } from "@/lib/stats-filters";
 import { streakWeeksWithThreePlus } from "@/lib/streak";
-import { compareLastTwoWeeks } from "@/lib/week-compare";
-import { WeeklyCharts } from "@/components/WeeklyCharts";
-import { AttendanceChart } from "@/components/AttendanceChart";
+import { compareLastTwoWeeksRpe } from "@/lib/week-compare";
+import { StatsLazyCharts } from "@/components/StatsLazyCharts";
+import { StatsOnboardingMark } from "@/components/StatsOnboardingMark";
 import { StatsFilterForm } from "@/components/StatsFilterForm";
 import { StreakCard } from "@/components/StreakCard";
 import { WeekVolumeCompare } from "@/components/WeekVolumeCompare";
+import type { WeeklyRpeChartHints } from "@/components/WeeklyCharts";
+
+function positiveKg(v: unknown): boolean {
+  if (v == null) return false;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) && n > 0;
+}
+
+function profileMaxFromUser(u: {
+  glMaxBenchKg: unknown;
+  glMaxSquatKg: unknown;
+  glMaxDeadliftKg: unknown;
+}): ProfileSbdMaxKg {
+  return {
+    bench: positiveKg(u.glMaxBenchKg) ? Number(u.glMaxBenchKg) : null,
+    squat: positiveKg(u.glMaxSquatKg) ? Number(u.glMaxSquatKg) : null,
+    deadlift: positiveKg(u.glMaxDeadliftKg) ? Number(u.glMaxDeadliftKg) : null,
+  };
+}
 
 export default async function StatsPage({
   searchParams,
@@ -43,34 +63,94 @@ export default async function StatsPage({
 
   const attendanceSeries = buildWeeklyAttendanceSeries(workouts);
   const streak = streakWeeksWithThreePlus(attendanceSeries);
+  const profileMaxHistory = await getProfileMaxHistoryPoints(user.id);
 
-  const volumeWorkouts = applyWeightFilterForVolume(
-    workouts,
-    filters.weightMin,
-    filters.weightMax,
-  );
-  const volumeSeries = buildWeeklyVolumeSeries(volumeWorkouts);
-  const weekCmp = compareLastTwoWeeks(volumeSeries);
+  const rpeWorkouts = applyWeightFilterForVolume(workouts, filters.weightMin, filters.weightMax);
+  const profileMaxKg = profileMaxFromUser(user);
+  const rpeSeries = buildWeeklySbdRpeSeries(rpeWorkouts, profileMaxKg);
+  const weekCmp = compareLastTwoWeeksRpe(rpeSeries);
+
+  const rpeHints: WeeklyRpeChartHints = {
+    bench: {
+      noTraining: !rpeWorkouts.some((w) =>
+        w.exercises.some((ex) => ex.baseLift === "BENCH" && ex.sets.some((s) => !s.isWarmup)),
+      ),
+      noProfileMax: !positiveKg(user.glMaxBenchKg),
+    },
+    squat: {
+      noTraining: !rpeWorkouts.some((w) =>
+        w.exercises.some((ex) => ex.baseLift === "SQUAT" && ex.sets.some((s) => !s.isWarmup)),
+      ),
+      noProfileMax: !positiveKg(user.glMaxSquatKg),
+    },
+    deadlift: {
+      noTraining: !rpeWorkouts.some((w) =>
+        w.exercises.some((ex) => ex.baseLift === "DEADLIFT" && ex.sets.some((s) => !s.isWarmup)),
+      ),
+      noProfileMax: !positiveKg(user.glMaxDeadliftKg),
+    },
+  };
 
   return (
-    <div className="space-y-8">
-      <Suspense
-        fallback={<div className="sbd-card rounded-xl p-5 text-sm text-zinc-500">Фільтри…</div>}
-      >
-        <StatsFilterForm />
-      </Suspense>
+    <div className="space-y-8 md:space-y-10">
+      <StatsOnboardingMark />
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch lg:gap-10">
+        <div className="w-full shrink-0 lg:max-w-[26rem] xl:max-w-[28rem]">
+          <Suspense
+            fallback={
+              <div className="h-72 animate-pulse rounded-2xl bg-zinc-900/50 ring-1 ring-white/[0.06]" />
+            }
+          >
+            <StatsFilterForm />
+          </Suspense>
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <StreakCard weeks={streak} />
-        <WeekVolumeCompare data={weekCmp} />
+        <aside className="sbd-card min-w-0 flex-1 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 to-black/40 p-5 shadow-lg shadow-black/30 sm:p-6 lg:py-6">
+          <h2 className="font-display text-base font-bold uppercase tracking-wide text-white sm:text-lg">
+            Що таке RPE і як читати графіки
+          </h2>
+          <div className="mt-4 space-y-4 text-sm leading-relaxed text-zinc-400">
+            <p>
+              <span className="font-semibold text-zinc-200">RPE</span> (Rate of Perceived Exertion,
+              «шкала зусиль») — це суб&apos;єктивна оцінка важкості підходу за шкалою приблизно{" "}
+              <span className="text-zinc-200">від 1 до 10</span>: 1 — дуже легко, 10 — максимум на
+              межі відмови (немає запасу повторів). Проміжні значення описують, скільки «запасу»
+              залишилось би після підходу (на кшталт «RPE 8 ≈ міг би зробити ще ~2 повтори» —
+              орієнтир, не точна наука).
+            </p>
+            <p>
+              На графіках RPE по тижнях показано <span className="text-zinc-200">середнє</span> по
+              робочих підходах базових вправ (розминка не враховується). Якщо в журналі RPE не
+              вказано — за наявності <span className="text-zinc-200">максимумів у профілі</span>{" "}
+              (присяд / жим / тяга) і ваги підходу будується{" "}
+              <span className="text-zinc-200">груба оцінка</span>; дата береться з дня тренування.
+            </p>
+            <p>
+              Графік <span className="text-zinc-200">суми максимумів SBD (кг)</span> будується з
+              профілю: кожна точка — момент, коли ти зберіг нові значення присяд / жим / тяга. Лінія
+              рухається вгору або вниз разом із зміною суми цих трьох полів. На широкому екрані він
+              поруч із відвідуваністю, як і раніше.
+            </p>
+          </div>
+        </aside>
       </div>
 
-      <AttendanceChart series={attendanceSeries} />
-      <p className="max-w-2xl text-zinc-500">
-        Тижневий об&apos;єм по базових вправах. Розминка не враховується. Дата береться з кожного
-        тренування — можна планувати наперед.
-      </p>
-      <WeeklyCharts series={volumeSeries} />
+      <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+        <StreakCard weeks={streak} />
+        <WeekVolumeCompare
+          data={weekCmp}
+          title="RPE: поточний vs попередній тиждень"
+          subtitle="Середнє RPE: з журналу або оцінка з ваги та максимуму з профілю; розминка не враховується."
+          decimals={2}
+        />
+      </div>
+
+      <StatsLazyCharts
+        attendanceSeries={attendanceSeries}
+        profileMaxHistory={profileMaxHistory}
+        rpeSeries={rpeSeries}
+        rpeHints={rpeHints}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createSessionRecord, getCookieOptionsForRequest, SESSION_COOKIE } from "@/lib/auth";
 import { normalizeLogin } from "@/lib/login-utils";
+import { rateLimitJson } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,9 @@ const bodySchema = z.object({
 const noStore = { "Cache-Control": "no-store, no-cache, must-revalidate" };
 
 export async function POST(req: Request) {
+  const limited = rateLimitJson(req, "auth-login", 40, 60_000);
+  if (limited) return limited;
+
   try {
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);

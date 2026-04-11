@@ -3,25 +3,47 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE, createSessionRecord, getCookieOptionsForRequest } from "@/lib/auth";
 import { normalizeLogin } from "@/lib/login-utils";
 import { redirectAuthFormError, redirectUrl } from "@/lib/request-origin";
+import { takeRateToken, clientIpFromRequest } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const rl = takeRateToken(`auth-register-form:${clientIpFromRequest(req)}`, 10, 60_000);
+  if (!rl.ok) {
+    return NextResponse.redirect(
+      redirectUrl(
+        req,
+        "/?err=" +
+          encodeURIComponent("Забагато спроб реєстрації. Зачекай хвилину й спробуй знову."),
+      ),
+      303,
+    );
+  }
+
   try {
     let formData: FormData;
     try {
       formData = await req.formData();
     } catch {
-      return NextResponse.redirect(redirectUrl(req, "/?err=" + encodeURIComponent("Некоректна форма")), 303);
+      return NextResponse.redirect(
+        redirectUrl(req, "/?err=" + encodeURIComponent("Некоректна форма")),
+        303,
+      );
     }
     const raw = formData.get("login");
     const loginStr = typeof raw === "string" ? raw.trim() : "";
     if (!loginStr || loginStr.length < 2) {
-      return NextResponse.redirect(redirectUrl(req, "/?err=" + encodeURIComponent("Логін занадто короткий")), 303);
+      return NextResponse.redirect(
+        redirectUrl(req, "/?err=" + encodeURIComponent("Логін занадто короткий")),
+        303,
+      );
     }
     if (loginStr.length > 40) {
-      return NextResponse.redirect(redirectUrl(req, "/?err=" + encodeURIComponent("Логін занадто довгий")), 303);
+      return NextResponse.redirect(
+        redirectUrl(req, "/?err=" + encodeURIComponent("Логін занадто довгий")),
+        303,
+      );
     }
     const login = normalizeLogin(loginStr);
     if (!/^[\p{L}0-9_]+$/u.test(login)) {

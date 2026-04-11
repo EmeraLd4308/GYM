@@ -1,8 +1,6 @@
 import { prisma } from "./prisma";
 
-export function normalizeLogin(raw: string): string {
-  return raw.trim().toLowerCase();
-}
+export { normalizeLogin } from "./login-normalize";
 
 export async function suggestAvailableLogins(base: string): Promise<string[]> {
   const candidates = [

@@ -43,7 +43,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Нативні інпути в темній темі */
 input[type="date"],
 input[type="datetime-local"],
 select {
@@ -53,7 +52,7 @@ select {
 @keyframes content-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -62,7 +61,27 @@ select {
 }
 
 .animate-content-in {
-  animation: content-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: content-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-content-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .toast-slide-in {
+    animation: none;
+  }
+
+  .sbd-card {
+    transition: none !important;
+  }
+
+  .sbd-card-interactive:hover {
+    transform: none !important;
+  }
 }
 
 @keyframes toast-slide-in {
@@ -80,14 +99,16 @@ select {
   animation: toast-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Картки з ледь помітним градієнтом по краю */
 .sbd-card {
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
-    rgba(17, 17, 17, 0.92);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, transparent 45%), rgba(17, 17, 17, 0.92);
   box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
 }
 
 .sbd-card:hover {
@@ -101,7 +122,6 @@ select {
   }
 }
 
-/* Лінк в наві з підкресленням */
 .nav-link-active {
   color: #e31e24;
   position: relative;
@@ -118,7 +138,6 @@ select {
   background: linear-gradient(90deg, transparent, #e31e24, transparent);
 }
 
-/* Next.js dev: кнопка з логотипом «N» (якщо в light DOM) — див. також MobileHideNextDevLogo */
 @media (max-width: 767px) {
   #next-logo,
   button[data-nextjs-dev-tools-button] {

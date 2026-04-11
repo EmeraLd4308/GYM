@@ -5,14 +5,22 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/dashboard", label: "Головна", Icon: IconHome },
-  { href: "/workouts", label: "Тренування", Icon: IconList },
+  { href: "/workouts", label: "Журнал", Icon: IconList },
   { href: "/calendar", label: "Календар", Icon: IconCalendar },
-  { href: "/stats", label: "Стат.", Icon: IconChart },
+  { href: "/stats", label: "Аналітика", Icon: IconChart },
+  { href: "/profile", label: "Профіль", Icon: IconProfile },
 ] as const;
 
 function IconHome({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className={active ? "text-[#e31e24]" : "text-zinc-500"} aria-hidden>
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={active ? "text-[#e31e24]" : "text-zinc-500"}
+      aria-hidden
+    >
       <path
         d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z"
         stroke="currentColor"
@@ -25,7 +33,14 @@ function IconHome({ active }: { active: boolean }) {
 
 function IconList({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className={active ? "text-[#e31e24]" : "text-zinc-500"} aria-hidden>
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={active ? "text-[#e31e24]" : "text-zinc-500"}
+      aria-hidden
+    >
       <path
         d="M8 6h13M8 12h13M8 18h13M4 6h.02M4 12h.02M4 18h.02"
         stroke="currentColor"
@@ -38,17 +53,64 @@ function IconList({ active }: { active: boolean }) {
 
 function IconCalendar({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className={active ? "text-[#e31e24]" : "text-zinc-500"} aria-hidden>
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={active ? "text-[#e31e24]" : "text-zinc-500"}
+      aria-hidden
+    >
       <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M3 10h18M8 3v4M16 3v4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 
 function IconChart({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className={active ? "text-[#e31e24]" : "text-zinc-500"} aria-hidden>
-      <path d="M4 19V5M4 19h16M8 15v-3M12 19V9M16 13v-2M20 17v-5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={active ? "text-[#e31e24]" : "text-zinc-500"}
+      aria-hidden
+    >
+      <path
+        d="M4 19V5M4 19h16M8 15v-3M12 19V9M16 13v-2M20 17v-5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconProfile({ active }: { active: boolean }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={active ? "text-[#e31e24]" : "text-zinc-500"}
+      aria-hidden
+    >
+      <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M6.5 19.5c.8-3 3.4-5 5.5-5s4.7 2 5.5 5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -56,13 +118,17 @@ function IconChart({ active }: { active: boolean }) {
 function isActivePath(pathname: string, href: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/workouts")
-    return pathname === "/workouts" || pathname === "/workouts/new" || /^\/workouts\/[^/]+$/.test(pathname);
+    return (
+      pathname === "/workouts" ||
+      pathname === "/workouts/new" ||
+      /^\/workouts\/[^/]+$/.test(pathname)
+    );
   if (href === "/calendar") return pathname === "/calendar";
   if (href === "/stats") return pathname === "/stats";
+  if (href === "/profile") return pathname === "/profile";
   return false;
 }
 
-/** Фіксована панель: основні розділи одним рядком, без горизонтального хаосу в шапці. */
 export function MobileBottomNav() {
   const pathname = usePathname();
 
@@ -77,13 +143,17 @@ export function MobileBottomNav() {
           <Link
             key={href}
             href={href}
-            title={href === "/stats" ? "Статистика" : label}
-            className={`flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 px-1 touch-manipulation ${
+            title={label}
+            className={`flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 px-0.5 touch-manipulation ${
               active ? "text-[#e31e24]" : "text-zinc-500"
             }`}
           >
             <Icon active={active} />
-            <span className={`max-w-full truncate text-[10px] font-semibold leading-tight ${active ? "text-[#e31e24]" : "text-zinc-500"}`}>
+            <span
+              className={`max-w-full text-center text-[9px] font-semibold leading-tight tracking-tight sm:text-[10px] ${
+                active ? "text-[#e31e24]" : "text-zinc-500"
+              }`}
+            >
               {label}
             </span>
           </Link>

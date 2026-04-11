@@ -8,8 +8,15 @@ import { WorkoutListPagination } from "@/components/WorkoutListPagination";
 
 const btnPrimary =
   "rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21]";
+const btnPrimaryLg =
+  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.98]";
+const btnGhost =
+  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 text-sm font-semibold text-zinc-200 transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 active:scale-[0.98]";
 
-function getParam(sp: Record<string, string | string[] | undefined>, k: string): string | undefined {
+function getParam(
+  sp: Record<string, string | string[] | undefined>,
+  k: string,
+): string | undefined {
   const v = sp[k];
   return typeof v === "string" ? v : Array.isArray(v) ? v[0] : undefined;
 }
@@ -23,7 +30,9 @@ export default async function WorkoutsListPage({
   if (!user) return null;
 
   const sp = await searchParams;
-  const filters = parseStatsFiltersFromSearchParams(sp as Record<string, string | string[] | undefined>);
+  const filters = parseStatsFiltersFromSearchParams(
+    sp as Record<string, string | string[] | undefined>,
+  );
   const page = Math.max(1, parseInt(getParam(sp, "page") ?? "1", 10) || 1);
   const rawPs = parseInt(getParam(sp, "pageSize") ?? "20", 10);
   const pageSize = Math.min(50, Math.max(1, Number.isFinite(rawPs) ? rawPs : 20));
@@ -49,6 +58,22 @@ export default async function WorkoutsListPage({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const hasFilters = Boolean(
+    filters.dateFrom?.trim() ||
+    filters.dateTo?.trim() ||
+    filters.weightMin !== undefined ||
+    filters.weightMax !== undefined ||
+    filters.search?.trim(),
+  );
+
+  let anyWorkoutsUnfiltered = 0;
+  if (workouts.length === 0) {
+    anyWorkoutsUnfiltered = await prisma.workout.count({ where: { userId: user.id } });
+  }
+
+  const filteredOutAll = workouts.length === 0 && total === 0 && anyWorkoutsUnfiltered > 0;
+  const pagePastEnd = workouts.length === 0 && total > 0;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
@@ -57,7 +82,10 @@ export default async function WorkoutsListPage({
             Усі тренування
           </h1>
         </div>
-        <Link href="/workouts/new" className={`${btnPrimary} inline-flex min-h-[44px] items-center justify-center`}>
+        <Link
+          href="/workouts/new"
+          className={`${btnPrimary} inline-flex min-h-[44px] items-center justify-center`}
+        >
           Нове тренування
         </Link>
       </div>
@@ -65,12 +93,53 @@ export default async function WorkoutsListPage({
       <WorkoutListFilters />
 
       {workouts.length === 0 ? (
-        <div className="sbd-card rounded-xl p-10 text-center text-sm text-zinc-500">
-          Немає тренувань за цими умовами. Спробуй змінити фільтри або{" "}
-          <Link href="/workouts/new" className="text-[#e31e24] underline-offset-2 hover:underline">
-            створити нове
-          </Link>
-          .
+        <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 text-center sm:p-10">
+          {pagePastEnd ? (
+            <>
+              <p className="font-display text-base font-semibold text-white sm:text-lg">
+                На цій сторінці записів немає
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+                Повернись до початку списку або зміни фільтри.
+              </p>
+            </>
+          ) : filteredOutAll ? (
+            <>
+              <p className="font-display text-base font-semibold text-white sm:text-lg">
+                Жодне тренування не підходить
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+                Спробуй скинути пошук, діапазон дат чи вагу — або створи новий запис.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-base font-semibold text-white sm:text-lg">
+                Ще немає тренувань
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+                Додай перше тренування або відкрий профіль — максимуми знадобляться для статистики
+                RPE.
+              </p>
+            </>
+          )}
+          <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            {pagePastEnd ? (
+              <Link href="/workouts" className={btnPrimaryLg}>
+                До списку
+              </Link>
+            ) : hasFilters ? (
+              <Link href="/workouts" className={btnGhost}>
+                Скинути фільтри
+              </Link>
+            ) : null}
+            <Link href="/workouts/new" className={btnPrimaryLg}>
+              Нове тренування
+            </Link>
+            <Link href="/profile" className={btnGhost}>
+              Відкрити профіль
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="sbd-card overflow-hidden rounded-xl shadow-2xl shadow-black/50">

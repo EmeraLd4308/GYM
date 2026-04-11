@@ -48,7 +48,10 @@ export function NewWorkoutForm({ templates }: { templates: Tpl[] }) {
   return (
     <div className="max-w-lg space-y-5">
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="wdate">
+        <label
+          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+          htmlFor="wdate"
+        >
           Дата тренування
         </label>
         <input
@@ -63,7 +66,10 @@ export function NewWorkoutForm({ templates }: { templates: Tpl[] }) {
         </p>
       </div>
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="tpl">
+        <label
+          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+          htmlFor="tpl"
+        >
           Шаблон (необов&apos;язково)
         </label>
         <select
@@ -81,7 +87,10 @@ export function NewWorkoutForm({ templates }: { templates: Tpl[] }) {
         </select>
       </div>
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="title">
+        <label
+          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+          htmlFor="title"
+        >
           Назва (необов&apos;язково)
         </label>
         <input

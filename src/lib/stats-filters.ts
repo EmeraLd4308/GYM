@@ -7,6 +7,7 @@ export type StatsFilterOptions = {
   dateTo?: string;
   weightMin?: number;
   weightMax?: number;
+  search?: string;
 };
 
 export type WorkoutWithExercises = Workout & {
@@ -24,9 +25,11 @@ export function parseStatsFiltersFromSearchParams(
   const to = get("to");
   const wMin = get("wMin");
   const wMax = get("wMax");
+  const q = get("q");
   const out: StatsFilterOptions = {};
   if (from?.trim()) out.dateFrom = from.trim();
   if (to?.trim()) out.dateTo = to.trim();
+  if (q?.trim()) out.search = q.trim().slice(0, 200);
   if (wMin !== undefined && wMin !== "") {
     const n = Number(wMin);
     if (Number.isFinite(n)) out.weightMin = n;
@@ -38,8 +41,9 @@ export function parseStatsFiltersFromSearchParams(
   return out;
 }
 
-/** Умова Prisma для діапазону дат тренування (локальна дата через parse). */
-export function workoutWhereDateRange(filters: StatsFilterOptions): Prisma.DateTimeFilter | undefined {
+export function workoutWhereDateRange(
+  filters: StatsFilterOptions,
+): Prisma.DateTimeFilter | undefined {
   if (!filters.dateFrom?.trim() && !filters.dateTo?.trim()) return undefined;
   try {
     let gte: Date | undefined;
@@ -63,7 +67,6 @@ export function workoutWhereDateRange(filters: StatsFilterOptions): Prisma.DateT
   }
 }
 
-/** Для об'єму: залишає лише робочі підходи базових вправ, вага в діапазоні (якщо задано). */
 export function applyWeightFilterForVolume(
   workouts: WorkoutWithExercises[],
   min?: number,

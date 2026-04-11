@@ -3,20 +3,26 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
-const field =
-  "mt-1 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#e31e24]/35";
+const input =
+  "mt-1.5 w-full rounded-xl border border-white/[0.1] bg-zinc-950/80 px-3 py-2.5 text-sm text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/45 focus:ring-2 focus:ring-[#e31e24]/12";
+
+const presetBtn =
+  "touch-manipulation rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-400 transition hover:border-[#e31e24]/30 hover:bg-[#e31e24]/10 hover:text-zinc-100 active:scale-[0.98]";
+
+function toIsoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 
 export type DateWeightFiltersProps = {
-  /** Префікс id для полів (унікальність на сторінці). */
   idPrefix: string;
-  /** Базовий шлях для застосування фільтрів (наприклад `/stats` або `/workouts`). */
   actionBasePath: string;
-  /** Куди переходити при «Скинути». */
   clearPath: string;
   title: string;
   description: ReactNode;
-  /** Додаткові query-параметри при застосуванні (наприклад `pageSize` для списку тренувань). */
+
+  weightRangeHint?: ReactNode;
   applyExtraParams?: Record<string, string>;
+  titleSearch?: { param: string; label: string; placeholder: string };
 };
 
 export function DateWeightFilters({
@@ -25,21 +31,28 @@ export function DateWeightFilters({
   clearPath,
   title,
   description,
+  weightRangeHint,
   applyExtraParams,
+  titleSearch,
 }: DateWeightFiltersProps) {
   const router = useRouter();
   const sp = useSearchParams();
+  const searchParam = titleSearch?.param ?? "q";
   const [from, setFrom] = useState(() => sp.get("from") ?? "");
   const [to, setTo] = useState(() => sp.get("to") ?? "");
   const [wMin, setWMin] = useState(() => sp.get("wMin") ?? "");
   const [wMax, setWMax] = useState(() => sp.get("wMax") ?? "");
+  const [titleQ, setTitleQ] = useState(() =>
+    titleSearch ? (sp.get(titleSearch.param) ?? "") : "",
+  );
 
   useEffect(() => {
     setFrom(sp.get("from") ?? "");
     setTo(sp.get("to") ?? "");
     setWMin(sp.get("wMin") ?? "");
     setWMax(sp.get("wMax") ?? "");
-  }, [sp]);
+    if (titleSearch?.param) setTitleQ(sp.get(titleSearch.param) ?? "");
+  }, [sp, titleSearch?.param]);
 
   const apply = useCallback(() => {
     const q = new URLSearchParams();
@@ -47,6 +60,7 @@ export function DateWeightFilters({
     if (to.trim()) q.set("to", to.trim());
     if (wMin.trim()) q.set("wMin", wMin.trim());
     if (wMax.trim()) q.set("wMax", wMax.trim());
+    if (titleSearch && titleQ.trim()) q.set(searchParam, titleQ.trim().slice(0, 200));
     if (applyExtraParams) {
       for (const [k, v] of Object.entries(applyExtraParams)) {
         q.set(k, v);
@@ -54,89 +68,208 @@ export function DateWeightFilters({
     }
     const qs = q.toString();
     router.push(qs ? `${actionBasePath}?${qs}` : actionBasePath);
-  }, [from, to, wMin, wMax, router, actionBasePath, applyExtraParams]);
+  }, [
+    from,
+    to,
+    wMin,
+    wMax,
+    titleQ,
+    titleSearch,
+    searchParam,
+    router,
+    actionBasePath,
+    applyExtraParams,
+  ]);
 
   const clear = useCallback(() => {
     setFrom("");
     setTo("");
     setWMin("");
     setWMax("");
+    if (titleSearch) setTitleQ("");
     router.push(clearPath);
-  }, [router, clearPath]);
+  }, [router, clearPath, titleSearch]);
+
+  const setPresetDays = useCallback((days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    setFrom(toIsoDate(start));
+    setTo(toIsoDate(end));
+  }, []);
+
+  const setYearToDate = useCallback(() => {
+    const end = new Date();
+    const start = new Date(end.getFullYear(), 0, 1);
+    setFrom(toIsoDate(start));
+    setTo(toIsoDate(end));
+  }, []);
+
+  const clearDatesOnly = useCallback(() => {
+    setFrom("");
+    setTo("");
+  }, []);
 
   const pf = `${idPrefix}-`;
 
   return (
-    <div className="sbd-card rounded-xl p-5">
-      <h3 className="font-display mb-3 text-sm font-bold uppercase tracking-wide text-white">{title}</h3>
-      <div className="mb-4 text-xs text-zinc-500">{description}</div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`${pf}from`}>
-            Від (дата)
-          </label>
-          <input
-            id={`${pf}from`}
-            type="date"
-            className={field}
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`${pf}to`}>
-            До (дата)
-          </label>
-          <input id={`${pf}to`} type="date" className={field} value={to} onChange={(e) => setTo(e.target.value)} />
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`${pf}wmin`}>
-            Вага від (кг)
-          </label>
-          <input
-            id={`${pf}wmin`}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="0.5"
-            placeholder="необов'язково"
-            className={field}
-            value={wMin}
-            onChange={(e) => setWMin(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor={`${pf}wmax`}>
-            Вага до (кг)
-          </label>
-          <input
-            id={`${pf}wmax`}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="0.5"
-            placeholder="необов'язково"
-            className={field}
-            value={wMax}
-            onChange={(e) => setWMax(e.target.value)}
-          />
-        </div>
+    <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/95 via-zinc-950/80 to-black/90 shadow-xl shadow-black/40 ring-1 ring-white/[0.05]">
+      <div className="border-b border-white/[0.06] bg-black/25 px-5 py-4 sm:px-6">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">
+          {title}
+        </h3>
+        <div className="mt-2 text-xs leading-relaxed text-zinc-500">{description}</div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="min-h-[44px] rounded-md bg-[#e31e24] px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 hover:bg-[#c41a21]"
-          onClick={apply}
-        >
-          Застосувати
-        </button>
-        <button
-          type="button"
-          className="min-h-[44px] rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/10"
-          onClick={clear}
-        >
-          Скинути
-        </button>
+
+      <div className="space-y-6 p-5 sm:p-6">
+        {titleSearch ? (
+          <div>
+            <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+              {titleSearch.label}
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+              За назвою тренування або назвою вправи. Натисни «Застосувати», щоб оновити список.
+            </p>
+            <input
+              id={`${pf}search`}
+              type="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              placeholder={titleSearch.placeholder}
+              className={`${input} mt-3`}
+              value={titleQ}
+              onChange={(e) => setTitleQ(e.target.value)}
+            />
+          </div>
+        ) : null}
+
+        <div>
+          <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-[#e31e24]/85">
+            Період
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className={presetBtn} onClick={() => setPresetDays(30)}>
+              30 днів
+            </button>
+            <button type="button" className={presetBtn} onClick={() => setPresetDays(90)}>
+              90 днів
+            </button>
+            <button type="button" className={presetBtn} onClick={setYearToDate}>
+              Від поч. року
+            </button>
+            <button type="button" className={presetBtn} onClick={clearDatesOnly}>
+              Скинути дати
+            </button>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                htmlFor={`${pf}from`}
+              >
+                Від
+              </label>
+              <input
+                id={`${pf}from`}
+                type="date"
+                className={input}
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            </div>
+            <div>
+              <label
+                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                htmlFor={`${pf}to`}
+              >
+                До
+              </label>
+              <input
+                id={`${pf}to`}
+                type="date"
+                className={input}
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-white/[0.06] pt-6">
+          <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+            Вага штанги (кг)
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+            {weightRangeHint ?? (
+              <>
+                Робочі підходи базових вправ (без розминки). Якщо не впевнений — залиш поля
+                порожніми.
+              </>
+            )}
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                htmlFor={`${pf}wmin`}
+              >
+                Мінімум
+              </label>
+              <input
+                id={`${pf}wmin`}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.5"
+                placeholder="—"
+                className={input}
+                value={wMin}
+                onChange={(e) => setWMin(e.target.value)}
+              />
+            </div>
+            <div>
+              <label
+                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                htmlFor={`${pf}wmax`}
+              >
+                Максимум
+              </label>
+              <input
+                id={`${pf}wmax`}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.5"
+                placeholder="—"
+                className={input}
+                value={wMax}
+                onChange={(e) => setWMax(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-white/[0.06] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="min-h-[44px] rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.98]"
+              onClick={apply}
+            >
+              Застосувати
+            </button>
+            <button
+              type="button"
+              className="min-h-[44px] rounded-xl border border-white/[0.12] bg-white/[0.03] px-5 text-sm font-semibold text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98]"
+              onClick={clear}
+            >
+              Усе скинути
+            </button>
+          </div>
+          <p className="text-[11px] text-zinc-600 sm:max-w-[14rem] sm:text-right">
+            Після змін натисни «Застосувати», інакше URL не оновиться.
+          </p>
+        </div>
       </div>
     </div>
   );

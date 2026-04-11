@@ -22,7 +22,9 @@ export function SortableExerciseSection({
   canMoveUp?: boolean;
   canMoveDown?: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -39,7 +41,6 @@ export function SortableExerciseSection({
         isDragging ? "ring-2 ring-[#e31e24]/45 shadow-[0_0_24px_-4px_rgba(227,30,36,0.35)]" : ""
       }`}
     >
-      {/* Мобільний: панель порядку вправи зверху на всю ширину; десктоп: колонка зліва */}
       <div className="flex w-full min-w-0 flex-col gap-3 md:flex-row md:items-start md:gap-3">
         <div className="flex shrink-0 flex-row items-center gap-2 border-b border-white/[0.08] pb-3 md:flex-col md:border-b-0 md:pb-0 md:items-stretch">
           <button

@@ -3,11 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { WorkoutSession } from "@/components/WorkoutSession";
 
-export default async function WorkoutDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return null;
   const { id } = await params;

@@ -4,43 +4,74 @@ import { getSessionUser } from "@/lib/auth";
 import { effectiveCalendarDayFromRequest } from "@/lib/calendar-day-cookie";
 import { localDayBoundsFromInput } from "@/lib/date-local";
 import { DashboardDuplicateActions } from "@/components/DashboardDuplicateActions";
+import { DashboardQuickGuide } from "@/components/DashboardQuickGuide";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+
+function positiveKg(v: unknown): boolean {
+  if (v == null) return false;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) && n > 0;
+}
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const includeSets = {
+  const listSelect = {
+    id: true,
+    title: true,
+    date: true,
     exercises: {
-      include: { sets: true },
+      select: {
+        _count: { select: { sets: true } },
+      },
     },
   } as const;
 
   const todayStr = await effectiveCalendarDayFromRequest();
   const { start: todayStart, end: todayEnd } = localDayBoundsFromInput(todayStr);
 
-  /* Окремо від «останніх 16»: майбутні дати йдуть першими в desc, сьогодні могло випасти з take(16). */
-  const [todayWorkouts, recent] = await Promise.all([
+  const [todayWorkouts, recent, profileRow, workoutTotal] = await Promise.all([
     prisma.workout.findMany({
       where: {
         userId: user.id,
         date: { gte: todayStart, lte: todayEnd },
       },
       orderBy: { date: "asc" },
-      include: includeSets,
+      select: listSelect,
     }),
     prisma.workout.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },
       take: 16,
-      include: includeSets,
+      select: listSelect,
     }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        glBodyweightKg: true,
+        glMaxSquatKg: true,
+        glMaxBenchKg: true,
+        glMaxDeadliftKg: true,
+      },
+    }),
+    prisma.workout.count({ where: { userId: user.id } }),
   ]);
+
+  const profileDone = Boolean(
+    profileRow &&
+    (positiveKg(profileRow.glBodyweightKg) ||
+      positiveKg(profileRow.glMaxSquatKg) ||
+      positiveKg(profileRow.glMaxBenchKg) ||
+      positiveKg(profileRow.glMaxDeadliftKg)),
+  );
+  const hasWorkout = workoutTotal > 0;
 
   const todayIds = new Set(todayWorkouts.map((w) => w.id));
   const otherRecent = recent.filter((w) => !todayIds.has(w.id)).slice(0, 6);
 
   function workoutRow(w: (typeof recent)[0]) {
-    const sets = w.exercises.flatMap((e) => e.sets);
+    const setCount = w.exercises.reduce((acc, e) => acc + e._count.sets, 0);
     return (
       <li key={w.id}>
         <Link
@@ -55,7 +86,7 @@ export default async function DashboardPage() {
               month: "short",
               year: "numeric",
             })}{" "}
-            · підходів: {sets.length}
+            · підходів: {setCount}
           </span>
         </Link>
       </li>
@@ -66,9 +97,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 md:space-y-10">
+      <DashboardQuickGuide />
+
+      <OnboardingChecklist profileDone={profileDone} hasWorkout={hasWorkout} />
+
       {!hasAnyWorkout ? (
         <div className="sbd-card rounded-2xl border border-[#e31e24]/20 bg-[#e31e24]/[0.06] p-6 text-center sm:p-8">
-          <p className="font-display text-lg font-semibold text-white">Почнімо з першого тренування</p>
+          <p className="font-display text-lg font-semibold text-white">
+            Почнімо з першого тренування
+          </p>
           <p className="mt-2 text-sm text-zinc-400">Натисни — відкриється запис підходів і ваги.</p>
           <Link
             href="/workouts/new"
@@ -88,7 +125,10 @@ export default async function DashboardPage() {
             {todayWorkouts.length === 0 ? (
               <div className="sbd-card rounded-xl p-5 text-sm text-zinc-500 md:p-6">
                 Сьогодні ще порожньо. Нижче — копія з іншої дати або{" "}
-                <Link href="/workouts/new" className="font-medium text-[#e31e24] underline-offset-2 hover:underline">
+                <Link
+                  href="/workouts/new"
+                  className="font-medium text-[#e31e24] underline-offset-2 hover:underline"
+                >
                   нове тренування
                 </Link>
                 .
@@ -108,7 +148,7 @@ export default async function DashboardPage() {
             </h2>
             {otherRecent.length === 0 && todayWorkouts.length === 0 ? (
               <div className="sbd-card rounded-xl p-6 text-center text-sm text-zinc-500 md:p-8">
-                Інших записів ще немає — див. блок вище або «Тренування» внизу.
+                Інших записів ще немає — див. блок вище або «Журнал» у нижній панелі.
               </div>
             ) : otherRecent.length === 0 ? (
               <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">

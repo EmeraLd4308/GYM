@@ -1,5 +1,3 @@
-/** Клієнтське дублювання cookie — на частині моб. браузерів Set-Cookie з fetch не застосовується, document.cookie — так. */
-
 export const SESSION_COOKIE_NAME = "gym_session";
 const SESSION_MAX_AGE_SEC = 4 * 60 * 60;
 

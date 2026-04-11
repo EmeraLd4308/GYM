@@ -1,4 +1,3 @@
-/** Логічне «назад» у межах застосунку (без системної кнопки). */
 export function getBackInfo(pathname: string): { href: string; label: string } | null {
   if (pathname === "/dashboard") return null;
   if (pathname === "/templates") return { href: "/dashboard", label: "На головну" };
@@ -14,11 +13,11 @@ export function getBackInfo(pathname: string): { href: string; label: string } |
 
 export function getPageContext(pathname: string): string {
   if (pathname === "/dashboard") return "";
-  /* Без дубля з великими заголовками на сторінках / у списках */
   if (pathname === "/calendar") return "";
   if (pathname === "/templates") return "";
   if (pathname === "/workouts") return "";
   if (pathname === "/stats") return "";
+  if (pathname === "/profile") return "";
   if (pathname === "/templates/new") return "Новий шаблон";
   if (pathname.startsWith("/templates/")) return "Редагування шаблону";
   if (pathname === "/workouts/new") return "Нове тренування";

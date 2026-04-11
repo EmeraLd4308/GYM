@@ -21,7 +21,9 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
         <h3 className="font-display mb-2 text-sm font-bold uppercase tracking-wide text-white">
           Відвідуваність
         </h3>
-        <p className="text-sm text-zinc-500">Ще немає тренувань — графік з&apos;явиться після першого запису.</p>
+        <p className="text-sm text-zinc-500">
+          Ще немає тренувань — графік з&apos;явиться після першого запису.
+        </p>
       </div>
     );
   }
@@ -39,9 +41,9 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
         Відвідуваність (тижневий ритм)
       </h3>
       <p className="mb-4 text-xs leading-relaxed text-zinc-500">
-        Ціль — не менше ніж <span className="text-zinc-400">3 тренування на тиждень</span>. Якщо за тиждень їх
-        менше, крива опускається сильніше, чим більше «нестачі» до трьох. Якщо три або більше — крок
-        вгору.
+        Ціль — не менше ніж <span className="text-zinc-400">3 тренування на тиждень</span>. Якщо за
+        тиждень їх менше, крива опускається сильніше, чим більше «нестачі» до трьох. Якщо три або
+        більше — крок вгору.
       </p>
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height={224} minWidth={0}>
