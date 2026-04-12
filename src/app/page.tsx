@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
+import { AppCredit } from "@/components/AppCredit";
 import { AuthForm } from "@/components/AuthForm";
 import { LoginToast } from "@/components/LoginToast";
 
@@ -15,6 +16,9 @@ export default async function Home() {
       </Suspense>
       <div className="animate-content-in relative z-10 w-full max-w-md shrink-0">
         <AuthForm />
+      </div>
+      <div className="mt-auto w-full max-w-md shrink-0 pt-8">
+        <AppCredit />
       </div>
     </main>
   );

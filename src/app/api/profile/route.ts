@@ -7,6 +7,8 @@ import { AVATAR_IDS } from "@/lib/avatars";
 import { normalizeLogin } from "@/lib/login-normalize";
 import { maxTripleChanged, recordProfileSbdMaxSnapshot } from "@/lib/profile-max-history";
 import { rateLimitJson } from "@/lib/rate-limit";
+import { buildProfileApiPayload, normalizePinnedForUser } from "@/lib/profile-response";
+import { syncUserAchievements } from "@/lib/achievements";
 
 const numOrNull = z.union([z.number(), z.null()]);
 
@@ -22,33 +24,15 @@ const patchSchema = z.object({
   glEquipment: z.enum(["CLASSIC", "EQUIPPED"]).nullable().optional(),
   avatarId: avatarIdSchema.optional(),
   nickname: z.union([z.string().max(40), z.null()]).optional(),
+  pinnedAchievementIds: z.array(z.string().max(80)).max(3).optional(),
 });
 
 export async function GET() {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
-  const row = await prisma.user.findFirst({
-    where: { id: user.id },
-    select: {
-      login: true,
-      avatarId: true,
-      nickname: true,
-      glBodyweightKg: true,
-      glMaxSquatKg: true,
-      glMaxBenchKg: true,
-      glMaxDeadliftKg: true,
-      glSex: true,
-      glEquipment: true,
-    },
-  });
-  if (!row) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-  const profile = {
-    ...row,
-    glBodyweightKg: row.glBodyweightKg != null ? Number(row.glBodyweightKg) : null,
-    glMaxSquatKg: row.glMaxSquatKg != null ? Number(row.glMaxSquatKg) : null,
-    glMaxBenchKg: row.glMaxBenchKg != null ? Number(row.glMaxBenchKg) : null,
-    glMaxDeadliftKg: row.glMaxDeadliftKg != null ? Number(row.glMaxDeadliftKg) : null,
-  };
+  await syncUserAchievements(user.id);
+  const profile = await buildProfileApiPayload(user.id);
+  if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
   return NextResponse.json({ profile });
 }
 
@@ -66,10 +50,16 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Некоректні дані профілю." }, { status: 400 });
     }
     const d = parsed.data;
+    const { pinnedAchievementIds, ...rest } = d;
+    const hasRest = Object.values(rest).some((v) => v !== undefined);
+    const hasPins = pinnedAchievementIds !== undefined;
+    if (!hasRest && !hasPins) {
+      return NextResponse.json({ error: "Немає полів для оновлення." }, { status: 400 });
+    }
 
     let loginNext: string | undefined;
-    if (d.login !== undefined) {
-      const normalized = normalizeLogin(d.login);
+    if (rest.login !== undefined) {
+      const normalized = normalizeLogin(rest.login);
       if (!/^[\p{L}0-9_]+$/u.test(normalized)) {
         return NextResponse.json(
           { error: "Логін: лише літери, цифри та підкреслення, 2–40 символів." },
@@ -91,68 +81,82 @@ export async function PATCH(req: Request) {
     }
 
     let nicknameNext: string | null | undefined;
-    if (d.nickname !== undefined) {
-      if (d.nickname === null) nicknameNext = null;
+    if (rest.nickname !== undefined) {
+      if (rest.nickname === null) nicknameNext = null;
       else {
-        const t = d.nickname.trim();
+        const t = rest.nickname.trim();
         nicknameNext = t === "" ? null : t;
       }
     }
 
-    const beforeMax = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
-    });
+    const beforeMax = hasRest
+      ? await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
+        })
+      : null;
 
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        ...(loginNext !== undefined ? { login: loginNext } : {}),
-        ...(d.glBodyweightKg !== undefined ? { glBodyweightKg: d.glBodyweightKg } : {}),
-        ...(d.glMaxSquatKg !== undefined ? { glMaxSquatKg: d.glMaxSquatKg } : {}),
-        ...(d.glMaxBenchKg !== undefined ? { glMaxBenchKg: d.glMaxBenchKg } : {}),
-        ...(d.glMaxDeadliftKg !== undefined ? { glMaxDeadliftKg: d.glMaxDeadliftKg } : {}),
-        ...(d.glSex !== undefined ? { glSex: d.glSex } : {}),
-        ...(d.glEquipment !== undefined ? { glEquipment: d.glEquipment } : {}),
-        ...(d.avatarId !== undefined ? { avatarId: d.avatarId } : {}),
-        ...(d.nickname !== undefined ? { nickname: nicknameNext } : {}),
-        glDiscipline: null,
-      },
-      select: {
-        login: true,
-        avatarId: true,
-        nickname: true,
-        glBodyweightKg: true,
-        glMaxSquatKg: true,
-        glMaxBenchKg: true,
-        glMaxDeadliftKg: true,
-        glSex: true,
-        glEquipment: true,
-      },
-    });
-    const profile = {
-      ...updated,
-      glBodyweightKg: updated.glBodyweightKg != null ? Number(updated.glBodyweightKg) : null,
-      glMaxSquatKg: updated.glMaxSquatKg != null ? Number(updated.glMaxSquatKg) : null,
-      glMaxBenchKg: updated.glMaxBenchKg != null ? Number(updated.glMaxBenchKg) : null,
-      glMaxDeadliftKg: updated.glMaxDeadliftKg != null ? Number(updated.glMaxDeadliftKg) : null,
-    };
-
-    if (
-      beforeMax &&
-      maxTripleChanged(beforeMax, {
-        glMaxSquatKg: updated.glMaxSquatKg,
-        glMaxBenchKg: updated.glMaxBenchKg,
-        glMaxDeadliftKg: updated.glMaxDeadliftKg,
-      })
-    ) {
-      await recordProfileSbdMaxSnapshot(user.id, {
-        glMaxSquatKg: updated.glMaxSquatKg,
-        glMaxBenchKg: updated.glMaxBenchKg,
-        glMaxDeadliftKg: updated.glMaxDeadliftKg,
+    if (hasRest) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(loginNext !== undefined ? { login: loginNext } : {}),
+          ...(rest.glBodyweightKg !== undefined ? { glBodyweightKg: rest.glBodyweightKg } : {}),
+          ...(rest.glMaxSquatKg !== undefined ? { glMaxSquatKg: rest.glMaxSquatKg } : {}),
+          ...(rest.glMaxBenchKg !== undefined ? { glMaxBenchKg: rest.glMaxBenchKg } : {}),
+          ...(rest.glMaxDeadliftKg !== undefined ? { glMaxDeadliftKg: rest.glMaxDeadliftKg } : {}),
+          ...(rest.glSex !== undefined ? { glSex: rest.glSex } : {}),
+          ...(rest.glEquipment !== undefined ? { glEquipment: rest.glEquipment } : {}),
+          ...(rest.avatarId !== undefined ? { avatarId: rest.avatarId } : {}),
+          ...(rest.nickname !== undefined ? { nickname: nicknameNext } : {}),
+          glDiscipline: null,
+        },
       });
     }
 
+    const afterUpdate = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        glMaxSquatKg: true,
+        glMaxBenchKg: true,
+        glMaxDeadliftKg: true,
+      },
+    });
+
+    if (
+      hasRest &&
+      beforeMax &&
+      afterUpdate &&
+      maxTripleChanged(beforeMax, {
+        glMaxSquatKg: afterUpdate.glMaxSquatKg,
+        glMaxBenchKg: afterUpdate.glMaxBenchKg,
+        glMaxDeadliftKg: afterUpdate.glMaxDeadliftKg,
+      })
+    ) {
+      await recordProfileSbdMaxSnapshot(user.id, {
+        glMaxSquatKg: afterUpdate.glMaxSquatKg,
+        glMaxBenchKg: afterUpdate.glMaxBenchKg,
+        glMaxDeadliftKg: afterUpdate.glMaxDeadliftKg,
+      });
+    }
+
+    await syncUserAchievements(user.id);
+
+    if (pinnedAchievementIds !== undefined) {
+      const unlockedRows = await prisma.userAchievement.findMany({
+        where: { userId: user.id },
+        select: { achievementId: true },
+      });
+      const unlocked = new Set(unlockedRows.map((r) => r.achievementId));
+      const pins = normalizePinnedForUser(pinnedAchievementIds, unlocked);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { pinnedAchievementIds: pins },
+      });
+    }
+
+    const profile = await buildProfileApiPayload(user.id);
+    if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
     return NextResponse.json({ profile });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

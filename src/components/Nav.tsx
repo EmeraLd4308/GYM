@@ -7,13 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconLogout, IconTemplates } from "@/components/icons";
 
 const base =
-  "relative text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-[var(--sbd-text)]";
+  "relative inline-flex min-h-[40px] items-center rounded-md px-2 py-2 text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-[var(--sbd-text)]";
 
 const iconBtn =
   "sbd-header-icon-btn flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-xl border transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
 
 const logoutTextBtn =
-  "touch-manipulation rounded-lg px-2 py-1.5 text-sm font-medium uppercase tracking-wide text-zinc-500 transition-colors hover:text-[var(--sbd-text)] md:px-3";
+  "inline-flex min-h-[44px] touch-manipulation items-center justify-center rounded-lg px-3 text-sm font-medium uppercase tracking-wide text-zinc-500 transition-colors hover:text-[var(--sbd-text)] md:px-4";
 
 export function Nav({
   login,

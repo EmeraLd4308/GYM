@@ -9,7 +9,7 @@ import { WorkoutListFilters } from "@/components/WorkoutListFilters";
 import { WorkoutListPagination } from "@/components/WorkoutListPagination";
 
 const btnPrimary =
-  "rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21]";
+  "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21]";
 const btnPrimaryLg =
   "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.98]";
 const btnGhost =
@@ -86,10 +86,7 @@ export default async function WorkoutsListPage({
             Усі тренування
           </h1>
         </div>
-        <Link
-          href="/workouts/new"
-          className={`${btnPrimary} inline-flex min-h-[44px] items-center justify-center`}
-        >
+        <Link href="/workouts/new" className={btnPrimary}>
           Нове тренування
         </Link>
       </div>

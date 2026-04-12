@@ -88,6 +88,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     null | { kind: "set"; id: string } | { kind: "ex"; id: string } | { kind: "wo" }
   >(null);
   const [copyDate, setCopyDate] = useState(() => todayDateInput());
+  const [copyBusy, setCopyBusy] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const titleDraftRef = useRef(titleDraft);
   const savedTitleRef = useRef<string | null>(null);
@@ -482,6 +483,33 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     router.refresh();
   }
 
+  async function copyWorkoutAsText() {
+    setCopyBusy(true);
+    try {
+      const res = await fetch(`/api/workouts/${workoutId}/share-text`, {
+        credentials: "same-origin",
+      });
+      if (!res.ok) {
+        let msg = "Не вдалося отримати текст.";
+        try {
+          const j = (await res.json()) as { error?: string };
+          if (typeof j.error === "string") msg = j.error;
+        } catch {}
+        toastError(msg);
+        return;
+      }
+      const text = await res.text();
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        toastSuccess("Тренування скопійовано в буфер.");
+        return;
+      }
+      toastError("Немає доступу до буфера обміну на цьому пристрої.");
+    } finally {
+      setCopyBusy(false);
+    }
+  }
+
   if (loadError && !workout) {
     return <p className="text-red-400">{loadError}</p>;
   }
@@ -520,17 +548,20 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       />
 
       <div className="sbd-card rounded-xl p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <label className="sr-only" htmlFor="wtitle">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="min-w-0 flex-1 md:max-w-xl">
+            <label
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-500"
+              htmlFor="wtitle"
+            >
               Назва тренування
             </label>
             <input
               id="wtitle"
               type="text"
               maxLength={200}
-              className="font-display w-full min-w-0 max-w-xl border-b border-transparent bg-transparent pb-1 text-xl font-bold uppercase tracking-tight text-[var(--sbd-text)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/50"
-              placeholder="Назва тренування"
+              className="font-display box-border h-11 w-full min-w-0 cursor-text rounded-md border border-white/10 bg-black/50 px-3 text-base font-bold uppercase leading-tight tracking-tight text-[var(--sbd-text)] outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/15 md:text-lg"
+              placeholder="Наприклад День 3"
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
               onBlur={patchTitle}
@@ -542,17 +573,27 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               }}
             />
           </div>
-          <button
-            type="button"
-            className="min-h-[44px] shrink-0 touch-manipulation rounded-md border border-red-500/40 px-3 py-2 text-xs font-bold uppercase tracking-wider text-red-400 transition hover:bg-red-500/15 active:bg-red-500/25"
-            onClick={() => setConfirm({ kind: "wo" })}
-          >
-            Видалити
-          </button>
+          <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 md:justify-end">
+            <button
+              type="button"
+              disabled={copyBusy}
+              className="box-border inline-flex h-11 touch-manipulation items-center justify-center rounded-md border border-white/15 bg-white/5 px-3 text-xs font-bold uppercase tracking-wider text-zinc-200 transition hover:bg-white/10 disabled:pointer-events-none disabled:opacity-45"
+              onClick={() => void copyWorkoutAsText()}
+            >
+              {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
+            </button>
+            <button
+              type="button"
+              className="box-border inline-flex h-11 shrink-0 touch-manipulation items-center justify-center rounded-md border border-red-500/40 px-3 text-xs font-bold uppercase tracking-wider text-red-400 transition hover:bg-red-500/15 active:bg-red-500/25"
+              onClick={() => setConfirm({ kind: "wo" })}
+            >
+              Видалити
+            </button>
+          </div>
         </div>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <label
-            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+            className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-500"
             htmlFor="wdate"
           >
             Дата тренування
@@ -560,7 +601,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           <input
             id="wdate"
             type="date"
-            className="max-w-[200px] rounded-md border border-white/10 bg-black/50 px-3 py-2 text-zinc-100 outline-none focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/15"
+            className="box-border h-11 max-w-[200px] rounded-md border border-white/10 bg-black/50 px-3 text-sm text-zinc-100 outline-none focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/15"
             value={formatDateForInput(workout.date)}
             onChange={(e) => patchDate(e.target.value)}
           />
@@ -593,33 +634,35 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
             }}
           />
         </div>
-        <div className="mt-4 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:flex-wrap sm:items-end">
-          <div className="flex flex-col gap-1">
+        <div className="mt-4 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1 sm:max-w-[240px]">
             <label className="text-xs text-zinc-500" htmlFor="copydate">
               Копіювати це тренування на дату
             </label>
             <input
               id="copydate"
               type="date"
-              className="max-w-[200px] rounded-md border border-white/10 bg-black/50 px-3 py-2 text-zinc-100"
+              className="box-border h-11 max-w-[200px] rounded-md border border-white/10 bg-black/50 px-3 text-sm text-zinc-100 outline-none focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/15"
               value={copyDate}
               onChange={(e) => setCopyDate(e.target.value)}
             />
           </div>
+          <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className="rounded-md border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-200 hover:bg-white/10"
+            className="box-border inline-flex h-11 items-center justify-center rounded-md border border-white/15 bg-white/5 px-4 text-xs font-bold uppercase tracking-wider text-zinc-200 hover:bg-white/10"
             onClick={() => duplicateWorkout(copyDate)}
           >
             Копіювати
           </button>
           <button
             type="button"
-            className="rounded-md bg-[#e31e24]/90 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#c41a21]"
+            className="box-border inline-flex h-11 items-center justify-center rounded-md bg-[#e31e24]/90 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#c41a21]"
             onClick={() => duplicateWorkout(todayDateInput())}
           >
             Копія на сьогодні
           </button>
+          </div>
         </div>
       </div>
 

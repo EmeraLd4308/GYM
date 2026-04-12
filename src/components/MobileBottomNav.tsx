@@ -145,13 +145,14 @@ export function MobileBottomNav() {
             key={href}
             href={href}
             title={label}
-            className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 touch-manipulation outline-none ring-0 ${
+            aria-current={active ? "page" : undefined}
+            className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 touch-manipulation ${
               active ? "text-[#e31e24]" : "text-zinc-500"
             }`}
           >
             <Icon active={active} />
             <span
-              className={`max-w-full text-center text-[9px] font-semibold leading-tight tracking-tight sm:text-[10px] ${
+              className={`max-w-full text-center text-[10px] font-semibold leading-tight tracking-tight sm:text-[11px] ${
                 active ? "text-[#e31e24]" : "text-zinc-500"
               }`}
             >

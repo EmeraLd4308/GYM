@@ -46,10 +46,25 @@ model User {
   glEquipment     GlEquipment?
   glDiscipline    GlDiscipline?
 
+  pinnedAchievementIds Json @default("[]")
+
   sessions               Session[]
   templates              WorkoutTemplate[]
   workouts               Workout[]
   profileSbdMaxSnapshots ProfileSbdMaxSnapshot[]
+  achievements           UserAchievement[]
+}
+
+model UserAchievement {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String    @db.VarChar(80)
+  unlockedAt    DateTime  @default(now())
+  announcedAt   DateTime?
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }
 
 model ProfileSbdMaxSnapshot {

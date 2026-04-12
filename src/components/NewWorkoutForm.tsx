@@ -22,7 +22,7 @@ const label =
   "text-xs font-semibold uppercase tracking-wider text-zinc-500";
 
 const chip =
-  "inline-flex min-h-[40px] touch-manipulation items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 text-xs font-semibold text-zinc-300 transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-white active:scale-[0.98]";
+  "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 text-xs font-semibold text-zinc-300 transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-white active:scale-[0.98]";
 
 const chipActive =
   "border-[#e31e24]/45 bg-[#e31e24]/15 text-white shadow-inner shadow-black/20";
@@ -95,6 +95,9 @@ export function NewWorkoutForm({
           if (pendingWorkoutId.current === wid) {
             pendingWorkoutId.current = null;
             setLoading(false);
+            setError(
+              "Сторінка тренування не відкрилася вчасно. Перевір мережу або знайди запис у «Журнал».",
+            );
           }
         }, 40_000);
         return;
@@ -169,11 +172,11 @@ export function NewWorkoutForm({
         >
           Шаблон
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+        <p className="mt-1 text-xs leading-relaxed text-zinc-500">
           Необовʼязково. Назва тренування підставиться з шаблону, якщо не вкажеш свою нижче.
         </p>
         {templateSummary && templateSummary.total > 0 ? (
-          <p className="mt-1 text-[11px] text-zinc-600">
+          <p className="mt-1 text-[11px] text-zinc-500">
             У списку:{" "}
             <span className="text-zinc-500">
               {templateSummary.mine > 0 ? `${templateSummary.mine} твоїх` : null}
@@ -219,10 +222,13 @@ export function NewWorkoutForm({
         >
           Назва
         </h2>
-        <p className="mt-1 text-xs text-zinc-600">Необовʼязково — можна залишити порожнім.</p>
+        <p className="mt-1 text-xs text-zinc-500">Необовʼязково — можна залишити порожнім.</p>
+        <label className={`${label} mt-3 block`} htmlFor="title">
+          Власна назва
+        </label>
         <input
           id="title"
-          className={`${field} mt-3`}
+          className={`${field} mt-2`}
           aria-labelledby="new-wo-title-heading"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -245,7 +251,7 @@ export function NewWorkoutForm({
           type="button"
           disabled={loading}
           aria-busy={loading}
-          className="inline-flex min-h-[52px] w-full touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-6 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 sm:w-auto sm:min-w-[200px]"
+          className="inline-flex min-h-[52px] w-full touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-6 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:min-w-[200px]"
           onClick={submit}
         >
           Створити тренування

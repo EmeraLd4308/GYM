@@ -3,6 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { hasLeaderboardData, leaderboardScore, type LeaderboardSort } from "@/lib/ipf-gl";
+import {
+  isValidAchievementId,
+  parsePinnedIds,
+  profileGlPointsForLevel,
+  profileLevelFromGlPoints,
+} from "@/lib/achievements";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +35,7 @@ export async function GET(req: Request) {
       glMaxDeadliftKg: true,
       glSex: true,
       glEquipment: true,
+      pinnedAchievementIds: true,
     },
   });
 
@@ -43,11 +50,24 @@ export async function GET(req: Request) {
         sex: r.glSex!,
         equipment: r.glEquipment!,
       });
+      const glPts = profileGlPointsForLevel({
+        glBodyweightKg: r.glBodyweightKg != null ? Number(r.glBodyweightKg) : null,
+        glMaxSquatKg: r.glMaxSquatKg != null ? Number(r.glMaxSquatKg) : null,
+        glMaxBenchKg: r.glMaxBenchKg != null ? Number(r.glMaxBenchKg) : null,
+        glMaxDeadliftKg: r.glMaxDeadliftKg != null ? Number(r.glMaxDeadliftKg) : null,
+        glSex: r.glSex,
+        glEquipment: r.glEquipment,
+      });
+      const profileLevel = profileLevelFromGlPoints(glPts);
       return {
         login: r.login,
         avatarId: r.avatarId,
         nickname: r.nickname,
         score: score ?? 0,
+        profileLevel,
+        pinnedAchievementIds: parsePinnedIds(r.pinnedAchievementIds).filter((id) =>
+          isValidAchievementId(id),
+        ),
       };
     })
     .filter((x) => x.score > 0)
@@ -59,6 +79,8 @@ export async function GET(req: Request) {
       avatarId: x.avatarId,
       nickname: x.nickname,
       score: x.score,
+      profileLevel: x.profileLevel,
+      pinnedAchievementIds: x.pinnedAchievementIds,
     }));
 
   return NextResponse.json({ by, rows: scored });

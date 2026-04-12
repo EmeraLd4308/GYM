@@ -246,7 +246,6 @@ html[data-theme="light"] .sbd-loading-card-inner {
   transition: background-color 0.35s ease;
 }
 
-/* Картка логіну — фон і тінь залежать від теми */
 .sbd-auth-card {
   border: 1px solid var(--sbd-border);
   background: var(--sbd-elevated);
@@ -262,7 +261,6 @@ html[data-theme="light"] .sbd-auth-card {
     0 0 0 1px color-mix(in oklab, var(--sbd-border) 80%, transparent);
 }
 
-/* Toast — ті самі теми, що й решта UI */
 .sbd-toast {
   border-radius: 0.75rem;
   font-size: 0.875rem;
@@ -315,8 +313,6 @@ html[data-theme="light"] .sbd-toast--success {
   color: #065f46;
 }
 
-/* Світла тема: типові Tailwind-кольори тексту на світлому тлі */
-/* Не чіпаємо кнопки/посилання — на червоному тлі лишається білий текст */
 html[data-theme="light"] .text-white:not(button):not(a) {
   color: var(--sbd-text) !important;
 }
@@ -361,7 +357,6 @@ html[data-theme="light"] .hover\:text-zinc-100:hover {
   color: var(--sbd-text) !important;
 }
 
-/* Кнопки-іконки в шапці: однакова читабельність у світлій темі */
 .sbd-header-icon-btn {
   border-color: rgba(255, 255, 255, 0.08);
   background-color: rgba(255, 255, 255, 0.04);
@@ -374,7 +369,6 @@ html[data-theme="light"] .sbd-header-icon-btn {
   color: var(--sbd-muted);
 }
 
-/* Перемикач теми: внутрішня тінь під обидві теми */
 .sbd-theme-toggle {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22);
 }
@@ -383,7 +377,6 @@ html[data-theme="light"] .sbd-theme-toggle {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-/* Типові «темні» напівпрозорі фони → світлі поверхні */
 html[data-theme="light"] :is(
     .bg-black\/20,
     .bg-black\/25,
@@ -451,7 +444,6 @@ html[data-theme="light"] .shadow-\[inset_0_1px_0_rgba\(255\,255\,255\,0\.04\)\] 
   box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Картки з градієнтом zinc/black */
 html[data-theme="light"] .sbd-quick-guide-card {
   border-color: rgba(0, 0, 0, 0.1) !important;
   background: linear-gradient(160deg, #ffffff 0%, #f4f4f5 55%, #e8e8ed 100%) !important;
@@ -496,7 +488,6 @@ html[data-theme="light"] .sbd-loading-letter {
   color: #a1a1aa;
 }
 
-/* —— Профіль: сегменти стать / екіпіровка —— */
 .sbd-profile-seg {
   gap: 0.125rem;
   background: rgba(9, 9, 11, 0.92);
@@ -541,7 +532,6 @@ html[data-theme="light"] .sbd-profile-seg__btn[data-active="true"] {
   font-weight: 700;
 }
 
-/* Попередній перегляд GL */
 .sbd-gl-preview__value {
   color: #fafafa;
 }
@@ -568,7 +558,6 @@ html[data-theme="light"] .sbd-gl-preview .sbd-gl-preview-muted {
   color: #52525b !important;
 }
 
-/* Панель рейтингу */
 .sbd-lb-toolbar {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(9, 9, 11, 0.4);
@@ -636,7 +625,6 @@ html[data-theme="light"] tr.hover\:bg-white\/\[0\.02\]:hover {
   background-color: rgba(0, 0, 0, 0.035) !important;
 }
 
-/* Списки тренувань (дашборд / журнал) */
 html[data-theme="light"] .sbd-workout-rows > :not([hidden]) ~ :not([hidden]) {
   border-color: rgba(0, 0, 0, 0.09) !important;
 }
@@ -645,7 +633,6 @@ html[data-theme="light"] .sbd-workout-row-link:hover {
   background-color: rgba(0, 0, 0, 0.045) !important;
 }
 
-/* Бейдж «Мій» у списку шаблонів */
 .sbd-mine-badge {
   color: #fecaca;
 }
@@ -689,7 +676,6 @@ html[data-theme="light"] .sbd-template-row:hover {
   }
 }
 
-/* —— SBD full-screen loader (SbdLoadingScreen) —— */
 @keyframes sbd-loader-draw-bar {
   0% {
     stroke-dashoffset: 108;

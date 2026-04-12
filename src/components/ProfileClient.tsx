@@ -8,6 +8,7 @@ import { normalizeLogin } from "@/lib/login-normalize";
 import { PresetAvatar } from "@/components/PresetAvatar";
 import { AVATAR_IDS, AVATAR_LABELS, type AvatarId, normalizeAvatarId } from "@/lib/avatars";
 import { ipfGlProfilePreview } from "@/lib/ipf-gl";
+import { AchievementIcon } from "@/components/AchievementIcon";
 
 type ProfilePayload = {
   login: string;
@@ -19,6 +20,10 @@ type ProfilePayload = {
   glMaxDeadliftKg: unknown;
   glSex: GlSex | null;
   glEquipment: GlEquipment | null;
+  profileLevel?: number;
+  glPoints?: number | null;
+  achievementsCatalog?: { id: string; title: string; unlocked: boolean }[];
+  pinnedAchievementIds?: string[];
 };
 
 type LbRow = {
@@ -27,6 +32,8 @@ type LbRow = {
   avatarId: string;
   nickname: string | null;
   score: number;
+  profileLevel: number;
+  pinnedAchievementIds?: string[];
 };
 
 function num(v: unknown): string {
@@ -50,7 +57,7 @@ const segBtn =
   "sbd-profile-seg__btn min-h-[44px] flex-1 touch-manipulation rounded-lg px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
 
 const lbTab =
-  "sbd-lb-tab min-h-[40px] touch-manipulation rounded-lg border px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
+  "sbd-lb-tab inline-flex min-h-[40px] touch-manipulation items-center justify-center rounded-lg border px-3 text-center text-xs font-semibold uppercase leading-none tracking-wide transition sm:text-sm";
 
 const avatarPickBtn = (active: boolean) =>
   `relative flex touch-manipulation flex-col items-center gap-1.5 rounded-xl border p-2.5 transition ${
@@ -115,6 +122,14 @@ export function ProfileClient() {
   const [lbLoading, setLbLoading] = useState(false);
   const profileEditDetailsRef = useRef<HTMLDetailsElement>(null);
 
+  const [profileLevel, setProfileLevel] = useState(1);
+  const [glPointsState, setGlPointsState] = useState<number | null>(null);
+  const [achCatalog, setAchCatalog] = useState<{ id: string; title: string; unlocked: boolean }[]>(
+    [],
+  );
+  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
+  const [pinSaving, setPinSaving] = useState(false);
+
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -135,6 +150,10 @@ export function ProfileClient() {
       setDl(num(p.glMaxDeadliftKg));
       if (p.glSex) setSex(p.glSex);
       if (p.glEquipment) setEquipment(p.glEquipment);
+      setProfileLevel(typeof p.profileLevel === "number" ? p.profileLevel : 1);
+      setGlPointsState(typeof p.glPoints === "number" ? p.glPoints : null);
+      setAchCatalog(Array.isArray(p.achievementsCatalog) ? p.achievementsCatalog : []);
+      setPinnedIds(Array.isArray(p.pinnedAchievementIds) ? p.pinnedAchievementIds : []);
     } finally {
       setLoading(false);
     }
@@ -175,6 +194,12 @@ export function ProfileClient() {
     });
   }, [bw, sq, bp, dl, sex, equipment]);
 
+  const achTitleById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of achCatalog) m.set(a.id, a.title);
+    return m;
+  }, [achCatalog]);
+
   async function save() {
     setSaving(true);
     try {
@@ -208,12 +233,51 @@ export function ProfileClient() {
         setLoginEdit(prof.login);
         router.refresh();
       }
+      if (prof) {
+        setProfileLevel(typeof prof.profileLevel === "number" ? prof.profileLevel : 1);
+        setGlPointsState(typeof prof.glPoints === "number" ? prof.glPoints : null);
+        setAchCatalog(Array.isArray(prof.achievementsCatalog) ? prof.achievementsCatalog : []);
+        setPinnedIds(Array.isArray(prof.pinnedAchievementIds) ? prof.pinnedAchievementIds : []);
+      }
       toastSuccess("Профіль збережено.");
       const det = profileEditDetailsRef.current;
       if (det) det.open = false;
       await loadLb();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function togglePinAchievement(id: string) {
+    const row = achCatalog.find((a) => a.id === id);
+    if (!row?.unlocked) return;
+    setPinSaving(true);
+    try {
+      let next = [...pinnedIds];
+      if (next.includes(id)) next = next.filter((x) => x !== id);
+      else {
+        if (next.length >= 3) {
+          toastError("Можна закріпити не більше трьох досягнень.");
+          return;
+        }
+        next.push(id);
+      }
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pinnedAchievementIds: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toastError((data as { error?: string }).error ?? "Не вдалося зберегти закріплення.");
+        return;
+      }
+      const prof = (data as { profile?: ProfilePayload }).profile;
+      if (prof && Array.isArray(prof.pinnedAchievementIds)) setPinnedIds(prof.pinnedAchievementIds);
+      toastSuccess("Закріплення оновлено.");
+      await loadLb();
+    } finally {
+      setPinSaving(false);
     }
   }
 
@@ -230,9 +294,6 @@ export function ProfileClient() {
   return (
     <div className="space-y-10 pb-6 md:space-y-12 md:pb-8">
       <header className="max-w-3xl space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#e31e24]">
-          Профіль
-        </p>
         <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
           Силові максимуми та GL
         </h1>
@@ -257,10 +318,7 @@ export function ProfileClient() {
                 <PresetAvatar avatarId={avatarId} size={104} className="ring-2 ring-[#e31e24]/20" />
               </div>
               <div className="min-w-0 flex-1 text-left">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
-                  Твій профіль
-                </p>
-                <p className="mt-0.5 font-display text-base font-semibold leading-tight text-[var(--sbd-text)] sm:text-lg">
+                <p className="font-display text-base font-semibold leading-tight text-[var(--sbd-text)] sm:text-lg">
                   {loginEdit || login}
                 </p>
                 {nickname.trim() ? (
@@ -270,6 +328,26 @@ export function ProfileClient() {
                 ) : (
                   <p className="mt-1.5 text-xs text-[var(--sbd-muted)]">Без позивного</p>
                 )}
+                <div
+                  className="mt-2.5 flex min-h-[36px] flex-wrap items-center gap-1.5"
+                  aria-label="Закріплені досягнення"
+                >
+                  {pinnedIds.length > 0 ? (
+                    pinnedIds.map((pid) => (
+                      <span
+                        key={pid}
+                        className="inline-flex rounded-lg border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] p-1 shadow-sm"
+                        title={achCatalog.find((c) => c.id === pid)?.title ?? pid}
+                      >
+                        <AchievementIcon achievementId={pid} size={28} />
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[11px] leading-snug text-[var(--sbd-muted)]">
+                      Закріплення — у «Редагувати профіль» (до 3).
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <p className="text-xs leading-relaxed text-[var(--sbd-muted)] lg:hidden">
@@ -306,6 +384,24 @@ export function ProfileClient() {
                 {gl.message}
               </p>
             )}
+          </div>
+
+          <div className="sbd-card rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md sm:p-5">
+            <p className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--sbd-muted)]">
+              Рівень профілю
+            </p>
+            <p className="mt-2 font-display text-3xl font-bold tabular-nums text-[#e31e24]">
+              {profileLevel}
+            </p>
+            <p className="mt-1 text-xs text-[var(--sbd-muted)]">
+              {glPointsState != null && Number.isFinite(glPointsState) ? (
+                <>
+                  За GL-балом ({glPointsState.toFixed(3)} pts). Більший GL — вищий рівень.
+                </>
+              ) : (
+                <>Заповни вагу й максимуми в профілі — з&apos;явиться GL і рівень зростатиме разом із балом.</>
+              )}
+            </p>
           </div>
         </aside>
 
@@ -409,7 +505,7 @@ export function ProfileClient() {
               <div className="grid gap-6">
                 <div>
                   <label
-                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    className="mb-0 block text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
                     htmlFor="gl-bw"
                   >
                     Вага тіла (кг)
@@ -426,7 +522,7 @@ export function ProfileClient() {
                 </div>
                 <div>
                   <label
-                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    className="mb-0 block text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
                     htmlFor="profile-login"
                   >
                     Логін
@@ -565,6 +661,47 @@ export function ProfileClient() {
               </div>
             </ProfileSection>
 
+            <ProfileSection
+              sectionId="profile-pins"
+              title="Закріплені досягнення"
+              description="До трьох розблокованих нагород — іконки в картці профілю зліва та в колонці «Досягнення» в рейтингу перед рівнем. Закріплення зберігаються одразу після натискання; аватар, максимуми й інше — кнопкою «Зберегти зміни» нижче."
+              withDivider
+            >
+              <p className="mb-3 text-xs text-[var(--sbd-muted)]">
+                Натисни нагороду, щоб закріпити або зняти (максимум 3).
+              </p>
+              <div className="grid max-h-[min(50vh,22rem)] grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+                {achCatalog.map((a) => {
+                  const pinned = pinnedIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      disabled={!a.unlocked || pinSaving}
+                      onClick={() => void togglePinAchievement(a.id)}
+                      className={`flex min-h-[52px] items-center gap-2 rounded-xl border px-2.5 py-2 text-left text-xs transition ${
+                        !a.unlocked
+                          ? "cursor-not-allowed border-[var(--sbd-border)] bg-[var(--sbd-elevated)] opacity-45"
+                          : pinned
+                            ? "border-[#e31e24]/55 bg-[#e31e24]/12 ring-1 ring-[#e31e24]/25"
+                            : "border-[var(--sbd-border)] bg-[var(--sbd-card)] hover:border-[#e31e24]/35"
+                      }`}
+                    >
+                      <AchievementIcon achievementId={a.id} size={28} />
+                      <span className="min-w-0 flex-1 leading-snug text-[var(--sbd-text)]">
+                        {a.title}
+                        {pinned ? (
+                          <span className="mt-0.5 block text-[10px] font-bold uppercase text-[#e31e24]">
+                            закріплено
+                          </span>
+                        ) : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </ProfileSection>
+
           <div className="mt-10 border-t border-[color:var(--sbd-border)] pt-8">
             <button
               type="button"
@@ -608,7 +745,7 @@ export function ProfileClient() {
               <button
                 key={key}
                 type="button"
-                className={`${lbTab} inline-flex w-full justify-center sm:w-auto`}
+                className={`${lbTab} w-full sm:w-auto`}
                 data-active={lbBy === key ? "true" : "false"}
                 onClick={() => setLbBy(key)}
               >
@@ -630,12 +767,24 @@ export function ProfileClient() {
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl ring-1 ring-white/[0.06]">
-              <table className="w-full min-w-[300px] text-sm">
+              <table className="w-full min-w-[400px] text-sm">
                 <thead className="sbd-lb-thead">
                   <tr className="text-left text-xs uppercase tracking-wider text-zinc-500">
                     <th className="px-4 py-3 align-top font-semibold">#</th>
                     <th className="px-4 py-3 align-top font-semibold">Атлет</th>
-                    <th className="px-4 py-3 align-top text-right font-semibold">GL</th>
+                    <th
+                      className="px-3 py-3 align-middle text-center font-semibold"
+                      title="Закріплені досягнення"
+                    >
+                      Досягнення
+                    </th>
+                    <th
+                      className="px-4 py-3 align-middle text-right font-semibold"
+                      title="Рівень за GL-профілем"
+                    >
+                      Рівень
+                    </th>
+                    <th className="px-4 py-3 align-middle text-right font-semibold">GL</th>
                   </tr>
                 </thead>
                 <tbody className="sbd-lb-tbody divide-y divide-white/[0.05] text-zinc-200">
@@ -648,7 +797,7 @@ export function ProfileClient() {
                           : "transition-colors hover:bg-white/[0.02]"
                       }
                     >
-                      <td className="px-4 py-3 align-top tabular-nums leading-snug text-[var(--sbd-muted)]">
+                      <td className="px-4 py-3 align-middle tabular-nums leading-snug text-[var(--sbd-muted)]">
                         {r.place}
                       </td>
                       <td className="px-4 py-3 align-top">
@@ -675,8 +824,33 @@ export function ProfileClient() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 align-top text-right tabular-nums leading-snug text-[var(--sbd-text)]">
-                        <span className="inline-block translate-y-px">{r.score.toFixed(3)}</span>
+                      <td className="px-3 py-3 align-middle text-center">
+                        {(r.pinnedAchievementIds ?? []).length > 0 ? (
+                          <div
+                            className="flex flex-wrap items-center justify-center gap-1"
+                            aria-label="Закріплені досягнення"
+                          >
+                            {(r.pinnedAchievementIds ?? []).map((pid) => (
+                              <span
+                                key={pid}
+                                className="inline-flex rounded-md border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] p-0.5"
+                                title={achTitleById.get(pid) ?? pid}
+                              >
+                                <AchievementIcon achievementId={pid} size={20} />
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-right tabular-nums leading-snug text-[var(--sbd-text)]">
+                        <span className="inline-flex min-h-[28px] items-center justify-end font-display font-semibold">
+                          {r.profileLevel ?? 1}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-right tabular-nums leading-snug text-[var(--sbd-text)]">
+                        <span className="inline-flex min-h-[28px] items-center justify-end">
+                          {r.score.toFixed(3)}
+                        </span>
                       </td>
                     </tr>
                   ))}

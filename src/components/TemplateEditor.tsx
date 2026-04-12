@@ -40,7 +40,7 @@ export function TemplateEditor({
 }) {
   const router = useRouter();
 
-  const { error: toastError } = useToast();
+  const { error: toastError, success: toastSuccess } = useToast();
 
   const [name, setName] = useState(initialName);
 
@@ -63,6 +63,8 @@ export function TemplateEditor({
   const [loading, setLoading] = useState(false);
 
   const [removeIndex, setRemoveIndex] = useState<number | null>(null);
+  const [deleteTemplateOpen, setDeleteTemplateOpen] = useState(false);
+  const [deletingTemplate, setDeletingTemplate] = useState(false);
 
   function addRow() {
     setRows((r) => [
@@ -163,6 +165,25 @@ export function TemplateEditor({
     }
   }
 
+  async function deleteTemplate() {
+    if (!templateId) return;
+    setDeletingTemplate(true);
+    try {
+      const res = await fetch(`/api/templates/${templateId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toastError((data as { error?: string }).error ?? "Не вдалося видалити.");
+        return;
+      }
+      toastSuccess("Шаблон видалено.");
+      setDeleteTemplateOpen(false);
+      router.push("/templates");
+      router.refresh();
+    } finally {
+      setDeletingTemplate(false);
+    }
+  }
+
   const field =
     "mt-1 w-full rounded-md border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-3 py-2 text-[var(--sbd-text)] outline-none focus:border-[#e31e24]/40 focus:ring-1 focus:ring-[#e31e24]/15";
 
@@ -180,6 +201,19 @@ export function TemplateEditor({
           if (removeIndex !== null) removeRow(removeIndex);
         }}
       />
+
+      {templateId ? (
+        <ConfirmDialog
+          open={deleteTemplateOpen}
+          onClose={() => setDeleteTemplateOpen(false)}
+          title="Видалити весь шаблон?"
+          description="Усі вправи та сам шаблон будуть видалені без відновлення."
+          confirmLabel={deletingTemplate ? "…" : "Видалити"}
+          cancelLabel="Скасувати"
+          danger
+          onConfirm={() => deleteTemplate()}
+        />
+      ) : null}
 
       <div>
         <label
@@ -283,14 +317,26 @@ export function TemplateEditor({
         </ul>
       </div>
 
-      <button
-        type="button"
-        disabled={loading}
-        className="w-full min-h-[52px] rounded-xl bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:min-h-0 sm:rounded-md"
-        onClick={save}
-      >
-        Зберегти
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <button
+          type="button"
+          disabled={loading}
+          className="w-full min-h-[52px] rounded-xl bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:min-h-0 sm:rounded-md"
+          onClick={save}
+        >
+          Зберегти
+        </button>
+        {templateId ? (
+          <button
+            type="button"
+            disabled={loading || deletingTemplate}
+            className="w-full min-h-[48px] rounded-xl border border-red-500/45 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-red-500 transition hover:bg-red-500/10 sm:w-auto"
+            onClick={() => setDeleteTemplateOpen(true)}
+          >
+            Видалити шаблон
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

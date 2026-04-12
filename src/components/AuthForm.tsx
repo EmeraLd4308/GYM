@@ -11,6 +11,7 @@ export function AuthForm() {
     <form
       className="sbd-auth-card w-full max-w-md space-y-5 rounded-2xl p-5 sm:space-y-6 sm:p-8"
       noValidate
+      aria-busy={pending}
       onSubmit={async (e) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -94,14 +95,14 @@ export function AuthForm() {
           disabled={pending}
         />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3" aria-live="polite">
         <button
           type="submit"
           data-action="register"
           disabled={pending}
           className="min-h-[52px] w-full touch-manipulation rounded-xl bg-[#e31e24] px-4 py-3 text-base font-bold text-white shadow-lg shadow-red-950/40 transition enabled:active:bg-[#a0151a] disabled:opacity-50"
         >
-          Реєстрація — вперше
+          {pending ? "Зачекай…" : "Реєстрація — вперше"}
         </button>
         <button
           type="submit"
@@ -109,7 +110,7 @@ export function AuthForm() {
           disabled={pending}
           className="min-h-[52px] w-full touch-manipulation rounded-xl border border-white/20 bg-transparent px-4 py-3 text-base font-semibold text-zinc-200 transition enabled:active:bg-white/10 disabled:opacity-50"
         >
-          Увійти
+          {pending ? "Зачекай…" : "Увійти"}
         </button>
       </div>
     </form>

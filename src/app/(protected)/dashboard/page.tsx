@@ -124,14 +124,16 @@ export default async function DashboardPage() {
             </h2>
             {todayWorkouts.length === 0 ? (
               <div className="sbd-card rounded-xl p-5 text-sm text-zinc-500 md:p-6">
-                Сьогодні ще порожньо. Нижче — копія з іншої дати або{" "}
+                <p>
+                  Сьогодні ще порожньо. Нижче можна скопіювати запис з іншої дати; або додай новий
+                  запис одразу.
+                </p>
                 <Link
                   href="/workouts/new"
-                  className="font-medium text-[#e31e24] underline-offset-2 hover:underline"
+                  className="mt-4 inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] sm:w-auto"
                 >
-                  нове тренування
+                  Додати тренування
                 </Link>
-                .
               </div>
             ) : (
               <ul className="sbd-card sbd-card-interactive sbd-workout-rows divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
