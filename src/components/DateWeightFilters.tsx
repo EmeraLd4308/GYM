@@ -113,7 +113,7 @@ export function DateWeightFilters({
   const pf = `${idPrefix}-`;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/95 via-zinc-950/80 to-black/90 shadow-xl shadow-black/40 ring-1 ring-white/[0.05]">
+    <div className="sbd-filter-panel overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/95 via-zinc-950/80 to-black/90 shadow-xl shadow-black/40 ring-1 ring-white/[0.05]">
       <div className="border-b border-white/[0.06] bg-black/25 px-5 py-4 sm:px-6">
         <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">
           {title}

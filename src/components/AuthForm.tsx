@@ -9,7 +9,7 @@ export function AuthForm() {
 
   return (
     <form
-      className="w-full max-w-md space-y-5 rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-5 shadow-2xl shadow-black/60 sm:space-y-6 sm:p-8"
+      className="sbd-auth-card w-full max-w-md space-y-5 rounded-2xl p-5 sm:space-y-6 sm:p-8"
       noValidate
       onSubmit={async (e) => {
         e.preventDefault();

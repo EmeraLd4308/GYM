@@ -1,7 +1,7 @@
 "use client";
 
 import type { GlEquipment, GlSex } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
 import { normalizeLogin } from "@/lib/login-normalize";
@@ -44,23 +44,55 @@ function parseOptFloat(s: string): number | null {
 }
 
 const field =
-  "mt-1.5 w-full rounded-lg border border-white/[0.08] bg-black/50 px-3 py-2.5 text-sm text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/45 focus:ring-2 focus:ring-[#e31e24]/12";
+  "mt-1.5 w-full rounded-lg border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-3 py-2.5 text-sm text-[var(--sbd-text)] shadow-[inset_0_1px_0_rgba(128,128,128,0.06)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/45 focus:ring-2 focus:ring-[#e31e24]/12";
 
-const segWrap = "inline-flex w-full rounded-xl bg-zinc-950/90 p-1 ring-1 ring-white/[0.07]";
 const segBtn =
-  "min-h-[44px] flex-1 touch-manipulation rounded-lg px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
-const segActive = "bg-[#e31e24]/25 text-white shadow-md shadow-black/40 ring-1 ring-[#e31e24]/35";
-const segIdle = "text-zinc-500 hover:text-zinc-300";
+  "sbd-profile-seg__btn min-h-[44px] flex-1 touch-manipulation rounded-lg px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
 
-const lbBtn =
-  "min-h-[40px] touch-manipulation rounded-lg border px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
+const lbTab =
+  "sbd-lb-tab min-h-[40px] touch-manipulation rounded-lg border px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";
 
 const avatarPickBtn = (active: boolean) =>
   `relative flex touch-manipulation flex-col items-center gap-1.5 rounded-xl border p-2.5 transition ${
     active
       ? "border-[#e31e24]/55 bg-[#e31e24]/12 shadow-[0_0_24px_-8px_rgba(227,30,36,0.35)] ring-1 ring-[#e31e24]/25"
-      : "border-white/[0.07] bg-black/30 hover:border-white/15 hover:bg-white/[0.03]"
+      : "border-[var(--sbd-border)] bg-[var(--sbd-card)] hover:border-[#e31e24]/30 hover:bg-[#e31e24]/[0.06]"
   }`;
+
+function ProfileSection({
+  sectionId,
+  title,
+  description,
+  children,
+  withDivider = false,
+}: {
+  sectionId: string;
+  title: string;
+  description?: ReactNode;
+  children: ReactNode;
+  withDivider?: boolean;
+}) {
+  const hid = `${sectionId}-heading`;
+  return (
+    <section
+      className={withDivider ? "border-t border-[color:var(--sbd-border)] pt-8 md:pt-10" : ""}
+      aria-labelledby={hid}
+    >
+      <h2
+        id={hid}
+        className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--sbd-muted)]"
+      >
+        {title}
+      </h2>
+      {description != null ? (
+        <div className="mt-2 max-w-prose text-sm leading-relaxed text-[var(--sbd-muted)]">
+          {description}
+        </div>
+      ) : null}
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
 
 export function ProfileClient() {
   const router = useRouter();
@@ -81,6 +113,7 @@ export function ProfileClient() {
   const [lbBy, setLbBy] = useState<"total" | "bench" | "squat" | "deadlift">("total");
   const [lbRows, setLbRows] = useState<LbRow[]>([]);
   const [lbLoading, setLbLoading] = useState(false);
+  const profileEditDetailsRef = useRef<HTMLDetailsElement>(null);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -176,6 +209,8 @@ export function ProfileClient() {
         router.refresh();
       }
       toastSuccess("Профіль збережено.");
+      const det = profileEditDetailsRef.current;
+      if (det) det.open = false;
       await loadLb();
     } finally {
       setSaving(false);
@@ -184,259 +219,70 @@ export function ProfileClient() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-12 w-2/3 max-w-md rounded-xl bg-zinc-800/80" />
-        <div className="h-40 rounded-2xl bg-zinc-900/60 ring-1 ring-white/[0.06]" />
-        <div className="h-72 rounded-2xl bg-zinc-900/40 ring-1 ring-white/[0.05]" />
+      <div className="space-y-6 animate-pulse" aria-busy="true" aria-label="Завантаження профілю">
+        <div className="h-10 w-2/3 max-w-md rounded-lg bg-zinc-800/60" />
+        <div className="sbd-card h-32 rounded-2xl p-6" />
+        <div className="sbd-card h-80 rounded-2xl p-6" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-4">
-      <header className="space-y-2">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+    <div className="space-y-10 pb-6 md:space-y-12 md:pb-8">
+      <header className="max-w-3xl space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#e31e24]">
+          Профіль
+        </p>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
           Силові максимуми та GL
         </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-zinc-500">
-          Обери аватар, за бажанням додай позивний для рейтингу, потім вагу тіла й максимуми SBD —
-          для IPF Goodlift (2020). GL триборства з&apos;явиться, коли заповнені всі три рухи; інакше
-          — офіційний GL жиму, якщо є жим.
+        <p className="text-sm leading-relaxed text-[var(--sbd-muted)] sm:text-base">
+          Нижче — попередній перегляд GL і рейтинг. Щоб змінити аватар, логін, вагу чи максимуми,
+          натисни{" "}
+          <span className="font-medium text-[var(--sbd-text)]">«Редагувати профіль»</span> — блок
+          розкриється (як підказка «Куди натиснути» на головній). Дані йдуть у IPF Goodlift (2020):
+          GL триборства з&apos;явиться, коли заповнені всі три рухи; інакше — офіційний GL жиму,
+          якщо є жим.
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
-        <section className="sbd-card space-y-8 rounded-2xl p-5 shadow-lg shadow-black/20 sm:p-7 lg:col-span-7">
-          <div>
-            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-zinc-400">
-              Аватар
-            </h2>
-            <p className="mt-1 text-xs text-zinc-600">
-              15 заготовок у стилі залу — натисни, щоб обрати.
-            </p>
-            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {AVATAR_IDS.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={avatarPickBtn(avatarId === id)}
-                  onClick={() => setAvatarId(id)}
-                  aria-pressed={avatarId === id}
-                  aria-label={AVATAR_LABELS[id]}
-                >
-                  <PresetAvatar decorative avatarId={id} size={40} className="ring-0" />
-                  <span className="line-clamp-1 w-full text-center text-[10px] font-medium text-zinc-500">
-                    {AVATAR_LABELS[id]}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-white/[0.06] pt-6">
-            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-zinc-400">
-              Позивний
-            </h2>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-600">
-              Необов&apos;язково. У рейтингу поруч із логіном з&apos;явиться мітка{" "}
-              <span className="rounded border border-[#e31e24]/25 bg-[#e31e24]/10 px-1 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#e31e24]/90">
-                позивний
-              </span>
-              , щоб не плутати з частиною нікнейму.
-            </p>
-            <label
-              className="mt-3 block text-xs font-semibold uppercase tracking-wider text-zinc-500"
-              htmlFor="nick"
-            >
-              Текст позивного
-            </label>
-            <input
-              id="nick"
-              className={field}
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value.slice(0, 40))}
-              placeholder="наприклад Залізний"
-              autoComplete="nickname"
-              maxLength={40}
-            />
-          </div>
-
-          <div className="border-t border-white/[0.06] pt-6">
-            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-zinc-400">
-              Дані атлета
-            </h2>
-            <div className="mt-4 grid gap-5 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  htmlFor="gl-bw"
-                >
-                  Вага тіла (кг)
-                </label>
-                <input
-                  id="gl-bw"
-                  className={field}
-                  inputMode="decimal"
-                  value={bw}
-                  onChange={(e) => setBw(e.target.value)}
-                  placeholder="наприклад 82.5"
-                  autoComplete="off"
-                />
+      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+        <aside
+          className="order-1 space-y-4 sm:space-y-5 lg:order-2 lg:col-span-5 lg:space-y-6"
+          aria-label="Попередній перегляд GL"
+        >
+          <div className="sbd-card flex flex-col gap-4 rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md shadow-black/10 sm:flex-row sm:items-center sm:justify-between sm:p-5 lg:flex-col lg:items-stretch">
+            <div className="flex items-center gap-4 sm:gap-5">
+              <div className="relative shrink-0 rounded-2xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-2.5 shadow-sm ring-1 ring-[#e31e24]/12">
+                <PresetAvatar avatarId={avatarId} size={104} className="ring-2 ring-[#e31e24]/20" />
               </div>
-              <div className="sm:col-span-2">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-x-8">
-                  <label
-                    className="shrink-0 text-xs font-semibold uppercase tracking-wider text-zinc-500 sm:pt-2.5"
-                    htmlFor="profile-login"
-                  >
-                    Логін
-                  </label>
-                  <input
-                    id="profile-login"
-                    className={`${field} min-w-0 flex-1 sm:max-w-md`}
-                    value={loginEdit}
-                    onChange={(e) => setLoginEdit(e.target.value.slice(0, 40))}
-                    autoComplete="username"
-                    spellCheck={false}
-                  />
-                </div>
-                <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
-                  Унікальний у сервісі (літери, цифри, _). Якщо обрати вже зайнятий логін —
-                  збереження не пройде.
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
+                  Твій профіль
                 </p>
+                <p className="mt-0.5 font-display text-base font-semibold leading-tight text-[var(--sbd-text)] sm:text-lg">
+                  {loginEdit || login}
+                </p>
+                {nickname.trim() ? (
+                  <p className="mt-1.5 truncate text-xs text-[var(--sbd-muted)]">
+                    Позивний: <span className="text-[var(--sbd-text)]">{nickname.trim()}</span>
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-xs text-[var(--sbd-muted)]">Без позивного</p>
+                )}
               </div>
             </div>
-          </div>
-
-          <div>
-            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-zinc-400">
-              Максимуми (кг)
-            </h2>
-            <p className="mt-1 text-xs text-zinc-600">
-              Порожні поля можна залишити — рейтинг «по жиму» тоді використає лише жим.
+            <p className="text-xs leading-relaxed text-[var(--sbd-muted)] lg:hidden">
+              GL оновлюється після змін у відкритому блоці редагування.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <div>
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  htmlFor="gl-sq"
-                >
-                  Присяд
-                </label>
-                <input
-                  id="gl-sq"
-                  className={field}
-                  inputMode="decimal"
-                  value={sq}
-                  onChange={(e) => setSq(e.target.value)}
-                  placeholder="—"
-                  autoComplete="off"
-                />
-              </div>
-              <div>
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  htmlFor="gl-bp"
-                >
-                  Жим
-                </label>
-                <input
-                  id="gl-bp"
-                  className={field}
-                  inputMode="decimal"
-                  value={bp}
-                  onChange={(e) => setBp(e.target.value)}
-                  placeholder="—"
-                  autoComplete="off"
-                />
-              </div>
-              <div>
-                <label
-                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                  htmlFor="gl-dl"
-                >
-                  Тяга
-                </label>
-                <input
-                  id="gl-dl"
-                  className={field}
-                  inputMode="decimal"
-                  value={dl}
-                  onChange={(e) => setDl(e.target.value)}
-                  placeholder="—"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
           </div>
-
-          <div className="space-y-5 border-t border-white/[0.06] pt-6">
-            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-zinc-400">
-              Критерії IPF GL
-            </h2>
-            <div className="space-y-2">
-              <p className="text-xs text-zinc-600">Стать</p>
-              <div className={segWrap}>
-                <button
-                  type="button"
-                  className={`${segBtn} ${sex === "MALE" ? segActive : segIdle}`}
-                  onClick={() => setSex("MALE")}
-                >
-                  Чоловіки
-                </button>
-                <button
-                  type="button"
-                  className={`${segBtn} ${sex === "FEMALE" ? segActive : segIdle}`}
-                  onClick={() => setSex("FEMALE")}
-                >
-                  Жінки
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs text-zinc-600">Екіпіровка</p>
-              <div className={segWrap}>
-                <button
-                  type="button"
-                  className={`${segBtn} ${equipment === "CLASSIC" ? segActive : segIdle}`}
-                  onClick={() => setEquipment("CLASSIC")}
-                >
-                  Класичний
-                </button>
-                <button
-                  type="button"
-                  className={`${segBtn} ${equipment === "EQUIPPED" ? segActive : segIdle}`}
-                  onClick={() => setEquipment("EQUIPPED")}
-                >
-                  Екіпірувальний
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={saving}
-            className="w-full min-h-[48px] rounded-xl bg-[#e31e24] px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-45 sm:w-auto sm:px-8"
-            onClick={() => void save()}
-          >
-            {saving ? "Збереження…" : "Зберегти зміни"}
-          </button>
-        </section>
-
-        <aside className="space-y-4 lg:col-span-5">
-          <div className="flex justify-center lg:justify-start">
-            <div className="relative rounded-2xl border border-white/[0.08] bg-zinc-950/60 p-3 ring-1 ring-[#e31e24]/15">
-              <PresetAvatar avatarId={avatarId} size={112} className="ring-2 ring-[#e31e24]/20" />
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-2xl border border-[#e31e24]/30 bg-gradient-to-b from-[#e31e24]/[0.14] via-zinc-950/80 to-black p-6 shadow-xl shadow-black/50 sm:p-8">
+          <div className="sbd-gl-preview relative overflow-hidden rounded-2xl border border-[#e31e24]/30 bg-gradient-to-b from-[#e31e24]/[0.14] via-zinc-950/80 to-black p-5 shadow-xl shadow-black/50 sm:p-8">
             <div
-              className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#e31e24]/20 blur-3xl"
+              className="sbd-gl-preview-deco pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#e31e24]/20 blur-3xl"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute bottom-0 left-1/2 h-24 w-[120%] -translate-x-1/2 bg-gradient-to-t from-black/80 to-transparent"
+              className="sbd-gl-preview-deco pointer-events-none absolute bottom-0 left-1/2 h-24 w-[120%] -translate-x-1/2 bg-gradient-to-t from-black/80 to-transparent"
               aria-hidden
             />
             <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-[#e31e24]/90">
@@ -444,34 +290,313 @@ export function ProfileClient() {
             </p>
             {gl.kind === "total" || gl.kind === "bench" ? (
               <>
-                <p className="relative mt-2 text-xs text-zinc-400">
+                <p className="sbd-gl-preview-muted relative mt-2 text-xs text-zinc-400">
                   {gl.kind === "total" ? "IPF GL · сума триборства" : "IPF GL · жим лежачи"}
                 </p>
-                <p className="relative mt-3 font-display text-4xl font-bold tabular-nums tracking-tight text-white sm:text-5xl">
+                <p className="sbd-gl-preview__value relative mt-3 font-display text-3xl font-bold tabular-nums tracking-tight sm:text-5xl">
                   {gl.points}
                 </p>
-                <p className="relative mt-4 text-xs leading-relaxed text-zinc-500">
+                <p className="sbd-gl-preview-muted relative mt-4 text-xs leading-relaxed text-zinc-500">
                   У рейтингу нижче — порівняння по сумі SBD, жиму, присяду чи тязі. Для присяду та
                   тяги в рейтингу використовується наближена оцінка з коефіцієнтами триборства.
                 </p>
               </>
             ) : (
-              <p className="relative mt-4 text-sm leading-relaxed text-zinc-400">{gl.message}</p>
+              <p className="sbd-gl-preview-muted relative mt-4 text-sm leading-relaxed text-zinc-400">
+                {gl.message}
+              </p>
             )}
           </div>
         </aside>
-      </div>
 
-      <section className="sbd-card overflow-hidden rounded-2xl shadow-lg shadow-black/25">
-        <div className="border-b border-white/[0.06] bg-zinc-950/40 px-5 py-5 sm:px-7">
-          <h2 className="font-display text-lg font-bold uppercase tracking-wide text-white">
+        <div className="order-2 flex flex-col gap-6 sm:gap-8 lg:order-1 lg:col-span-7 lg:gap-8">
+        <details
+          ref={profileEditDetailsRef}
+          id="profile-edit"
+          className="profile-edit-details group sbd-card overflow-hidden rounded-2xl shadow-lg shadow-black/15 open:shadow-xl"
+        >
+          <summary className="flex min-h-[52px] cursor-pointer list-none items-center gap-3 px-4 py-3 marker:content-none sm:min-h-[56px] sm:px-6 sm:py-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+              <span className="hidden shrink-0 sm:inline-flex sm:items-center sm:justify-center" aria-hidden>
+                <PresetAvatar decorative avatarId={avatarId} size={40} className="ring-1 ring-[#e31e24]/20" />
+              </span>
+              <span className="flex min-w-0 flex-col justify-center gap-0.5 text-left leading-tight">
+                <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-[#e31e24]/90 sm:text-xs">
+                  Редагувати профіль
+                </span>
+                <span className="truncate text-sm font-medium text-[var(--sbd-text)]">
+                  {loginEdit || login}
+                </span>
+              </span>
+            </span>
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center self-center text-[var(--sbd-muted)] transition group-open:rotate-180 sm:h-9 sm:w-9"
+              aria-hidden
+            >
+              ▼
+            </span>
+          </summary>
+          <div className="space-y-0 border-t border-[color:var(--sbd-border)] px-4 pb-5 pt-5 sm:px-7 sm:pb-7 sm:pt-6">
+            <ProfileSection
+              sectionId="profile-avatar"
+              title="Аватар"
+              description="П’ятнадцять заготовок у стилі залу — натисни картку, щоб обрати."
+            >
+              <div
+                className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 sm:gap-3"
+                role="group"
+                aria-label="Оберіть аватар"
+              >
+                {AVATAR_IDS.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={avatarPickBtn(avatarId === id)}
+                    onClick={() => setAvatarId(id)}
+                    aria-pressed={avatarId === id}
+                    aria-label={AVATAR_LABELS[id]}
+                  >
+                    <PresetAvatar decorative avatarId={id} size={40} className="ring-0" />
+                    <span className="line-clamp-2 w-full text-center text-[10px] font-medium leading-tight text-[var(--sbd-muted)]">
+                      {AVATAR_LABELS[id]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </ProfileSection>
+
+            <ProfileSection
+              sectionId="profile-nickname"
+              title="Позивний"
+              description={
+                <>
+                  Необов&apos;язково. У рейтингу поруч із логіном з&apos;явиться мітка{" "}
+                  <span className="rounded border border-[#e31e24]/25 bg-[#e31e24]/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#e31e24]">
+                    позивний
+                  </span>
+                  , щоб не плутати з частиною нікнейму.
+                </>
+              }
+              withDivider
+            >
+              <label
+                className="block text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                htmlFor="nick"
+              >
+                Текст позивного
+              </label>
+              <input
+                id="nick"
+                className={field}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value.slice(0, 40))}
+                placeholder="наприклад Залізний"
+                autoComplete="nickname"
+                maxLength={40}
+                aria-describedby="nick-hint"
+              />
+              <p id="nick-hint" className="mt-2 text-xs text-[var(--sbd-muted)]">
+                До 40 символів.
+              </p>
+            </ProfileSection>
+
+            <ProfileSection
+              sectionId="profile-athlete"
+              title="Дані атлета"
+              description="Вага для розрахунку GL та логін для входу й відображення в рейтингу."
+              withDivider
+            >
+              <div className="grid gap-6">
+                <div>
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    htmlFor="gl-bw"
+                  >
+                    Вага тіла (кг)
+                  </label>
+                  <input
+                    id="gl-bw"
+                    className={field}
+                    inputMode="decimal"
+                    value={bw}
+                    onChange={(e) => setBw(e.target.value)}
+                    placeholder="наприклад 82.5"
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    htmlFor="profile-login"
+                  >
+                    Логін
+                  </label>
+                  <input
+                    id="profile-login"
+                    className={`${field} max-w-full sm:max-w-md`}
+                    value={loginEdit}
+                    onChange={(e) => setLoginEdit(e.target.value.slice(0, 40))}
+                    autoComplete="username"
+                    spellCheck={false}
+                    aria-describedby="login-hint"
+                  />
+                  <p id="login-hint" className="mt-2 text-xs leading-relaxed text-[var(--sbd-muted)]">
+                    Унікальний у сервісі (літери, цифри, _). Зайнятий логін не дасть зберегти
+                    профіль.
+                  </p>
+                </div>
+              </div>
+            </ProfileSection>
+
+            <ProfileSection
+              sectionId="profile-maxes"
+              title="Максимуми (кг)"
+              description="SBD для GL триборства. Порожні поля можна залишити — для рейтингу «по жиму» тоді врахується лише жим."
+              withDivider
+            >
+              <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
+                <div>
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    htmlFor="gl-sq"
+                  >
+                    Присяд
+                  </label>
+                  <input
+                    id="gl-sq"
+                    className={field}
+                    inputMode="decimal"
+                    value={sq}
+                    onChange={(e) => setSq(e.target.value)}
+                    placeholder="—"
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    htmlFor="gl-bp"
+                  >
+                    Жим
+                  </label>
+                  <input
+                    id="gl-bp"
+                    className={field}
+                    inputMode="decimal"
+                    value={bp}
+                    onChange={(e) => setBp(e.target.value)}
+                    placeholder="—"
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <label
+                    className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+                    htmlFor="gl-dl"
+                  >
+                    Тяга
+                  </label>
+                  <input
+                    id="gl-dl"
+                    className={field}
+                    inputMode="decimal"
+                    value={dl}
+                    onChange={(e) => setDl(e.target.value)}
+                    placeholder="—"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </ProfileSection>
+
+            <ProfileSection
+              sectionId="profile-ipf"
+              title="Критерії IPF GL"
+              description="Підставляються у формулу Goodlift (2020) для попереднього перегляду та рейтингу."
+              withDivider
+            >
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--sbd-text)]">Стать</p>
+                  <div className="sbd-profile-seg inline-flex w-full rounded-xl p-1" role="group" aria-label="Стать">
+                    <button
+                      type="button"
+                      className={segBtn}
+                      data-active={sex === "MALE" ? "true" : "false"}
+                      onClick={() => setSex("MALE")}
+                    >
+                      Чоловіки
+                    </button>
+                    <button
+                      type="button"
+                      className={segBtn}
+                      data-active={sex === "FEMALE" ? "true" : "false"}
+                      onClick={() => setSex("FEMALE")}
+                    >
+                      Жінки
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--sbd-text)]">Екіпіровка</p>
+                  <div
+                    className="sbd-profile-seg inline-flex w-full rounded-xl p-1"
+                    role="group"
+                    aria-label="Екіпіровка"
+                  >
+                    <button
+                      type="button"
+                      className={segBtn}
+                      data-active={equipment === "CLASSIC" ? "true" : "false"}
+                      onClick={() => setEquipment("CLASSIC")}
+                    >
+                      Класичний
+                    </button>
+                    <button
+                      type="button"
+                      className={segBtn}
+                      data-active={equipment === "EQUIPPED" ? "true" : "false"}
+                      onClick={() => setEquipment("EQUIPPED")}
+                    >
+                      Екіпірувальний
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </ProfileSection>
+
+          <div className="mt-10 border-t border-[color:var(--sbd-border)] pt-8">
+            <button
+              type="button"
+              disabled={saving}
+              className="w-full min-h-[52px] rounded-xl bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-45 sm:w-auto sm:min-h-[48px] sm:px-10"
+              onClick={() => void save()}
+            >
+              {saving ? "Збереження…" : "Зберегти зміни"}
+            </button>
+            <p className="mt-3 text-xs text-[var(--sbd-muted)]">
+              Після збереження блок редагування згорнеться й оновиться рейтинг.
+            </p>
+          </div>
+        </div>
+        </details>
+
+      <section
+        className="sbd-card overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+        aria-labelledby="profile-lb-heading"
+      >
+        <div className="sbd-lb-toolbar px-5 py-5 sm:px-7">
+          <h2
+            id="profile-lb-heading"
+            className="font-display text-lg font-bold uppercase tracking-wide text-[var(--sbd-text)]"
+          >
             Рейтинг
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-500">
+          <p className="mt-2 max-w-2xl text-sm text-[var(--sbd-muted)]">
             Лише користувачі з достатніми даними для обраної метрики. За замовчуванням — офіційний
             GL за сумою SBD.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             {(
               [
                 ["total", "Сума SBD"],
@@ -483,11 +608,8 @@ export function ProfileClient() {
               <button
                 key={key}
                 type="button"
-                className={`${lbBtn} ${
-                  lbBy === key
-                    ? "border-[#e31e24]/50 bg-[#e31e24]/20 text-white shadow-md shadow-black/30"
-                    : "border-white/[0.08] bg-black/35 text-zinc-400 hover:border-white/15 hover:text-zinc-200"
-                }`}
+                className={`${lbTab} inline-flex w-full justify-center sm:w-auto`}
+                data-active={lbBy === key ? "true" : "false"}
                 onClick={() => setLbBy(key)}
               >
                 {label}
@@ -498,25 +620,25 @@ export function ProfileClient() {
 
         <div className="px-5 py-5 sm:px-7 sm:py-6">
           {lbLoading ? (
-            <p className="text-sm text-zinc-500">Завантаження…</p>
+            <p className="text-sm text-[var(--sbd-muted)]">Завантаження…</p>
           ) : lbRows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 bg-black/25 px-4 py-8 text-center">
-              <p className="text-sm text-zinc-500">
-                Поки нікого з повними даними для цього режиму. Збережи профіль вище — ти
-                з&apos;явишся тут, коли даних буде достатньо.
+            <div className="rounded-xl border border-dashed border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-4 py-10 text-center">
+              <p className="mx-auto max-w-md text-sm leading-relaxed text-[var(--sbd-muted)]">
+                Поки нікого з повними даними для цього режиму. Розкрий «Редагувати профіль», збережи
+                дані — ти з&apos;явишся тут, коли їх буде достатньо.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl ring-1 ring-white/[0.06]">
               <table className="w-full min-w-[300px] text-sm">
-                <thead>
-                  <tr className="bg-zinc-950/70 text-left text-xs uppercase tracking-wider text-zinc-500">
-                    <th className="px-4 py-3 font-semibold">#</th>
-                    <th className="px-4 py-3 font-semibold">Атлет</th>
-                    <th className="px-4 py-3 text-right font-semibold">GL</th>
+                <thead className="sbd-lb-thead">
+                  <tr className="text-left text-xs uppercase tracking-wider text-zinc-500">
+                    <th className="px-4 py-3 align-top font-semibold">#</th>
+                    <th className="px-4 py-3 align-top font-semibold">Атлет</th>
+                    <th className="px-4 py-3 align-top text-right font-semibold">GL</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.05] text-zinc-200">
+                <tbody className="sbd-lb-tbody divide-y divide-white/[0.05] text-zinc-200">
                   {lbRows.map((r) => (
                     <tr
                       key={`${r.place}-${r.login}`}
@@ -526,15 +648,17 @@ export function ProfileClient() {
                           : "transition-colors hover:bg-white/[0.02]"
                       }
                     >
-                      <td className="px-4 py-3 align-middle tabular-nums text-zinc-500">
+                      <td className="px-4 py-3 align-top tabular-nums leading-snug text-[var(--sbd-muted)]">
                         {r.place}
                       </td>
-                      <td className="px-4 py-3 align-middle">
+                      <td className="px-4 py-3 align-top">
                         <div className="flex items-start gap-3">
-                          <PresetAvatar decorative avatarId={r.avatarId} size={40} />
-                          <div className="min-w-0 flex-1">
+                          <span className="shrink-0 translate-y-px">
+                            <PresetAvatar decorative avatarId={r.avatarId} size={40} />
+                          </span>
+                          <div className="min-w-0 flex-1 pt-px">
                             <div
-                              className={`truncate font-medium ${r.login === login ? "text-[#e31e24]" : "text-zinc-100"}`}
+                              className={`truncate text-[15px] font-medium leading-snug ${r.login === login ? "text-[#e31e24]" : "text-[var(--sbd-text)]"}`}
                             >
                               {r.login}
                             </div>
@@ -543,7 +667,7 @@ export function ProfileClient() {
                                 <span className="shrink-0 rounded border border-[#e31e24]/25 bg-[#e31e24]/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#e31e24]/90">
                                   позивний
                                 </span>
-                                <span className="truncate text-sm text-zinc-300">
+                                <span className="truncate text-sm leading-snug text-zinc-300">
                                   {r.nickname.trim()}
                                 </span>
                               </div>
@@ -551,8 +675,8 @@ export function ProfileClient() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 align-middle text-right tabular-nums text-zinc-100">
-                        {r.score.toFixed(3)}
+                      <td className="px-4 py-3 align-top text-right tabular-nums leading-snug text-[var(--sbd-text)]">
+                        <span className="inline-block translate-y-px">{r.score.toFixed(3)}</span>
                       </td>
                     </tr>
                   ))}
@@ -562,6 +686,8 @@ export function ProfileClient() {
           )}
         </div>
       </section>
+        </div>
+      </div>
     </div>
   );
 }

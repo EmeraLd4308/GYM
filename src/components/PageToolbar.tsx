@@ -21,7 +21,7 @@ export function PageToolbar() {
         {back ? (
           <Link
             href={back.href}
-            className="group inline-flex min-h-[44px] touch-manipulation items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm font-medium text-zinc-300 shadow-sm shadow-black/20 transition-all duration-200 hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-white active:scale-[0.98]"
+            className="group inline-flex min-h-[44px] touch-manipulation items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm font-medium text-zinc-300 shadow-sm shadow-black/20 transition-all duration-200 hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)] active:scale-[0.98]"
           >
             <IconChevronLeft className="h-5 w-5 text-[#e31e24] transition-transform duration-200 group-hover:-translate-x-0.5" />
 
@@ -31,7 +31,7 @@ export function PageToolbar() {
       </div>
 
       {context ? (
-        <h1 className="font-display text-lg font-semibold tracking-tight text-white/95 sm:text-xl">
+        <h1 className="font-display text-lg font-semibold tracking-tight text-[var(--sbd-text)] sm:text-xl">
           <IconSpark
             className="mr-2 inline-block h-4 w-4 -translate-y-0.5 text-[#e31e24]"
             aria-hidden

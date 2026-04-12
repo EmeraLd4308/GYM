@@ -3,12 +3,12 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
 
 const bodySchema = z.object({
   weightKg: z.number(),
   reps: z.number().int().min(1).max(999),
   isWarmup: z.boolean().optional(),
-  rpe: z.number().min(1).max(10).optional(),
 });
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -29,14 +29,27 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       return NextResponse.json({ error: "Некоректні дані підходу." }, { status: 400 });
     }
     const maxOrder = exercise.sets.reduce((m, s) => Math.max(m, s.sortOrder), -1);
+    const isWarmup = parsed.data.isWarmup ?? false;
+    const userMax = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
+    });
+    const maxes = sbdMaxKgFromUserRow(userMax);
+    const rpeVal = deriveSetRpe(
+      exercise.baseLift,
+      isWarmup,
+      parsed.data.weightKg,
+      parsed.data.reps,
+      maxes,
+    );
     const set = await prisma.exerciseSet.create({
       data: {
         workoutExerciseId: exerciseId,
         sortOrder: maxOrder + 1,
         weightKg: new Prisma.Decimal(parsed.data.weightKg),
         reps: parsed.data.reps,
-        isWarmup: parsed.data.isWarmup ?? false,
-        ...(parsed.data.rpe !== undefined ? { rpe: new Prisma.Decimal(parsed.data.rpe) } : {}),
+        isWarmup,
+        ...(rpeVal != null ? { rpe: new Prisma.Decimal(rpeVal) } : {}),
       },
     });
     return NextResponse.json({ set });

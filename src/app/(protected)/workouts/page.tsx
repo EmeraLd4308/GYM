@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
-import { workoutListWhere } from "@/lib/workout-list-where";
+import { workoutListWhere, workoutListQueryString } from "@/lib/workout-list-where";
+import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
 import { WorkoutListFilters } from "@/components/WorkoutListFilters";
 import { WorkoutListPagination } from "@/components/WorkoutListPagination";
 
@@ -34,29 +36,31 @@ export default async function WorkoutsListPage({
     sp as Record<string, string | string[] | undefined>,
   );
   const page = Math.max(1, parseInt(getParam(sp, "page") ?? "1", 10) || 1);
-  const rawPs = parseInt(getParam(sp, "pageSize") ?? "20", 10);
-  const pageSize = Math.min(50, Math.max(1, Number.isFinite(rawPs) ? rawPs : 20));
+  const pageSize = parseWorkoutListPageSize(getParam(sp, "pageSize"));
 
   const where = workoutListWhere(user.id, filters);
-  const [total, workouts] = await prisma.$transaction([
-    prisma.workout.count({ where }),
-    prisma.workout.findMany({
-      where,
-      orderBy: { date: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: {
-        exercises: {
-          orderBy: { sortOrder: "asc" },
-          select: {
-            _count: { select: { sets: true } },
-          },
+  const total = await prisma.workout.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  if (page !== safePage) {
+    const qs = workoutListQueryString(filters, safePage, pageSize);
+    redirect(qs ? `/workouts?${qs}` : "/workouts");
+  }
+
+  const workouts = await prisma.workout.findMany({
+    where,
+    orderBy: { date: "desc" },
+    skip: (safePage - 1) * pageSize,
+    take: pageSize,
+    include: {
+      exercises: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          _count: { select: { sets: true } },
         },
       },
-    }),
-  ]);
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    },
+  });
 
   const hasFilters = Boolean(
     filters.dateFrom?.trim() ||
@@ -78,7 +82,7 @@ export default async function WorkoutsListPage({
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold uppercase tracking-tight text-white md:text-4xl">
+          <h1 className="font-display text-3xl font-bold uppercase tracking-tight text-[var(--sbd-text)] md:text-4xl">
             Усі тренування
           </h1>
         </div>
@@ -96,7 +100,7 @@ export default async function WorkoutsListPage({
         <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 text-center sm:p-10">
           {pagePastEnd ? (
             <>
-              <p className="font-display text-base font-semibold text-white sm:text-lg">
+              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
                 На цій сторінці записів немає
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
@@ -105,7 +109,7 @@ export default async function WorkoutsListPage({
             </>
           ) : filteredOutAll ? (
             <>
-              <p className="font-display text-base font-semibold text-white sm:text-lg">
+              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
                 Жодне тренування не підходить
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
@@ -114,7 +118,7 @@ export default async function WorkoutsListPage({
             </>
           ) : (
             <>
-              <p className="font-display text-base font-semibold text-white sm:text-lg">
+              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
                 Ще немає тренувань
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
@@ -143,17 +147,19 @@ export default async function WorkoutsListPage({
         </div>
       ) : (
         <div className="sbd-card overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-          <ul className="divide-y divide-white/[0.06]">
+          <ul className="sbd-workout-rows divide-y divide-white/[0.06]">
             {workouts.map((w) => {
               const setCount = w.exercises.reduce((acc, e) => acc + e._count.sets, 0);
               return (
                 <li key={w.id}>
                   <Link
                     href={`/workouts/${w.id}`}
-                    className="flex flex-col gap-1 px-4 py-4 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between"
+                    className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4"
                   >
-                    <span className="font-medium text-zinc-100">{w.title ?? "Тренування"}</span>
-                    <span className="text-sm text-zinc-500">
+                    <span className="min-w-0 font-semibold text-[var(--sbd-text)]">
+                      {w.title ?? "Тренування"}
+                    </span>
+                    <span className="shrink-0 text-sm text-[var(--sbd-muted)] sm:text-right">
                       {new Date(w.date).toLocaleDateString("uk-UA", {
                         weekday: "short",
                         day: "numeric",
@@ -169,7 +175,7 @@ export default async function WorkoutsListPage({
           </ul>
           <div className="border-t border-white/[0.06] px-4 py-4">
             <WorkoutListPagination
-              page={page}
+              page={safePage}
               totalPages={totalPages}
               pageSize={pageSize}
               filters={filters}

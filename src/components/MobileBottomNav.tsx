@@ -22,9 +22,10 @@ function IconHome({ active }: { active: boolean }) {
       aria-hidden
     >
       <path
-        d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z"
+        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
         stroke="currentColor"
         strokeWidth="1.75"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
@@ -134,7 +135,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-white/[0.08] bg-[#050505]/95 pb-[env(safe-area-inset-bottom,0px)] pt-1 backdrop-blur-lg md:hidden"
+      className="sbd-app-dock fixed bottom-0 left-0 right-0 z-50 flex border-t border-[color:var(--sbd-nav-border)] px-0.5 pb-[env(safe-area-inset-bottom,0px)] pt-1 backdrop-blur-lg md:hidden"
       aria-label="Основна навігація"
     >
       {items.map(({ href, label, Icon }) => {
@@ -144,7 +145,7 @@ export function MobileBottomNav() {
             key={href}
             href={href}
             title={label}
-            className={`flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 px-0.5 touch-manipulation ${
+            className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 touch-manipulation outline-none ring-0 ${
               active ? "text-[#e31e24]" : "text-zinc-500"
             }`}
           >

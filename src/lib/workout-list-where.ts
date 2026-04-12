@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { StatsFilterOptions } from "@/lib/stats-filters";
 import { workoutWhereDateRange } from "@/lib/stats-filters";
+import { WORKOUT_LIST_PAGE_SIZE_DEFAULT } from "@/lib/workout-list-page-size";
 
 export function workoutListWhere(
   userId: string,
@@ -65,6 +66,6 @@ export function workoutListQueryString(
   if (filters.weightMax !== undefined) q.set("wMax", String(filters.weightMax));
   if (filters.search?.trim()) q.set("q", filters.search.trim());
   if (page > 1) q.set("page", String(page));
-  if (pageSize !== 20) q.set("pageSize", String(pageSize));
+  if (pageSize !== WORKOUT_LIST_PAGE_SIZE_DEFAULT) q.set("pageSize", String(pageSize));
   return q.toString();
 }

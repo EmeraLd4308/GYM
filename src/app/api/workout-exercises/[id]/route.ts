@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import type { BaseLift } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
@@ -37,9 +39,35 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         ...(data.planDone !== undefined ? { planDone: data.planDone } : {}),
       },
+      include: { sets: { orderBy: { sortOrder: "asc" } }, workout: true },
+    });
+    if (data.baseLift !== undefined) {
+      const userMax = await prisma.user.findUnique({
+        where: { id: updated.workout.userId },
+        select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
+      });
+      const maxes = sbdMaxKgFromUserRow(userMax);
+      await prisma.$transaction(
+        updated.sets.map((s) => {
+          const rpeVal = deriveSetRpe(
+            updated.baseLift,
+            s.isWarmup,
+            Number(s.weightKg),
+            s.reps,
+            maxes,
+          );
+          return prisma.exerciseSet.update({
+            where: { id: s.id },
+            data: { rpe: rpeVal != null ? new Prisma.Decimal(rpeVal) : null },
+          });
+        }),
+      );
+    }
+    const nextExercise = await prisma.workoutExercise.findFirst({
+      where: { id },
       include: { sets: { orderBy: { sortOrder: "asc" } } },
     });
-    return NextResponse.json({ exercise: updated });
+    return NextResponse.json({ exercise: nextExercise });
   } catch {
     return NextResponse.json({ error: "Не вдалося оновити." }, { status: 500 });
   }

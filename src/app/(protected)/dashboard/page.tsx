@@ -43,7 +43,7 @@ export default async function DashboardPage() {
     prisma.workout.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },
-      take: 16,
+      take: 12,
       select: listSelect,
     }),
     prisma.user.findUnique({
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
   const hasWorkout = workoutTotal > 0;
 
   const todayIds = new Set(todayWorkouts.map((w) => w.id));
-  const otherRecent = recent.filter((w) => !todayIds.has(w.id)).slice(0, 6);
+  const otherRecent = recent.filter((w) => !todayIds.has(w.id)).slice(0, 3);
 
   function workoutRow(w: (typeof recent)[0]) {
     const setCount = w.exercises.reduce((acc, e) => acc + e._count.sets, 0);
@@ -76,10 +76,10 @@ export default async function DashboardPage() {
       <li key={w.id}>
         <Link
           href={`/workouts/${w.id}`}
-          className="flex flex-col gap-1 px-4 py-4 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between"
+          className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4"
         >
-          <span className="font-medium text-zinc-100">{w.title ?? "Тренування"}</span>
-          <span className="text-sm text-zinc-500">
+          <span className="min-w-0 font-semibold text-[var(--sbd-text)]">{w.title ?? "Тренування"}</span>
+          <span className="shrink-0 text-sm text-[var(--sbd-muted)] sm:text-right">
             {new Date(w.date).toLocaleDateString("uk-UA", {
               weekday: "short",
               day: "numeric",
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
 
       {!hasAnyWorkout ? (
         <div className="sbd-card rounded-2xl border border-[#e31e24]/20 bg-[#e31e24]/[0.06] p-6 text-center sm:p-8">
-          <p className="font-display text-lg font-semibold text-white">
+          <p className="font-display text-lg font-semibold text-[var(--sbd-text)]">
             Почнімо з першого тренування
           </p>
           <p className="mt-2 text-sm text-zinc-400">Натисни — відкриється запис підходів і ваги.</p>
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                 .
               </div>
             ) : (
-              <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
+              <ul className="sbd-card sbd-card-interactive sbd-workout-rows divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
                 {todayWorkouts.map(workoutRow)}
               </ul>
             )}
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                 Інших нещодавніх у списку немає — глянь «Сьогодні» або календар.
               </div>
             ) : (
-              <ul className="sbd-card sbd-card-interactive divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
+              <ul className="sbd-card sbd-card-interactive sbd-workout-rows divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
                 {otherRecent.map(workoutRow)}
               </ul>
             )}

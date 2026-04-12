@@ -2,15 +2,18 @@
 
 import type { ReactNode } from "react";
 import { CalendarDaySync } from "@/components/CalendarDaySync";
-import { ToastProvider } from "@/components/ToastProvider";
 import { MobileHideNextDevLogo } from "@/components/MobileHideNextDevLogo";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <CalendarDaySync />
-      <MobileHideNextDevLogo />
-      {children}
+      <ThemeProvider>
+        <CalendarDaySync />
+        <MobileHideNextDevLogo />
+        {children}
+      </ThemeProvider>
     </ToastProvider>
   );
 }

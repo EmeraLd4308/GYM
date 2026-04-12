@@ -23,7 +23,7 @@ type Row = {
 };
 
 const rowMoveBtn =
-  "flex min-h-[40px] min-w-[40px] touch-manipulation items-center justify-center rounded border border-white/15 bg-black/40 text-base leading-none text-zinc-300 transition enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35";
+  "flex min-h-[40px] min-w-[40px] touch-manipulation items-center justify-center rounded border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] text-base leading-none text-[var(--sbd-muted)] transition enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-[var(--sbd-text)] disabled:cursor-not-allowed disabled:opacity-35";
 
 export function TemplateEditor({
   templateId,
@@ -164,10 +164,10 @@ export function TemplateEditor({
   }
 
   const field =
-    "mt-1 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 outline-none focus:border-[#e31e24]/35";
+    "mt-1 w-full rounded-md border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-3 py-2 text-[var(--sbd-text)] outline-none focus:border-[#e31e24]/40 focus:ring-1 focus:ring-[#e31e24]/15";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       <ConfirmDialog
         open={removeIndex !== null}
         onClose={() => setRemoveIndex(null)}
@@ -183,7 +183,7 @@ export function TemplateEditor({
 
       <div>
         <label
-          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+          className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
           htmlFor="tname"
         >
           Назва шаблону
@@ -198,27 +198,27 @@ export function TemplateEditor({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold uppercase tracking-wide text-white">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-lg font-bold uppercase tracking-wide text-[var(--sbd-text)]">
             Вправи
           </h2>
 
           <button
             type="button"
-            className="text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:text-[#ff6b6b]"
+            className="min-h-[44px] touch-manipulation self-start rounded-lg px-1 text-left text-xs font-bold uppercase tracking-wider text-[#e31e24] hover:bg-[#e31e24]/[0.08] hover:text-[#c41a21] sm:min-h-0 sm:self-auto sm:px-0 sm:text-right"
             onClick={addRow}
           >
             + Додати вправу
           </button>
         </div>
 
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {rows.map((row, i) => (
             <li
               key={row.clientKey}
-              className="flex flex-col gap-2 rounded-xl border border-white/[0.07] bg-[#0c0c0c]/80 p-4 sm:flex-row sm:items-end"
+              className="flex flex-col gap-4 rounded-xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-4 shadow-sm sm:flex-row sm:items-end sm:gap-3 sm:p-5"
             >
-              <div className="flex shrink-0 items-stretch gap-2 sm:flex-col">
+              <div className="flex shrink-0 flex-row justify-center gap-2 sm:flex-col sm:justify-start">
                 <button
                   type="button"
                   className={rowMoveBtn}
@@ -240,9 +240,9 @@ export function TemplateEditor({
                 </button>
               </div>
 
-              <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
                 <div className="flex-1">
-                  <label className="text-xs text-zinc-500">Назва</label>
+                  <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
 
                   <input
                     className={field}
@@ -253,7 +253,9 @@ export function TemplateEditor({
                 </div>
 
                 <div className="w-full sm:w-48">
-                  <label className="text-xs text-zinc-500">Базова для статистики</label>
+                  <label className="text-xs font-medium text-[var(--sbd-muted)]">
+                    Базова для статистики
+                  </label>
 
                   <select
                     className={field}
@@ -271,7 +273,7 @@ export function TemplateEditor({
 
               <button
                 type="button"
-                className="rounded-md border border-red-500/30 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-red-400 hover:bg-red-500/10"
+                className="min-h-[44px] w-full rounded-md border border-red-500/40 bg-transparent px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-red-500 transition hover:bg-red-500/10 sm:min-h-0 sm:w-auto sm:self-end sm:px-3 sm:py-2"
                 onClick={() => setRemoveIndex(i)}
               >
                 Видалити
@@ -284,7 +286,7 @@ export function TemplateEditor({
       <button
         type="button"
         disabled={loading}
-        className="rounded-md bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 hover:bg-[#c41a21] disabled:opacity-50"
+        className="w-full min-h-[52px] rounded-xl bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:min-h-0 sm:rounded-md"
         onClick={save}
       >
         Зберегти

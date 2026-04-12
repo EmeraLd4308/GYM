@@ -71,21 +71,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         aria-live="polite"
         aria-relevant="additions"
       >
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            role="status"
-            className={`toast-slide-in pointer-events-auto w-full max-w-md rounded-xl border px-4 py-3 text-sm shadow-2xl shadow-black/60 ${
-              t.variant === "error"
-                ? "border-red-500/40 bg-[#140808] text-red-100"
-                : t.variant === "success"
-                  ? "border-emerald-500/35 bg-[#08140c] text-emerald-100"
-                  : "border-white/[0.12] bg-[#111] text-zinc-100"
-            }`}
-          >
-            {t.message}
-          </div>
-        ))}
+        {toasts.map((t) => {
+          const variantClass =
+            t.variant === "error"
+              ? "sbd-toast--error"
+              : t.variant === "success"
+                ? "sbd-toast--success"
+                : "sbd-toast--default";
+          return (
+            <div
+              key={t.id}
+              role="status"
+              className={`toast-slide-in sbd-toast ${variantClass} pointer-events-auto w-full max-w-md`}
+            >
+              {t.message}
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

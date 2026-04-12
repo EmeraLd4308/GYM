@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Rubik } from "next/font/google";
+import Script from "next/script";
 import { Providers } from "@/components/Providers";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const body = Inter({
@@ -42,8 +44,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uk" className={`${body.variable} ${display.variable} min-h-dvh antialiased`}>
+    <html
+      lang="uk"
+      suppressHydrationWarning
+      className={`${body.variable} ${display.variable} min-h-dvh antialiased`}
+    >
       <body className="flex min-h-dvh flex-col font-sans">
+        <Script
+          id="sbd-theme-boot"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

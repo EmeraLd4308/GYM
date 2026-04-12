@@ -19,11 +19,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
   const { id } = await ctx.params;
   const template = await prisma.workoutTemplate.findFirst({
-    where: { id, userId: user.id },
-    include: { exercises: { orderBy: { sortOrder: "asc" } } },
+    where: { id },
+    include: {
+      exercises: { orderBy: { sortOrder: "asc" } },
+      user: { select: { id: true, login: true, nickname: true } },
+    },
   });
   if (!template) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-  return NextResponse.json({ template });
+  return NextResponse.json({ template, isOwner: template.userId === user.id });
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {

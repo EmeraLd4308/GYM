@@ -51,7 +51,7 @@ function ChartBlock({
   if (!hasAny) {
     return (
       <div className={card}>
-        <h3 className="font-display mb-2 text-sm font-bold uppercase tracking-wide text-white">
+        <h3 className="font-display mb-2 text-sm font-bold uppercase tracking-wide text-[var(--sbd-text)]">
           {title}
         </h3>
         <p className="text-sm leading-relaxed text-zinc-500">{emptyRpeMessage(hint)}</p>
@@ -61,7 +61,7 @@ function ChartBlock({
 
   return (
     <div className={card}>
-      <h3 className="font-display mb-1 text-sm font-bold uppercase tracking-wide text-white">
+      <h3 className="font-display mb-1 text-sm font-bold uppercase tracking-wide text-[var(--sbd-text)]">
         {title}
       </h3>
       <p className="mb-4 text-xs leading-relaxed text-zinc-500">
@@ -131,7 +131,7 @@ export function WeeklyCharts({
   const h = rpeHints;
   return (
     <div className="space-y-6">
-      <ChartBlock title="Жим" color="#f4f4f5" dataKey="bench" data={series} hint={h.bench} />
+      <ChartBlock title="Жим" color="#a1a1aa" dataKey="bench" data={series} hint={h.bench} />
       <ChartBlock title="Присяд" color="#e31e24" dataKey="squat" data={series} hint={h.squat} />
       <ChartBlock title="Тяга" color="#a1a1aa" dataKey="deadlift" data={series} hint={h.deadlift} />
     </div>

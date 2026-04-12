@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PresetAvatar } from "@/components/PresetAvatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconLogout, IconTemplates } from "@/components/icons";
 
 const base =
-  "relative text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-white";
+  "relative text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-[var(--sbd-text)]";
 
 const iconBtn =
-  "flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-zinc-400 transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-white";
+  "sbd-header-icon-btn flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-xl border transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
+
+const logoutTextBtn =
+  "touch-manipulation rounded-lg px-2 py-1.5 text-sm font-medium uppercase tracking-wide text-zinc-500 transition-colors hover:text-[var(--sbd-text)] md:px-3";
 
 export function Nav({
   login,
@@ -47,11 +51,11 @@ export function Nav({
   ] as const;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#050505]/90 pt-[env(safe-area-inset-top,0px)] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.85)] backdrop-blur-xl backdrop-saturate-150 md:z-50">
-      <div className="mx-auto flex max-w-4xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:max-w-6xl md:justify-between md:px-6 xl:px-8">
+    <header className="sbd-app-header sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl backdrop-saturate-150 md:z-50">
+      <div className="mx-auto flex w-full max-w-4xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:max-w-6xl md:gap-4 md:px-6 xl:px-8">
         <Link
           href="/dashboard"
-          className="group flex min-h-[44px] min-w-0 flex-1 touch-manipulation items-center gap-2 overflow-hidden sm:gap-2.5 md:flex-initial md:max-w-none"
+          className="group flex min-h-[44px] min-w-0 shrink-0 touch-manipulation items-center gap-2 overflow-hidden sm:gap-2.5 md:max-w-[min(100%,14rem)] lg:max-w-[min(100%,16rem)]"
         >
           <span className="relative shrink-0 transition-[filter] duration-300 group-hover:drop-shadow-[0_0_10px_rgba(227,30,36,0.35)]">
             <PresetAvatar
@@ -62,7 +66,7 @@ export function Nav({
             />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="font-display block truncate text-base font-bold tracking-tighter text-white transition-colors group-hover:text-[#e31e24] sm:text-lg">
+            <span className="font-display block truncate text-base font-bold tracking-tighter text-[var(--sbd-text)] transition-colors group-hover:text-[#e31e24] sm:text-lg">
               SBD<span className="text-[#e31e24]">.</span>
             </span>
             <span
@@ -82,28 +86,7 @@ export function Nav({
           </span>
         </Link>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:hidden">
-          <Link
-            href="/templates"
-            className={`${iconBtn} ${isActive("/templates") ? "border-[#e31e24]/40 bg-[#e31e24]/15 text-[#e31e24]" : ""}`}
-            aria-label="Шаблони тренувань"
-            title="Шаблони"
-          >
-            <IconTemplates className="h-[22px] w-[22px]" />
-          </Link>
-          <form action="/api/auth/logout" method="post" className="inline">
-            <button
-              type="submit"
-              className={iconBtn}
-              aria-label="Вийти з облікового запису"
-              title="Вийти"
-            >
-              <IconLogout className="h-[22px] w-[22px]" />
-            </button>
-          </form>
-        </div>
-
-        <nav className="hidden flex-wrap items-center gap-x-5 gap-y-2 md:flex">
+        <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-x-3 gap-y-1 md:flex lg:gap-x-4 xl:gap-x-5">
           {links.map(({ href, label }) => (
             <Link
               key={href}
@@ -113,15 +96,34 @@ export function Nav({
               {label}
             </Link>
           ))}
-          <form action="/api/auth/logout" method="post" className="inline">
+        </nav>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <ThemeToggle variant="nav" />
+          <Link
+            href="/templates"
+            className={`${iconBtn} md:hidden ${isActive("/templates") ? "border-[#e31e24]/40 bg-[#e31e24]/15 text-[#e31e24]" : ""}`}
+            aria-label="Шаблони тренувань"
+            title="Шаблони"
+          >
+            <IconTemplates className="h-[22px] w-[22px]" />
+          </Link>
+          <form action="/api/auth/logout" method="post" className="inline md:hidden">
             <button
               type="submit"
-              className="text-sm font-medium uppercase tracking-wide text-zinc-600 transition-colors hover:text-zinc-300"
+              className={iconBtn}
+              aria-label="Вийти з облікового запису"
+              title="Вийти"
             >
+              <IconLogout className="h-[22px] w-[22px]" />
+            </button>
+          </form>
+          <form action="/api/auth/logout" method="post" className="hidden md:inline">
+            <button type="submit" className={logoutTextBtn}>
               Вийти
             </button>
           </form>
-        </nav>
+        </div>
       </div>
     </header>
   );

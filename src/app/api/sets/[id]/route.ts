@@ -3,13 +3,13 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
 
 const patchSchema = z.object({
   weightKg: z.number().optional(),
   reps: z.number().int().min(1).max(999).optional(),
   isWarmup: z.boolean().optional(),
   sortOrder: z.number().int().min(0).optional(),
-  rpe: z.union([z.number().min(1).max(10), z.null()]).optional(),
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -30,6 +30,21 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
     }
     const d = parsed.data;
+    const nextWeight = d.weightKg !== undefined ? d.weightKg : Number(row.weightKg);
+    const nextReps = d.reps !== undefined ? d.reps : row.reps;
+    const nextWarmup = d.isWarmup !== undefined ? d.isWarmup : row.isWarmup;
+    const userMax = await prisma.user.findUnique({
+      where: { id: row.workoutExercise.workout.userId },
+      select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
+    });
+    const maxes = sbdMaxKgFromUserRow(userMax);
+    const rpeVal = deriveSetRpe(
+      row.workoutExercise.baseLift,
+      nextWarmup,
+      nextWeight,
+      nextReps,
+      maxes,
+    );
     const set = await prisma.exerciseSet.update({
       where: { id },
       data: {
@@ -37,7 +52,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(d.reps !== undefined ? { reps: d.reps } : {}),
         ...(d.isWarmup !== undefined ? { isWarmup: d.isWarmup } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
-        ...(d.rpe !== undefined ? { rpe: d.rpe === null ? null : new Prisma.Decimal(d.rpe) } : {}),
+        rpe: rpeVal != null ? new Prisma.Decimal(rpeVal) : null,
       },
     });
     return NextResponse.json({ set });

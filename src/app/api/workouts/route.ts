@@ -6,6 +6,7 @@ import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
 import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
 import { workoutListWhere } from "@/lib/workout-list-where";
+import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
 import { rateLimitJson } from "@/lib/rate-limit";
 
 const createSchema = z.object({
@@ -22,8 +23,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const filters = parseStatsFiltersFromSearchParams(Object.fromEntries(searchParams.entries()));
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
-  const rawPs = parseInt(searchParams.get("pageSize") ?? "100", 10);
-  const pageSize = Math.min(500, Math.max(1, Number.isFinite(rawPs) ? rawPs : 100));
+  const pageSize = parseWorkoutListPageSize(searchParams.get("pageSize") ?? undefined);
 
   const where = workoutListWhere(user.id, filters);
   const [total, workouts] = await prisma.$transaction([
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
     if (templateId) {
       const template = await prisma.workoutTemplate.findFirst({
-        where: { id: templateId, userId: user.id },
+        where: { id: templateId },
         include: { exercises: { orderBy: { sortOrder: "asc" } } },
       });
       if (!template) {

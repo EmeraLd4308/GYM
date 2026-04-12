@@ -18,7 +18,7 @@ export function DashboardQuickGuide() {
   if (!ready) {
     return (
       <div
-        className="h-36 animate-pulse rounded-2xl bg-zinc-900/40 ring-1 ring-white/[0.06] sm:h-32"
+        className="sbd-quick-guide-skeleton h-36 animate-pulse rounded-2xl bg-zinc-900/40 ring-1 ring-white/[0.06] sm:h-32"
         aria-hidden
       />
     );
@@ -26,7 +26,7 @@ export function DashboardQuickGuide() {
 
   return (
     <details
-      className="group sbd-card rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40"
+      className="sbd-quick-guide-card group sbd-card rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40"
       open={open}
       onToggle={(e) => {
         const el = e.currentTarget;
@@ -62,7 +62,7 @@ export function DashboardQuickGuide() {
           .
         </p>
         <ol className="mt-4 grid list-none gap-2.5 text-sm text-zinc-400 sm:grid-cols-2">
-          <li className="flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
+          <li className="sbd-inset-li flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
             <span className="font-display text-[#e31e24]">1</span>
             <span>
               <Link
@@ -74,7 +74,7 @@ export function DashboardQuickGuide() {
               — запис вправ і підходів.
             </span>
           </li>
-          <li className="flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
+          <li className="sbd-inset-li flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
             <span className="font-display text-[#e31e24]">2</span>
             <span>
               <Link
@@ -86,7 +86,7 @@ export function DashboardQuickGuide() {
               — дні з тренуваннями.
             </span>
           </li>
-          <li className="flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
+          <li className="sbd-inset-li flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
             <span className="font-display text-[#e31e24]">3</span>
             <span>
               <Link
@@ -98,7 +98,7 @@ export function DashboardQuickGuide() {
               — RPE та тренованість.
             </span>
           </li>
-          <li className="flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
+          <li className="sbd-inset-li flex gap-2 rounded-lg bg-black/30 px-3 py-2 ring-1 ring-white/[0.05]">
             <span className="font-display text-[#e31e24]">4</span>
             <span>
               <Link

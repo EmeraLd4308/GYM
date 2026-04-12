@@ -372,7 +372,6 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     const ex = workout?.exercises.find((e) => e.id === exerciseId);
     let weightKg = 0;
     let reps = 1;
-    let rpeBody: { rpe: number } | Record<string, never> = {};
     if (ex?.sets.length) {
       const sorted = [...ex.sets].sort((a, b) => a.sortOrder - b.sortOrder);
       const prev = sorted[sorted.length - 1];
@@ -380,17 +379,12 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       const w = raw === "" ? Number.NaN : parseFloat(raw);
       if (Number.isFinite(w)) weightKg = w;
       if (prev.reps >= 1 && prev.reps <= 999) reps = prev.reps;
-      const rRaw = prev.rpe.trim().replace(",", ".");
-      if (rRaw !== "") {
-        const r = parseFloat(rRaw);
-        if (Number.isFinite(r) && r >= 1 && r <= 10) rpeBody = { rpe: r };
-      }
     }
 
     const res = await fetch(`/api/workout-exercises/${exerciseId}/sets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ weightKg, reps, isWarmup: false, ...rpeBody }),
+      body: JSON.stringify({ weightKg, reps, isWarmup: false }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -403,7 +397,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
 
   async function updateSet(
     setId: string,
-    patch: Partial<{ weightKg: number; reps: number; isWarmup: boolean; rpe: number | null }>,
+    patch: Partial<{ weightKg: number; reps: number; isWarmup: boolean }>,
   ) {
     const res = await fetch(`/api/sets/${setId}`, {
       method: "PATCH",
@@ -535,7 +529,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               id="wtitle"
               type="text"
               maxLength={200}
-              className="font-display w-full min-w-0 max-w-xl border-b border-transparent bg-transparent pb-1 text-xl font-bold uppercase tracking-tight text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/50"
+              className="font-display w-full min-w-0 max-w-xl border-b border-transparent bg-transparent pb-1 text-xl font-bold uppercase tracking-tight text-[var(--sbd-text)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/50"
               placeholder="Назва тренування"
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
@@ -674,7 +668,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                       maxLength={200}
                       spellCheck={false}
                       autoCapitalize="sentences"
-                      className="font-display w-full min-w-0 border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-white outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
+                      className="font-display w-full min-w-0 border-b border-transparent bg-transparent pb-1 text-lg font-semibold uppercase tracking-wide text-[var(--sbd-text)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/40"
                       value={ex.name}
                       onChange={(e) =>
                         setWorkout((w) =>
@@ -853,70 +847,21 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                           />
                         </div>
                       </div>
-                      <div className="mt-3 min-w-0 space-y-1">
-                        <label
-                          className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-                          htmlFor={`p-${s.id}`}
-                        >
-                          RPE (1–10, опційно)
-                        </label>
-                        <input
-                          id={`p-${s.id}`}
-                          className={inpMobile}
-                          value={s.rpe}
-                          inputMode="decimal"
-                          placeholder="—"
-                          onChange={(e) => {
-                            const v = e.target.value.replace(/[^\d.,]/g, "");
-                            setWorkout((w) =>
-                              w
-                                ? {
-                                    ...w,
-                                    exercises: w.exercises.map((x) =>
-                                      x.id === ex.id
-                                        ? {
-                                            ...x,
-                                            sets: x.sets.map((row) =>
-                                              row.id === s.id ? { ...row, rpe: v } : row,
-                                            ),
-                                          }
-                                        : x,
-                                    ),
-                                  }
-                                : w,
-                            );
-                          }}
-                          onBlur={() => {
-                            const t = s.rpe.trim().replace(",", ".");
-                            if (t === "") {
-                              void updateSet(s.id, { rpe: null });
-                              return;
-                            }
-                            const n = parseFloat(t);
-                            if (!Number.isFinite(n) || n < 1 || n > 10) {
-                              setWorkout((w) =>
-                                w
-                                  ? {
-                                      ...w,
-                                      exercises: w.exercises.map((x) =>
-                                        x.id === ex.id
-                                          ? {
-                                              ...x,
-                                              sets: x.sets.map((row) =>
-                                                row.id === s.id ? { ...row, rpe: "" } : row,
-                                              ),
-                                            }
-                                          : x,
-                                      ),
-                                    }
-                                  : w,
-                              );
-                              return;
-                            }
-                            void updateSet(s.id, { rpe: n });
-                          }}
-                        />
-                      </div>
+                      {ex.baseLift !== "NONE" ? (
+                        <div className="mt-3 min-w-0 space-y-1">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                            RPE
+                          </div>
+                          <div
+                            className={`${inpMobile} flex items-center border border-white/10 bg-black/30 text-zinc-200`}
+                          >
+                            {s.rpe.trim() === "" ? "—" : s.rpe.trim()}
+                          </div>
+                          <p className="text-[11px] leading-snug text-zinc-600">
+                            За вагою, повторами та максимумами в профілі.
+                          </p>
+                        </div>
+                      ) : null}
                       <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3 touch-manipulation">
                         <input
                           type="checkbox"
@@ -957,7 +902,9 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                         <th className="w-[2.75rem] py-2 pr-1 text-center">Пор.</th>
                         <th className="py-2 pr-2">Вага (кг)</th>
                         <th className="py-2 pr-2">Повтори</th>
-                        <th className="py-2 pr-2">RPE</th>
+                        {ex.baseLift !== "NONE" ? (
+                          <th className="py-2 pr-2">RPE</th>
+                        ) : null}
                         <th className="py-2 pr-2">Розминка</th>
                         <th className="py-2" />
                       </tr>
@@ -1076,63 +1023,11 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               }}
                             />
                           </td>
-                          <td className="py-2 pr-2">
-                            <input
-                              className={`w-16 ${inp}`}
-                              value={s.rpe}
-                              inputMode="decimal"
-                              placeholder="—"
-                              onChange={(e) => {
-                                const v = e.target.value.replace(/[^\d.,]/g, "");
-                                setWorkout((w) =>
-                                  w
-                                    ? {
-                                        ...w,
-                                        exercises: w.exercises.map((x) =>
-                                          x.id === ex.id
-                                            ? {
-                                                ...x,
-                                                sets: x.sets.map((row) =>
-                                                  row.id === s.id ? { ...row, rpe: v } : row,
-                                                ),
-                                              }
-                                            : x,
-                                        ),
-                                      }
-                                    : w,
-                                );
-                              }}
-                              onBlur={() => {
-                                const t = s.rpe.trim().replace(",", ".");
-                                if (t === "") {
-                                  void updateSet(s.id, { rpe: null });
-                                  return;
-                                }
-                                const n = parseFloat(t);
-                                if (!Number.isFinite(n) || n < 1 || n > 10) {
-                                  setWorkout((w) =>
-                                    w
-                                      ? {
-                                          ...w,
-                                          exercises: w.exercises.map((x) =>
-                                            x.id === ex.id
-                                              ? {
-                                                  ...x,
-                                                  sets: x.sets.map((row) =>
-                                                    row.id === s.id ? { ...row, rpe: "" } : row,
-                                                  ),
-                                                }
-                                              : x,
-                                          ),
-                                        }
-                                      : w,
-                                  );
-                                  return;
-                                }
-                                void updateSet(s.id, { rpe: n });
-                              }}
-                            />
-                          </td>
+                          {ex.baseLift !== "NONE" ? (
+                            <td className="py-2 pr-2 align-middle text-zinc-300">
+                              {s.rpe.trim() === "" ? "—" : s.rpe.trim()}
+                            </td>
+                          ) : null}
                           <td className="py-2 pr-2">
                             <input
                               type="checkbox"
@@ -1189,11 +1084,11 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       </DndContext>
 
       <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-600 sm:text-left sm:text-xs">
-        RPE можна не вводити — на сторінці статистики тоді підставиться оцінка з ваги та{" "}
+        Для жиму / присіду / тяги RPE рахується автоматично з ваги, повторів та{" "}
         <Link href="/profile" className="text-[#e31e24] underline-offset-2 hover:underline">
           максимумів у профілі
         </Link>
-        .
+        . Для інших вправ RPE не використовується.
       </p>
 
       <div className="rounded-xl border border-dashed border-white/15 bg-black/30 p-5 transition-colors hover:border-[#e31e24]/25">
