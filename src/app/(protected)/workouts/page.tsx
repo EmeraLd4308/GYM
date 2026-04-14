@@ -91,7 +91,21 @@ export default async function WorkoutsListPage({
         </Link>
       </div>
 
-      <WorkoutListFilters />
+      <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+        <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center justify-between gap-3">
+            <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
+              Фільтри тренувань
+            </span>
+            <span className="shrink-0 text-zinc-500 transition group-open:rotate-180" aria-hidden>
+              ▼
+            </span>
+          </span>
+        </summary>
+        <div className="border-t border-white/[0.06] p-2 sm:p-3">
+          <WorkoutListFilters />
+        </div>
+      </details>
 
       {workouts.length === 0 ? (
         <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 text-center sm:p-10">

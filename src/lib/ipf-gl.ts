@@ -111,7 +111,7 @@ export function ipfGlProfilePreview(args: {
   };
 }
 
-export type LeaderboardSort = "total" | "bench" | "squat" | "deadlift";
+export type LeaderboardSort = "total" | "bench";
 
 export function leaderboardScore(
   sort: LeaderboardSort,
@@ -137,10 +137,6 @@ export function leaderboardScore(
       );
     case "bench":
       return ipfGlPointsBenchPress(benchKg, bodyweightKg, sex, equipment);
-    case "squat":
-      return ipfGlPointsSingleLiftApprox(squatKg, bodyweightKg, sex, equipment);
-    case "deadlift":
-      return ipfGlPointsSingleLiftApprox(deadliftKg, bodyweightKg, sex, equipment);
     default:
       return null;
   }
@@ -159,7 +155,5 @@ export function hasLeaderboardData(
   if (!bw || !sex || !eq) return false;
   if (sort === "total") return sq && bp && dl;
   if (sort === "bench") return bp;
-  if (sort === "squat") return sq;
-  if (sort === "deadlift") return dl;
   return false;
 }

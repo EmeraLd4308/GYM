@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { uiButtonPrimaryClass } from "@/components/ui/styles";
 
 type Pending = { id: string; title: string };
 
@@ -9,6 +10,11 @@ export function AchievementAnnounceClient() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Pending[]>([]);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const primaryActionRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   const load = useCallback(async () => {
     try {
@@ -30,7 +36,7 @@ export function AchievementAnnounceClient() {
     if (pathname === "/profile") void load();
   }, [pathname, load]);
 
-  async function dismiss() {
+  const dismiss = useCallback(async () => {
     if (items.length > 0) {
       try {
         await fetch("/api/achievements/ack", {
@@ -42,7 +48,49 @@ export function AchievementAnnounceClient() {
     }
     setOpen(false);
     setItems([]);
-  }
+  }, [items]);
+
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    primaryActionRef.current?.focus();
+    const root = dialogRef.current;
+    if (!root) return;
+
+    const selector =
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        void dismiss();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(root.querySelectorAll<HTMLElement>(selector));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey) {
+        if (!active || active === first || !root.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+        return;
+      }
+      if (!active || active === last || !root.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previousFocusRef.current?.focus();
+    };
+  }, [open, dismiss]);
 
   if (!open || items.length === 0) return null;
 
@@ -51,13 +99,19 @@ export function AchievementAnnounceClient() {
       className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal
-      aria-labelledby="ach-announce-title"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+      onClick={() => void dismiss()}
     >
-      <div className="sbd-card max-h-[min(85dvh,32rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-[#e31e24]/35 p-6 shadow-2xl">
-        <h2 id="ach-announce-title" className="font-display text-lg font-bold text-[var(--sbd-text)]">
+      <div
+        ref={dialogRef}
+        className="sbd-card max-h-[min(85dvh,32rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-[#e31e24]/35 p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id={titleId} className="font-display text-lg font-bold text-[var(--sbd-text)]">
           Нові досягнення!
         </h2>
-        <p className="mt-2 text-sm text-[var(--sbd-muted)]">
+        <p id={descriptionId} className="mt-2 text-sm text-[var(--sbd-muted)]">
           Ти розблокував нагороди за максимуми та GL-профілем. Закріпи до трьох у профілі — вони
           з&apos;являться в рейтингу.
         </p>
@@ -72,8 +126,9 @@ export function AchievementAnnounceClient() {
           ))}
         </ul>
         <button
+          ref={primaryActionRef}
           type="button"
-          className="mt-6 w-full min-h-[48px] rounded-xl bg-[#e31e24] px-4 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 hover:bg-[#c41a21]"
+          className={`${uiButtonPrimaryClass} mt-6 w-full min-h-[48px] rounded-xl py-3 shadow-lg shadow-red-950/30`}
           onClick={() => void dismiss()}
         >
           Чудово

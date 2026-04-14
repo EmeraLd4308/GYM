@@ -9,6 +9,13 @@ import { useState } from "react";
 import { BASE_LIFT_OPTIONS } from "@/lib/base-lift";
 
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import {
+  uiButtonDangerClass,
+  uiButtonPrimaryClass,
+  uiFieldErrorClass,
+  uiInputClass,
+  uiLabelClass,
+} from "@/components/ui/styles";
 
 import { useToast } from "@/components/ToastProvider";
 
@@ -65,6 +72,9 @@ export function TemplateEditor({
   const [removeIndex, setRemoveIndex] = useState<number | null>(null);
   const [deleteTemplateOpen, setDeleteTemplateOpen] = useState(false);
   const [deletingTemplate, setDeletingTemplate] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [exerciseError, setExerciseError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function addRow() {
     setRows((r) => [
@@ -90,6 +100,10 @@ export function TemplateEditor({
   }
 
   async function save() {
+    setNameError(null);
+    setExerciseError(null);
+    setSaveError(null);
+
     const exercises = rows
 
       .map((row) => ({
@@ -101,13 +115,17 @@ export function TemplateEditor({
       .filter((e) => e.name.length > 0);
 
     if (!name.trim()) {
-      toastError("Вкажіть назву шаблону.");
+      const message = "Вкажіть назву шаблону.";
+      setNameError(message);
+      toastError(message);
 
       return;
     }
 
     if (exercises.length === 0) {
-      toastError("Додайте хоча б одну вправу.");
+      const message = "Додайте хоча б одну вправу.";
+      setExerciseError(message);
+      toastError(message);
 
       return;
     }
@@ -127,7 +145,9 @@ export function TemplateEditor({
         const data = await res.json();
 
         if (!res.ok) {
-          toastError(data.error ?? "Помилка збереження.");
+          const message = data.error ?? "Помилка збереження.";
+          setSaveError(message);
+          toastError(message);
 
           return;
         }
@@ -143,7 +163,9 @@ export function TemplateEditor({
         const data = await res.json();
 
         if (!res.ok) {
-          toastError(data.error ?? "Помилка збереження.");
+          const message = data.error ?? "Помилка збереження.";
+          setSaveError(message);
+          toastError(message);
 
           return;
         }
@@ -184,9 +206,6 @@ export function TemplateEditor({
     }
   }
 
-  const field =
-    "mt-1 w-full rounded-md border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-3 py-2 text-[var(--sbd-text)] outline-none focus:border-[#e31e24]/40 focus:ring-1 focus:ring-[#e31e24]/15";
-
   return (
     <div className="space-y-6 sm:space-y-8">
       <ConfirmDialog
@@ -217,7 +236,7 @@ export function TemplateEditor({
 
       <div>
         <label
-          className="text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]"
+          className={uiLabelClass}
           htmlFor="tname"
         >
           Назва шаблону
@@ -225,10 +244,21 @@ export function TemplateEditor({
 
         <input
           id="tname"
-          className={field}
+          className={`mt-1 ${uiInputClass}`}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (nameError) setNameError(null);
+            if (saveError) setSaveError(null);
+          }}
+          aria-invalid={nameError ? "true" : "false"}
+          aria-describedby={nameError ? "template-name-error" : undefined}
         />
+        {nameError ? (
+          <p id="template-name-error" className={uiFieldErrorClass} role="alert">
+            {nameError}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -279,7 +309,7 @@ export function TemplateEditor({
                   <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
 
                   <input
-                    className={field}
+                    className={`mt-1 ${uiInputClass}`}
                     value={row.name}
                     onChange={(e) => updateRow(i, { name: e.target.value })}
                     placeholder="Наприклад, Присід зі штангою"
@@ -292,7 +322,7 @@ export function TemplateEditor({
                   </label>
 
                   <select
-                    className={field}
+                    className={`mt-1 ${uiInputClass}`}
                     value={row.baseLift}
                     onChange={(e) => updateRow(i, { baseLift: e.target.value })}
                   >
@@ -315,13 +345,23 @@ export function TemplateEditor({
             </li>
           ))}
         </ul>
+        {exerciseError ? (
+          <p className={uiFieldErrorClass} role="alert">
+            {exerciseError}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        {saveError ? (
+          <p className={`${uiFieldErrorClass} sm:basis-full`} role="alert">
+            {saveError}
+          </p>
+        ) : null}
         <button
           type="button"
           disabled={loading}
-          className="w-full min-h-[52px] rounded-xl bg-[#e31e24] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:min-h-0 sm:rounded-md"
+          className={`${uiButtonPrimaryClass} w-full min-h-[52px] rounded-xl px-6 py-3 shadow-lg shadow-red-950/30 active:scale-[0.99] sm:w-auto sm:min-h-0 sm:rounded-md`}
           onClick={save}
         >
           Зберегти
@@ -330,7 +370,7 @@ export function TemplateEditor({
           <button
             type="button"
             disabled={loading || deletingTemplate}
-            className="w-full min-h-[48px] rounded-xl border border-red-500/45 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-red-500 transition hover:bg-red-500/10 sm:w-auto"
+            className={`${uiButtonDangerClass} w-full min-h-[48px] rounded-xl border-red-500/45 sm:w-auto`}
             onClick={() => setDeleteTemplateOpen(true)}
           >
             Видалити шаблон

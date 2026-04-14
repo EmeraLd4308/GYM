@@ -94,45 +94,66 @@ export default async function StatsPage({
   return (
     <div className="space-y-8 md:space-y-10">
       <StatsOnboardingMark />
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch lg:gap-10">
-        <div className="w-full shrink-0 lg:max-w-[26rem] xl:max-w-[28rem]">
-          <Suspense
-            fallback={
-              <div className="h-72 animate-pulse rounded-2xl bg-zinc-900/50 ring-1 ring-white/[0.06]" />
-            }
-          >
-            <StatsFilterForm />
-          </Suspense>
-        </div>
-
-        <aside className="sbd-card min-w-0 flex-1 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 to-black/40 p-5 shadow-lg shadow-black/30 sm:p-6 lg:py-6">
-          <h2 className="font-display text-base font-bold uppercase tracking-wide text-white sm:text-lg">
-            Що таке RPE і як читати графіки
-          </h2>
-          <div className="mt-4 space-y-4 text-sm leading-relaxed text-zinc-400">
-            <p>
-              <span className="font-semibold text-zinc-200">RPE</span> (Rate of Perceived Exertion,
-              «шкала зусиль») — це суб&apos;єктивна оцінка важкості підходу за шкалою приблизно{" "}
-              <span className="text-zinc-200">від 1 до 10</span>: 1 — дуже легко, 10 — максимум на
-              межі відмови (немає запасу повторів). Проміжні значення описують, скільки «запасу»
-              залишилось би після підходу (на кшталт «RPE 8 ≈ міг би зробити ще ~2 повтори» —
-              орієнтир, не точна наука).
-            </p>
-            <p>
-              На графіках RPE по тижнях показано <span className="text-zinc-200">середнє</span> по
-              робочих підходах базових вправ (розминка не враховується). Якщо в журналі RPE не
-              вказано — за наявності <span className="text-zinc-200">максимумів у профілі</span>{" "}
-              (присяд / жим / тяга) і ваги підходу будується{" "}
-              <span className="text-zinc-200">груба оцінка</span>; дата береться з дня тренування.
-            </p>
-            <p>
-              Графік <span className="text-zinc-200">суми максимумів SBD (кг)</span> будується з
-              профілю: кожна точка — момент, коли ти зберіг нові значення присяд / жим / тяга. Лінія
-              рухається вгору або вниз разом із зміною суми цих трьох полів. На широкому екрані він
-              поруч із відвідуваністю, як і раніше.
-            </p>
+      <div className="grid gap-4">
+        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+          <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
+                Фільтри статистики
+              </span>
+              <span className="shrink-0 text-zinc-500 transition group-open:rotate-180" aria-hidden>
+                ▼
+              </span>
+            </span>
+          </summary>
+          <div className="border-t border-white/[0.06] p-2 sm:p-3">
+            <Suspense
+              fallback={
+                <div className="h-72 animate-pulse rounded-2xl bg-zinc-900/50 ring-1 ring-white/[0.06]" />
+              }
+            >
+              <StatsFilterForm />
+            </Suspense>
           </div>
-        </aside>
+        </details>
+
+        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+          <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
+                Що таке RPE і як читати графіки
+              </span>
+              <span className="shrink-0 text-zinc-500 transition group-open:rotate-180" aria-hidden>
+                ▼
+              </span>
+            </span>
+          </summary>
+          <aside className="border-t border-white/[0.06] p-5 sm:p-6">
+            <div className="space-y-4 text-sm leading-relaxed text-zinc-400">
+              <p>
+                <span className="font-semibold text-zinc-200">RPE</span> (Rate of Perceived Exertion,
+                «шкала зусиль») — це суб&apos;єктивна оцінка важкості підходу за шкалою приблизно{" "}
+                <span className="text-zinc-200">від 1 до 10</span>: 1 — дуже легко, 10 — максимум на
+                межі відмови (немає запасу повторів). Проміжні значення описують, скільки «запасу»
+                залишилось би після підходу (на кшталт «RPE 8 ≈ міг би зробити ще ~2 повтори» —
+                орієнтир, не точна наука).
+              </p>
+              <p>
+                На графіках RPE по тижнях показано <span className="text-zinc-200">середнє</span> по
+                робочих підходах базових вправ (розминка не враховується). Якщо в журналі RPE не
+                вказано — за наявності <span className="text-zinc-200">максимумів у профілі</span>{" "}
+                (присяд / жим / тяга) і ваги підходу будується{" "}
+                <span className="text-zinc-200">груба оцінка</span>; дата береться з дня тренування.
+              </p>
+              <p>
+                Графік <span className="text-zinc-200">суми максимумів SBD (кг)</span> будується з
+                профілю: кожна точка — момент, коли ти зберіг нові значення присяд / жим / тяга. Лінія
+                рухається вгору або вниз разом із зміною суми цих трьох полів. На широкому екрані він
+                поруч із відвідуваністю, як і раніше.
+              </p>
+            </div>
+          </aside>
+        </details>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">

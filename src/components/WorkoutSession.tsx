@@ -27,6 +27,12 @@ import { ExercisePlanCheck } from "@/components/ExercisePlanCheck";
 import { SortableExerciseSection } from "@/components/SortableExerciseSection";
 import { WorkoutSessionSkeleton } from "@/components/WorkoutSessionSkeleton";
 import { useToast } from "@/components/ToastProvider";
+import {
+  uiButtonPrimaryClass,
+  uiFieldErrorClass,
+  uiInputClass,
+  uiLabelClass,
+} from "@/components/ui/styles";
 
 type SetRow = {
   id: string;
@@ -90,6 +96,9 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   const [copyDate, setCopyDate] = useState(() => todayDateInput());
   const [copyBusy, setCopyBusy] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [exerciseNameErrors, setExerciseNameErrors] = useState<Record<string, string>>({});
+  const [newExerciseError, setNewExerciseError] = useState<string | null>(null);
   const titleDraftRef = useRef(titleDraft);
   const savedTitleRef = useRef<string | null>(null);
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -289,7 +298,9 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   async function patchExerciseName(exerciseId: string, name: string) {
     const trimmed = name.trim();
     if (!trimmed) {
-      toastError("Введіть назву вправи.");
+      const message = "Введіть назву вправи.";
+      setExerciseNameErrors((prev) => ({ ...prev, [exerciseId]: message }));
+      toastError(message);
       await load();
       return;
     }
@@ -300,10 +311,18 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      toastError((data as { error?: string }).error ?? "Не вдалося зберегти назву.");
+      const message = (data as { error?: string }).error ?? "Не вдалося зберегти назву.";
+      setExerciseNameErrors((prev) => ({ ...prev, [exerciseId]: message }));
+      toastError(message);
       await load();
       return;
     }
+    setExerciseNameErrors((prev) => {
+      if (!prev[exerciseId]) return prev;
+      const next = { ...prev };
+      delete next[exerciseId];
+      return next;
+    });
     setWorkout((w) =>
       w
         ? {
@@ -326,11 +345,14 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     });
     const data = await res.json();
     if (!res.ok) {
-      toastError(data.error ?? "Не вдалося зберегти назву.");
+      const message = data.error ?? "Не вдалося зберегти назву.";
+      setTitleError(message);
+      toastError(message);
       setTitleDraft(workout.title ?? "");
       titleDraftRef.current = workout.title ?? "";
       return;
     }
+    setTitleError(null);
     savedTitleRef.current = next;
     setWorkout((w) => (w ? { ...w, title: next } : w));
     router.refresh();
@@ -352,17 +374,26 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   }
 
   async function addExercise() {
-    if (!newExName.trim()) return;
+    const trimmed = newExName.trim();
+    if (!trimmed) {
+      const message = "Введіть назву вправи.";
+      setNewExerciseError(message);
+      toastError(message);
+      return;
+    }
     const res = await fetch(`/api/workouts/${workoutId}/exercises`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newExName.trim(), baseLift: newExBase }),
+      body: JSON.stringify({ name: trimmed, baseLift: newExBase }),
     });
     const data = await res.json();
     if (!res.ok) {
-      toastError(data.error ?? "Помилка.");
+      const message = data.error ?? "Помилка.";
+      setNewExerciseError(message);
+      toastError(message);
       return;
     }
+    setNewExerciseError(null);
     setNewExName("");
     setNewExBase("NONE");
     await load();
@@ -563,7 +594,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               className="font-display box-border h-11 w-full min-w-0 cursor-text rounded-md border border-white/10 bg-black/50 px-3 text-base font-bold uppercase leading-tight tracking-tight text-[var(--sbd-text)] outline-none transition placeholder:text-zinc-600 hover:border-white/20 focus:border-[#e31e24]/40 focus:ring-2 focus:ring-[#e31e24]/15 md:text-lg"
               placeholder="Наприклад День 3"
               value={titleDraft}
-              onChange={(e) => setTitleDraft(e.target.value)}
+              onChange={(e) => {
+                setTitleDraft(e.target.value);
+                if (titleError) setTitleError(null);
+              }}
               onBlur={patchTitle}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -572,6 +606,11 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                 }
               }}
             />
+            {titleError ? (
+              <p className={uiFieldErrorClass} role="alert">
+                {titleError}
+              </p>
+            ) : null}
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 md:justify-end">
             <button
@@ -725,6 +764,14 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                             : w,
                         )
                       }
+                      onInput={() =>
+                        setExerciseNameErrors((prev) => {
+                          if (!prev[ex.id]) return prev;
+                          const next = { ...prev };
+                          delete next[ex.id];
+                          return next;
+                        })
+                      }
                       onBlur={() => patchExerciseName(ex.id, ex.name)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -736,6 +783,11 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                     <p className="mt-1 text-xs uppercase tracking-wider text-zinc-600">
                       {baseLiftLabel(ex.baseLift)}
                     </p>
+                    {exerciseNameErrors[ex.id] ? (
+                      <p className={uiFieldErrorClass} role="alert">
+                        {exerciseNameErrors[ex.id]}
+                      </p>
+                    ) : null}
                   </div>
                   <button
                     type="button"
@@ -1139,14 +1191,25 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           Додати вправу
         </h3>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <input
-            className="flex-1 rounded-md border border-white/10 bg-black/40 px-3 py-2.5 text-zinc-100 outline-none focus:border-[#e31e24]/35"
-            placeholder="Назва вправи"
-            value={newExName}
-            onChange={(e) => setNewExName(e.target.value)}
-          />
+          <div className="flex-1">
+            <label htmlFor="new-exercise-name" className={`${uiLabelClass} sr-only`}>
+              Назва вправи
+            </label>
+            <input
+              id="new-exercise-name"
+              className={`${uiInputClass} border-white/10 bg-black/40 text-zinc-100`}
+              placeholder="Назва вправи"
+              value={newExName}
+              onChange={(e) => {
+                setNewExName(e.target.value);
+                if (newExerciseError) setNewExerciseError(null);
+              }}
+              aria-invalid={newExerciseError ? "true" : "false"}
+              aria-describedby={newExerciseError ? "new-exercise-error" : undefined}
+            />
+          </div>
           <select
-            className="rounded-md border border-white/10 bg-black/40 px-3 py-2.5 text-zinc-100 outline-none sm:w-48"
+            className={`${uiInputClass} border-white/10 bg-black/40 text-zinc-100 sm:w-48`}
             value={newExBase}
             onChange={(e) => setNewExBase(e.target.value as BaseLift)}
           >
@@ -1158,12 +1221,17 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           </select>
           <button
             type="button"
-            className="rounded-md bg-[#e31e24] px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white hover:bg-[#c41a21]"
+            className={`${uiButtonPrimaryClass} px-5`}
             onClick={addExercise}
           >
             Додати
           </button>
         </div>
+        {newExerciseError ? (
+          <p id="new-exercise-error" className={uiFieldErrorClass} role="alert">
+            {newExerciseError}
+          </p>
+        ) : null}
       </div>
     </div>
   );

@@ -117,7 +117,7 @@ export function ProfileClient() {
   const [login, setLogin] = useState("");
   const [loginEdit, setLoginEdit] = useState("");
 
-  const [lbBy, setLbBy] = useState<"total" | "bench" | "squat" | "deadlift">("total");
+  const [lbBy, setLbBy] = useState<"total" | "bench">("total");
   const [lbRows, setLbRows] = useState<LbRow[]>([]);
   const [lbLoading, setLbLoading] = useState(false);
   const profileEditDetailsRef = useRef<HTMLDetailsElement>(null);
@@ -297,14 +297,6 @@ export function ProfileClient() {
         <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
           Силові максимуми та GL
         </h1>
-        <p className="text-sm leading-relaxed text-[var(--sbd-muted)] sm:text-base">
-          Нижче — попередній перегляд GL і рейтинг. Щоб змінити аватар, логін, вагу чи максимуми,
-          натисни{" "}
-          <span className="font-medium text-[var(--sbd-text)]">«Редагувати профіль»</span> — блок
-          розкриється (як підказка «Куди натиснути» на головній). Дані йдуть у IPF Goodlift (2020):
-          GL триборства з&apos;явиться, коли заповнені всі три рухи; інакше — офіційний GL жиму,
-          якщо є жим.
-        </p>
       </header>
 
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
@@ -375,8 +367,7 @@ export function ProfileClient() {
                   {gl.points}
                 </p>
                 <p className="sbd-gl-preview-muted relative mt-4 text-xs leading-relaxed text-zinc-500">
-                  У рейтингу нижче — порівняння по сумі SBD, жиму, присяду чи тязі. Для присяду та
-                  тяги в рейтингу використовується наближена оцінка з коефіцієнтами триборства.
+                  У рейтингу нижче — порівняння по офіційному GL: сума SBD або жим лежачи.
                 </p>
               </>
             ) : (
@@ -412,17 +403,9 @@ export function ProfileClient() {
           className="profile-edit-details group sbd-card overflow-hidden rounded-2xl shadow-lg shadow-black/15 open:shadow-xl"
         >
           <summary className="flex min-h-[52px] cursor-pointer list-none items-center gap-3 px-4 py-3 marker:content-none sm:min-h-[56px] sm:px-6 sm:py-4 [&::-webkit-details-marker]:hidden">
-            <span className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-              <span className="hidden shrink-0 sm:inline-flex sm:items-center sm:justify-center" aria-hidden>
-                <PresetAvatar decorative avatarId={avatarId} size={40} className="ring-1 ring-[#e31e24]/20" />
-              </span>
-              <span className="flex min-w-0 flex-col justify-center gap-0.5 text-left leading-tight">
-                <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-[#e31e24]/90 sm:text-xs">
-                  Редагувати профіль
-                </span>
-                <span className="truncate text-sm font-medium text-[var(--sbd-text)]">
-                  {loginEdit || login}
-                </span>
+            <span className="min-w-0 flex-1 text-left">
+              <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-[#e31e24]/90 sm:text-xs">
+                Редагувати профіль
               </span>
             </span>
             <span
@@ -436,7 +419,6 @@ export function ProfileClient() {
             <ProfileSection
               sectionId="profile-avatar"
               title="Аватар"
-              description="П’ятнадцять заготовок у стилі залу — натисни картку, щоб обрати."
             >
               <div
                 className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 sm:gap-3"
@@ -547,7 +529,7 @@ export function ProfileClient() {
             <ProfileSection
               sectionId="profile-maxes"
               title="Максимуми (кг)"
-              description="SBD для GL триборства. Порожні поля можна залишити — для рейтингу «по жиму» тоді врахується лише жим."
+              description="SBD для GL триборства."
               withDivider
             >
               <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
@@ -738,8 +720,6 @@ export function ProfileClient() {
               [
                 ["total", "Сума SBD"],
                 ["bench", "Жим"],
-                ["squat", "Присяд"],
-                ["deadlift", "Тяга"],
               ] as const
             ).map(([key, label]) => (
               <button

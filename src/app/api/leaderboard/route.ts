@@ -13,7 +13,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
-  by: z.enum(["total", "bench", "squat", "deadlift"]).optional(),
+  by: z.enum(["total", "bench"]).optional(),
 });
 
 export async function GET(req: Request) {
