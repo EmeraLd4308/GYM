@@ -33,6 +33,10 @@ function tagCellClass(tag: DayTag | undefined): string {
   return "border-white/[0.06] bg-black/25 text-zinc-500";
 }
 
+function workoutNoTagCellClass(): string {
+  return "border-zinc-500/45 bg-zinc-500/15 text-zinc-700 dark:text-zinc-200 shadow-[0_0_0_1px_rgba(113,113,122,0.28)]";
+}
+
 export function TrainingCalendar({
   workoutDayKeys,
   dayTagByKey,
@@ -135,7 +139,9 @@ export function TrainingCalendar({
             !inMonth
               ? "border-transparent text-zinc-600 opacity-40"
               : hasWorkout
-                ? tagCellClass(tag)
+                ? tag
+                  ? tagCellClass(tag)
+                  : workoutNoTagCellClass()
                 : tagCellClass(undefined)
           } ${isToday && inMonth ? "ring-1 ring-[#e31e24]/60" : ""}`;
           const busy = openingDay === key;
@@ -146,7 +152,7 @@ export function TrainingCalendar({
                 key={key}
                 type="button"
                 disabled={busy}
-                aria-label={`Відкрити тренування за ${format(day, "d MMMM yyyy", { locale: uk })}${tag ? `, інтенсивність: ${workoutTagLabelUk(tag)}` : ""}`}
+                aria-label={`Відкрити тренування за ${format(day, "d MMMM yyyy", { locale: uk })}${tag ? `, інтенсивність: ${workoutTagLabelUk(tag)}` : ", інтенсивність: без визначення"}`}
                 className={`${cellClass} touch-manipulation transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e31e24]/70 disabled:opacity-60`}
                 onClick={() => void openWorkoutForDay(key)}
               >
@@ -179,6 +185,10 @@ export function TrainingCalendar({
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded border border-emerald-400/45 bg-emerald-400/12" />{" "}
           тренування (легке)
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-zinc-500/45 bg-zinc-500/15" /> тренування
+          (складність невідома)
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded border border-white/[0.06] bg-black/25" /> Без запису
