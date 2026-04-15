@@ -18,7 +18,7 @@ const display = Rubik({
 
 export const metadata: Metadata = {
   title: "SBD · Облік тренувань",
-  description: "Журнал тренувань: присід, жим, тяга та твій план.",
+  description: "Тренування: присід, жим, тяга та твій план.",
   applicationName: "SBD",
   appleWebApp: {
     capable: true,

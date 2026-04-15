@@ -9,6 +9,7 @@ import { maxTripleChanged, recordProfileSbdMaxSnapshot } from "@/lib/profile-max
 import { rateLimitJson } from "@/lib/rate-limit";
 import { buildProfileApiPayload, normalizePinnedForUser } from "@/lib/profile-response";
 import { syncUserAchievements } from "@/lib/achievements";
+import { recalculateUserDerivedMetricsFromProfile } from "@/lib/lift-records";
 
 const numOrNull = z.union([z.number(), z.null()]);
 
@@ -25,6 +26,17 @@ const patchSchema = z.object({
   avatarId: avatarIdSchema.optional(),
   nickname: z.union([z.string().max(40), z.null()]).optional(),
   pinnedAchievementIds: z.array(z.string().max(80)).max(3).optional(),
+  liftRecords: z
+    .array(
+      z.object({
+        baseLift: z.enum(["BENCH", "SQUAT", "DEADLIFT"]),
+        topWeightKg: numOrNull.optional(),
+        topVolumeKg: numOrNull.optional(),
+        estOneRmKg: numOrNull.optional(),
+      }),
+    )
+    .max(3)
+    .optional(),
 });
 
 export async function GET() {
@@ -50,10 +62,11 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Некоректні дані профілю." }, { status: 400 });
     }
     const d = parsed.data;
-    const { pinnedAchievementIds, ...rest } = d;
+    const { pinnedAchievementIds, liftRecords, ...rest } = d;
     const hasRest = Object.values(rest).some((v) => v !== undefined);
     const hasPins = pinnedAchievementIds !== undefined;
-    if (!hasRest && !hasPins) {
+    const hasLiftRecords = Array.isArray(liftRecords);
+    if (!hasRest && !hasPins && !hasLiftRecords) {
       return NextResponse.json({ error: "Немає полів для оновлення." }, { status: 400 });
     }
 
@@ -138,6 +151,7 @@ export async function PATCH(req: Request) {
         glMaxBenchKg: afterUpdate.glMaxBenchKg,
         glMaxDeadliftKg: afterUpdate.glMaxDeadliftKg,
       });
+      await recalculateUserDerivedMetricsFromProfile(user.id);
     }
 
     await syncUserAchievements(user.id);
@@ -153,6 +167,44 @@ export async function PATCH(req: Request) {
         where: { id: user.id },
         data: { pinnedAchievementIds: pins },
       });
+    }
+
+    if (liftRecords) {
+      for (const row of liftRecords) {
+        await prisma.userLiftRecord.upsert({
+          where: { userId_baseLift: { userId: user.id, baseLift: row.baseLift } },
+          update: {
+            ...(row.topWeightKg !== undefined
+              ? {
+                  topWeightKg: row.topWeightKg,
+                  manualTopWeightKg: true,
+                }
+              : {}),
+            ...(row.topVolumeKg !== undefined
+              ? {
+                  topVolumeKg: row.topVolumeKg,
+                  manualTopVolumeKg: true,
+                }
+              : {}),
+            ...(row.estOneRmKg !== undefined
+              ? {
+                  estOneRmKg: row.estOneRmKg,
+                  manualEstOneRmKg: true,
+                }
+              : {}),
+          },
+          create: {
+            userId: user.id,
+            baseLift: row.baseLift,
+            topWeightKg: row.topWeightKg ?? null,
+            topVolumeKg: row.topVolumeKg ?? null,
+            estOneRmKg: row.estOneRmKg ?? null,
+            manualTopWeightKg: row.topWeightKg !== undefined,
+            manualTopVolumeKg: row.topVolumeKg !== undefined,
+            manualEstOneRmKg: row.estOneRmKg !== undefined,
+          },
+        });
+      }
     }
 
     const profile = await buildProfileApiPayload(user.id);

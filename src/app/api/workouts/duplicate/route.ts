@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
 import { rateLimitJson } from "@/lib/rate-limit";
+import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,9 @@ export async function POST(req: Request) {
       },
     },
   });
+
+  await recalculateWorkoutAutoTag(workout.id);
+  await recalculateUserLiftRecords(user.id);
 
   return NextResponse.json({ workout });
 }

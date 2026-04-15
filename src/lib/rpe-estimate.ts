@@ -11,6 +11,5 @@ export function estimateRpeFromProfileMax(
   const r = Math.min(1.06, ratio);
   const t = (Math.max(0.5, r) - 0.5) / 0.5;
   const raw = 6 + Math.min(1, Math.max(0, t)) * 4;
-  const rounded = Math.round(raw * 2) / 2;
-  return Math.min(10, Math.max(6, rounded));
+  return Math.min(10, Math.max(6, raw));
 }

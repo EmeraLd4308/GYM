@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "SBD · Облік тренувань",
     short_name: "SBD",
-    description: "Журнал тренувань: присід, жим, тяга та твій план.",
+    description: "Тренування: присід, жим, тяга та твій план.",
     start_url: "/",
     display: "standalone",
     background_color: "#050505",

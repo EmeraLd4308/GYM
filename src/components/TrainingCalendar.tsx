@@ -15,10 +15,31 @@ import { uk } from "date-fns/locale/uk";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { workoutTagLabelUk } from "@/lib/workout-tags";
 
 const weekdayLabels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+type DayTag = "HEAVY" | "MEDIUM" | "LIGHT";
 
-export function TrainingCalendar({ workoutDayKeys }: { workoutDayKeys: string[] }) {
+function tagCellClass(tag: DayTag | undefined): string {
+  if (tag === "HEAVY") {
+    return "border-[#e31e24]/50 bg-[#e31e24]/18 text-white shadow-[0_0_0_1px_rgba(227,30,36,0.24)]";
+  }
+  if (tag === "MEDIUM") {
+    return "border-amber-400/45 bg-amber-400/12 text-amber-100 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]";
+  }
+  if (tag === "LIGHT") {
+    return "border-emerald-400/45 bg-emerald-400/12 text-emerald-100 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]";
+  }
+  return "border-white/[0.06] bg-black/25 text-zinc-500";
+}
+
+export function TrainingCalendar({
+  workoutDayKeys,
+  dayTagByKey,
+}: {
+  workoutDayKeys: string[];
+  dayTagByKey?: Record<string, DayTag>;
+}) {
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
   const [openingDay, setOpeningDay] = useState<string | null>(null);
   const router = useRouter();
@@ -109,12 +130,13 @@ export function TrainingCalendar({ workoutDayKeys }: { workoutDayKeys: string[] 
           const inMonth = isSameMonth(day, viewMonth);
           const isToday = isSameDay(day, today);
           const hasWorkout = trained.has(key);
+          const tag = dayTagByKey?.[key];
           const cellClass = `flex aspect-square min-h-[36px] w-full flex-col items-center justify-center rounded-lg border text-xs sm:min-h-[44px] ${
             !inMonth
               ? "border-transparent text-zinc-600 opacity-40"
               : hasWorkout
-                ? "border-[#e31e24]/45 bg-[#e31e24]/18 text-white shadow-[0_0_0_1px_rgba(227,30,36,0.2)]"
-                : "border-white/[0.06] bg-black/25 text-zinc-500"
+                ? tagCellClass(tag)
+                : tagCellClass(undefined)
           } ${isToday && inMonth ? "ring-1 ring-[#e31e24]/60" : ""}`;
           const busy = openingDay === key;
 
@@ -124,7 +146,7 @@ export function TrainingCalendar({ workoutDayKeys }: { workoutDayKeys: string[] 
                 key={key}
                 type="button"
                 disabled={busy}
-                aria-label={`Відкрити тренування за ${format(day, "d MMMM yyyy", { locale: uk })}`}
+                aria-label={`Відкрити тренування за ${format(day, "d MMMM yyyy", { locale: uk })}${tag ? `, інтенсивність: ${workoutTagLabelUk(tag)}` : ""}`}
                 className={`${cellClass} touch-manipulation transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e31e24]/70 disabled:opacity-60`}
                 onClick={() => void openWorkoutForDay(key)}
               >
@@ -148,7 +170,15 @@ export function TrainingCalendar({ workoutDayKeys }: { workoutDayKeys: string[] 
       <div className="mt-4 flex flex-wrap gap-4 text-xs text-zinc-500">
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded border border-[#e31e24]/45 bg-[#e31e24]/18" /> Є
-          тренування
+          тренування (важке)
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-amber-400/45 bg-amber-400/12" />{" "}
+          тренування (середнє)
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-emerald-400/45 bg-emerald-400/12" />{" "}
+          тренування (легке)
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-3 w-3 rounded border border-white/[0.06] bg-black/25" /> Без запису

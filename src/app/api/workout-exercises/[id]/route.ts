@@ -5,6 +5,7 @@ import type { BaseLift } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
+import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
@@ -62,6 +63,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           });
         }),
       );
+      await recalculateWorkoutAutoTag(updated.workout.id);
+      await recalculateUserLiftRecords(user.id);
     }
     const nextExercise = await prisma.workoutExercise.findFirst({
       where: { id },
@@ -85,5 +88,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
   }
   await prisma.workoutExercise.delete({ where: { id } });
+  await recalculateWorkoutAutoTag(exercise.workout.id);
+  await recalculateUserLiftRecords(user.id);
   return NextResponse.json({ ok: true });
 }

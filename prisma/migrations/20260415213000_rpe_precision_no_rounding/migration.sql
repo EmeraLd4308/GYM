@@ -1,0 +1,3 @@
+ALTER TABLE "ExerciseSet"
+ALTER COLUMN "rpe" TYPE DECIMAL(6,4);
+

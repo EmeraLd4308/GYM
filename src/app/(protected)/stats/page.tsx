@@ -10,7 +10,7 @@ import {
   applyWeightFilterForVolume,
 } from "@/lib/stats-filters";
 import { streakWeeksWithThreePlus } from "@/lib/streak";
-import { compareLastTwoWeeksRpe } from "@/lib/week-compare";
+import { compareMonthVsPrevious } from "@/lib/period-compare";
 import { StatsLazyCharts } from "@/components/StatsLazyCharts";
 import { StatsOnboardingMark } from "@/components/StatsOnboardingMark";
 import { StatsFilterForm } from "@/components/StatsFilterForm";
@@ -68,7 +68,7 @@ export default async function StatsPage({
   const rpeWorkouts = applyWeightFilterForVolume(workouts, filters.weightMin, filters.weightMax);
   const profileMaxKg = profileMaxFromUser(user);
   const rpeSeries = buildWeeklySbdRpeSeries(rpeWorkouts, profileMaxKg);
-  const weekCmp = compareLastTwoWeeksRpe(rpeSeries);
+  const monthCmp = compareMonthVsPrevious(rpeSeries);
 
   const rpeHints: WeeklyRpeChartHints = {
     bench: {
@@ -159,9 +159,16 @@ export default async function StatsPage({
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
         <StreakCard weeks={streak} />
         <WeekVolumeCompare
-          data={weekCmp}
-          title="RPE: поточний vs попередній тиждень"
-          subtitle="Середнє RPE: з журналу або оцінка з ваги та максимуму з профілю; розминка не враховується."
+          data={
+            monthCmp
+              ? {
+                  prev: { ...monthCmp.prev, weekLabel: monthCmp.prev.label },
+                  curr: { ...monthCmp.curr, weekLabel: monthCmp.curr.label },
+                }
+              : null
+          }
+          title="RPE: цей місяць vs попередній"
+          subtitle="Порівняння середнього RPE за календарні місяці."
           decimals={2}
         />
       </div>

@@ -7,6 +7,9 @@ import { workoutListWhere, workoutListQueryString } from "@/lib/workout-list-whe
 import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
 import { WorkoutListFilters } from "@/components/WorkoutListFilters";
 import { WorkoutListPagination } from "@/components/WorkoutListPagination";
+import { workoutTagBadgeClass, workoutTagLabelUk, inferWorkoutTagFromExercises } from "@/lib/workout-tags";
+import { sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
+import { recalculateAllWorkoutTagsForUser } from "@/lib/lift-records";
 
 const btnPrimary =
   "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21]";
@@ -31,6 +34,13 @@ export default async function WorkoutsListPage({
   const user = await getSessionUser();
   if (!user) return null;
 
+  const missingTags = await prisma.workout.count({
+    where: { userId: user.id, autoTag: null },
+  });
+  if (missingTags > 0) {
+    await recalculateAllWorkoutTagsForUser(user.id);
+  }
+
   const sp = await searchParams;
   const filters = parseStatsFiltersFromSearchParams(
     sp as Record<string, string | string[] | undefined>,
@@ -47,19 +57,40 @@ export default async function WorkoutsListPage({
     redirect(qs ? `/workouts?${qs}` : "/workouts");
   }
 
-  const workouts = await prisma.workout.findMany({
-    where,
-    orderBy: { date: "desc" },
-    skip: (safePage - 1) * pageSize,
-    take: pageSize,
-    include: {
-      exercises: {
-        orderBy: { sortOrder: "asc" },
-        select: {
-          _count: { select: { sets: true } },
+  const [profileMax, workouts] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
+    }),
+    prisma.workout.findMany({
+      where,
+      orderBy: { date: "desc" },
+      skip: (safePage - 1) * pageSize,
+      take: pageSize,
+      include: {
+        exercises: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            baseLift: true,
+            _count: { select: { sets: true } },
+            sets: {
+              select: { weightKg: true, reps: true, isWarmup: true },
+            },
+          },
         },
       },
-    },
+    }),
+  ]);
+  const maxes = sbdMaxKgFromUserRow(profileMax);
+  const workoutsWithTag = workouts.map((w) => {
+    const inferred = inferWorkoutTagFromExercises(
+      w.exercises.map((ex) => ({
+        baseLift: ex.baseLift,
+        sets: ex.sets,
+      })),
+      maxes,
+    );
+    return { ...w, displayTag: inferred ?? w.autoTag };
   });
 
   const hasFilters = Boolean(
@@ -67,7 +98,8 @@ export default async function WorkoutsListPage({
     filters.dateTo?.trim() ||
     filters.weightMin !== undefined ||
     filters.weightMax !== undefined ||
-    filters.search?.trim(),
+    filters.search?.trim() ||
+    filters.tag,
   );
 
   let anyWorkoutsUnfiltered = 0;
@@ -107,7 +139,7 @@ export default async function WorkoutsListPage({
         </div>
       </details>
 
-      {workouts.length === 0 ? (
+      {workoutsWithTag.length === 0 ? (
         <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 text-center sm:p-10">
           {pagePastEnd ? (
             <>
@@ -159,7 +191,7 @@ export default async function WorkoutsListPage({
       ) : (
         <div className="sbd-card overflow-hidden rounded-xl shadow-2xl shadow-black/50">
           <ul className="sbd-workout-rows divide-y divide-white/[0.06]">
-            {workouts.map((w) => {
+            {workoutsWithTag.map((w) => {
               const setCount = w.exercises.reduce((acc, e) => acc + e._count.sets, 0);
               return (
                 <li key={w.id}>
@@ -168,7 +200,14 @@ export default async function WorkoutsListPage({
                     className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4"
                   >
                     <span className="min-w-0 font-semibold text-[var(--sbd-text)]">
-                      {w.title ?? "Тренування"}
+                      <span className="inline-flex items-center gap-2">
+                        <span>{w.title ?? "Тренування"}</span>
+                        <span
+                          className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${workoutTagBadgeClass(w.displayTag)}`}
+                        >
+                          {workoutTagLabelUk(w.displayTag)}
+                        </span>
+                      </span>
                     </span>
                     <span className="shrink-0 text-sm text-[var(--sbd-muted)] sm:text-right">
                       {new Date(w.date).toLocaleDateString("uk-UA", {

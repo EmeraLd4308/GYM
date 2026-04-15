@@ -48,6 +48,9 @@ export function WeekVolumeCompare({
     <div className="sbd-card rounded-xl p-5">
       <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">{title}</h3>
       <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
+      <p className="mt-2 text-xs text-zinc-500">
+        {prev.weekLabel} → {curr.weekLabel}
+      </p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[280px] text-sm">
           <thead>

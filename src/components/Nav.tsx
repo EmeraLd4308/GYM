@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { PresetAvatar } from "@/components/PresetAvatar";
+import { SbdLoadingPortal } from "@/components/SbdLoadingPortal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconLogout, IconTemplates } from "@/components/icons";
 
@@ -25,6 +27,7 @@ export function Nav({
   nickname?: string | null;
 }) {
   const pathname = usePathname();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -51,8 +54,9 @@ export function Nav({
   ] as const;
 
   return (
-    <header className="sbd-app-header sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl backdrop-saturate-150 md:z-50">
-      <div className="mx-auto flex w-full max-w-4xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:max-w-6xl md:gap-4 md:px-6 xl:px-8">
+    <>
+      <header className="sbd-app-header sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl backdrop-saturate-150 md:z-50">
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:max-w-6xl md:gap-4 md:px-6 xl:px-8">
         <Link
           href="/dashboard"
           className="group flex min-h-[44px] min-w-0 shrink-0 touch-manipulation items-center gap-2 overflow-hidden sm:gap-2.5 md:max-w-[min(100%,14rem)] lg:max-w-[min(100%,16rem)]"
@@ -102,29 +106,48 @@ export function Nav({
           <ThemeToggle variant="nav" />
           <Link
             href="/templates"
-            className={`${iconBtn} md:hidden ${isActive("/templates") ? "border-[#e31e24]/40 bg-[#e31e24]/15 text-[#e31e24]" : ""}`}
+            className={`${iconBtn} md:hidden`}
+            data-active={isActive("/templates") ? "true" : "false"}
+            aria-current={isActive("/templates") ? "page" : undefined}
             aria-label="Шаблони тренувань"
             title="Шаблони"
           >
             <IconTemplates className="h-[22px] w-[22px]" />
           </Link>
-          <form action="/api/auth/logout" method="post" className="inline md:hidden">
+          <form
+            action="/api/auth/logout"
+            method="post"
+            className="inline md:hidden"
+            onSubmit={() => setLoggingOut(true)}
+          >
             <button
               type="submit"
-              className={iconBtn}
+              className={`${iconBtn} ${loggingOut ? "pointer-events-none border-[#e31e24]/45 bg-[#e31e24]/12 text-[#e31e24] opacity-80" : ""}`}
               aria-label="Вийти з облікового запису"
               title="Вийти"
+              disabled={loggingOut}
             >
               <IconLogout className="h-[22px] w-[22px]" />
             </button>
           </form>
-          <form action="/api/auth/logout" method="post" className="hidden md:inline">
-            <button type="submit" className={logoutTextBtn}>
-              Вийти
+          <form
+            action="/api/auth/logout"
+            method="post"
+            className="hidden md:inline"
+            onSubmit={() => setLoggingOut(true)}
+          >
+            <button type="submit" className={logoutTextBtn} disabled={loggingOut}>
+              {loggingOut ? "Вихід…" : "Вийти"}
             </button>
           </form>
         </div>
-      </div>
-    </header>
+        </div>
+      </header>
+      <SbdLoadingPortal
+        open={loggingOut}
+        message="Вихід з профілю"
+        subMessage="Завершуємо сесію…"
+      />
+    </>
   );
 }

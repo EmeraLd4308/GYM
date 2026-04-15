@@ -6,6 +6,12 @@ import { localDayBoundsFromInput } from "@/lib/date-local";
 import { DashboardDuplicateActions } from "@/components/DashboardDuplicateActions";
 import { DashboardQuickGuide } from "@/components/DashboardQuickGuide";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
+import {
+  inferWorkoutTagFromExercises,
+  workoutTagBadgeClass,
+  workoutTagLabelUk,
+} from "@/lib/workout-tags";
 
 function positiveKg(v: unknown): boolean {
   if (v == null) return false;
@@ -21,8 +27,13 @@ export default async function DashboardPage() {
     id: true,
     title: true,
     date: true,
+    autoTag: true,
     exercises: {
       select: {
+        baseLift: true,
+        sets: {
+          select: { weightKg: true, reps: true, isWarmup: true },
+        },
         _count: { select: { sets: true } },
       },
     },
@@ -69,16 +80,34 @@ export default async function DashboardPage() {
 
   const todayIds = new Set(todayWorkouts.map((w) => w.id));
   const otherRecent = recent.filter((w) => !todayIds.has(w.id)).slice(0, 3);
+  const maxes = sbdMaxKgFromUserRow(profileRow);
 
   function workoutRow(w: (typeof recent)[0]) {
     const setCount = w.exercises.reduce((acc, e) => acc + e._count.sets, 0);
+    const displayTag =
+      inferWorkoutTagFromExercises(
+        w.exercises.map((ex) => ({
+          baseLift: ex.baseLift,
+          sets: ex.sets,
+        })),
+        maxes,
+      ) ?? w.autoTag;
     return (
       <li key={w.id}>
         <Link
           href={`/workouts/${w.id}`}
           className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4"
         >
-          <span className="min-w-0 font-semibold text-[var(--sbd-text)]">{w.title ?? "Тренування"}</span>
+          <span className="min-w-0 font-semibold text-[var(--sbd-text)]">
+            <span className="inline-flex items-center gap-2">
+              <span>{w.title ?? "Тренування"}</span>
+              <span
+                className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${workoutTagBadgeClass(displayTag)}`}
+              >
+                {workoutTagLabelUk(displayTag)}
+              </span>
+            </span>
+          </span>
           <span className="shrink-0 text-sm text-[var(--sbd-muted)] sm:text-right">
             {new Date(w.date).toLocaleDateString("uk-UA", {
               weekday: "short",
@@ -150,7 +179,7 @@ export default async function DashboardPage() {
             </h2>
             {otherRecent.length === 0 && todayWorkouts.length === 0 ? (
               <div className="sbd-card rounded-xl p-6 text-center text-sm text-zinc-500 md:p-8">
-                Інших записів ще немає — див. блок вище або «Журнал» у нижній панелі.
+                Інших записів ще немає — див. блок вище або «Тренування» у нижній панелі.
               </div>
             ) : otherRecent.length === 0 ? (
               <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">

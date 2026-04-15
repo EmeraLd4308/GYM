@@ -1,6 +1,7 @@
 "use client";
 
 import { DateWeightFilters } from "@/components/DateWeightFilters";
+import { WORKOUT_TAG_OPTIONS } from "@/lib/workout-tags";
 
 const PAGE_SIZE = "20";
 
@@ -17,6 +18,11 @@ export function WorkoutListFilters() {
         param: "q",
         label: "Пошук",
         placeholder: "Назва тренування або вправа…",
+      }}
+      tagFilter={{
+        param: "tag",
+        label: "Авто-тег",
+        options: WORKOUT_TAG_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label })),
       }}
       weightRangeHint={
         <>

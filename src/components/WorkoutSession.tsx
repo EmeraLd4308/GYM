@@ -99,6 +99,12 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [exerciseNameErrors, setExerciseNameErrors] = useState<Record<string, string>>({});
   const [newExerciseError, setNewExerciseError] = useState<string | null>(null);
+  const [titleSaveState, setTitleSaveState] = useState<"idle" | "saving" | "saved" | "error">(
+    "idle",
+  );
+  const [notesSaveState, setNotesSaveState] = useState<"idle" | "saving" | "saved" | "error">(
+    "idle",
+  );
   const titleDraftRef = useRef(titleDraft);
   const savedTitleRef = useRef<string | null>(null);
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -192,6 +198,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
 
   function scheduleNotesSave(nextNotes: string) {
     if (notesTimer.current) clearTimeout(notesTimer.current);
+    setNotesSaveState("saving");
     notesTimer.current = setTimeout(async () => {
       const res = await fetch(`/api/workouts/${workoutId}`, {
         method: "PATCH",
@@ -201,8 +208,10 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       const data = await res.json();
       if (!res.ok) {
         toastError(data.error ?? "Не вдалося зберегти нотатку.");
+        setNotesSaveState("error");
         return;
       }
+      setNotesSaveState("saved");
       router.refresh();
     }, 500);
   }
@@ -338,6 +347,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
     if (!workout) return;
     const next = titleDraftRef.current.trim() === "" ? null : titleDraftRef.current.trim();
     if (next === savedTitleRef.current) return;
+    setTitleSaveState("saving");
     const res = await fetch(`/api/workouts/${workoutId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -350,11 +360,13 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       toastError(message);
       setTitleDraft(workout.title ?? "");
       titleDraftRef.current = workout.title ?? "";
+      setTitleSaveState("error");
       return;
     }
     setTitleError(null);
     savedTitleRef.current = next;
     setWorkout((w) => (w ? { ...w, title: next } : w));
+    setTitleSaveState("saved");
     router.refresh();
   }
 
@@ -585,7 +597,16 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-500"
               htmlFor="wtitle"
             >
-              Назва тренування
+              Назва тренування{" "}
+              <span className="normal-case text-[11px] text-zinc-500">
+                {titleSaveState === "saving"
+                  ? "· Зберігається…"
+                  : titleSaveState === "saved"
+                    ? "· Збережено"
+                    : titleSaveState === "error"
+                      ? "· Помилка збереження"
+                      : ""}
+              </span>
             </label>
             <input
               id="wtitle"
@@ -597,6 +618,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
               onChange={(e) => {
                 setTitleDraft(e.target.value);
                 if (titleError) setTitleError(null);
+                if (titleSaveState !== "idle") setTitleSaveState("idle");
               }}
               onBlur={patchTitle}
               onKeyDown={(e) => {
@@ -658,7 +680,16 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
             className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
             htmlFor="wnotes"
           >
-            Нотатки (необов&apos;язково)
+            Нотатки (необов&apos;язково){" "}
+            <span className="normal-case text-[11px] text-zinc-500">
+              {notesSaveState === "saving"
+                ? "· Зберігається…"
+                : notesSaveState === "saved"
+                  ? "· Збережено"
+                  : notesSaveState === "error"
+                    ? "· Помилка збереження"
+                    : ""}
+            </span>
           </label>
           <textarea
             id="wnotes"
@@ -669,6 +700,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
             onChange={(e) => {
               const v = e.target.value;
               setWorkout((w) => (w ? { ...w, notes: v } : w));
+              if (notesSaveState !== "idle") setNotesSaveState("idle");
               scheduleNotesSave(v);
             }}
           />

@@ -1,175 +1,123 @@
-# GYM — журнал силових тренувань
+# GYM — трекер силових тренувань
 
-Вебзастосунок для запису тренувань (SBD та інші вправи), шаблонів, календаря, статистики (RPE, відвідуваність, динаміка максимумів з профілю), профілю з IPF Goodlift, досягнень і рейтингу атлетів. Інтерфейс українською.
+Вебзастосунок для ведення тренувань з акцентом на SBD: вправи, підходи, календар, статистика, профіль (IPF GL), досягнення і рейтинг. Інтерфейс українською.
 
-**English:** Powerlifting-oriented workout tracker on **Next.js 16** (App Router), **React 19**, **Prisma**, **PostgreSQL**. Авторизація через сесійний cookie, без OAuth.
-
----
-
-## Зміст
-
-- [Можливості](#можливості)
-- [Стек](#стек)
-- [Вимоги](#вимоги)
-- [Швидкий старт](#швидкий-старт)
-- [Змінні середовища](#змінні-середовища)
-- [Скрипти](#скрипти)
-- [Архітектура](#архітектура)
-- [Як це працює](#як-це-працює)
-- [База даних](#база-даних)
+**English:** Powerlifting-oriented training tracker on **Next.js 16**, **React 19**, **Prisma**, **PostgreSQL**.
 
 ---
 
 ## Можливості
 
-| Область      | Що є                                                                                                                                        |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Облік       | Тренування → вправи → підходи (вага, повтори, RPE, розминка), drag-and-drop; кнопка **копіювання тренування текстом** у буфер (форматований текст) |
-| Список       | Пошук за назвою тренування або вправи (`q`), діапазон дат і вага — з форми (URL оновлюється після «Застосувати»)                           |
-| Онбординг    | Після входу на дашборді чекліст: профіль → перше тренування → статистика (закриття в `localStorage`)                                      |
-| Шаблони      | Збережені плани залу, створення / редагування                                                                                                |
-| Календар     | Дні з тренуваннями, перехід до запису за датою                                                                                              |
-| Статистика   | Фільтри дат/ваги, streak, порівняння тижнів, графіки Recharts (lazy)                                                                        |
-| RPE          | З журналу або оцінка з **максимумів у профілі** + ваги підходу                                                                              |
-| Максимуми    | Історія змін у `ProfileSbdMaxSnapshot` → графік суми SBD на статистиці                                                                       |
-| Профіль      | Аватар (пресети), позивний, тіло/макс SBD, IPF GL, зміна логіну; **досягнення** та до трьох **закріплених** для картки профілю й таблиці рейтингу |
-| Рейтинг      | Лідерборд за total / bench / squat / deadlift; колонка досягнень перед рівнем GL                                                            |
+| Область | Що є |
+| --- | --- |
+| Тренування | Тренування → вправи → підходи (вага, повтори, RPE, розминка), reorder, дублювання, копіювання текстом |
+| Авто-RPE | RPE рахується з ваги/повторів і максимумів профілю для базових вправ (без округлення) |
+| Авто-теги | Тег інтенсивності дня: `Важке` / `Середнє` / `Легке`, кольорові бейджі в списку тренувань |
+| Календар | Дні з тренуваннями + колір інтенсивності дня; клік веде до тренування за датою |
+| Статистика | Фільтри дат/ваги, streak, порівняння **цей місяць vs попередній**, графіки (attendance, SBD total, RPE) |
+| Профіль | Аватар, позивний, GL-поля, зміна логіну, досягнення, pinned-achievements |
+| Рейтинг | Лідерборд за GL (total/bench), досягнення і рівень |
+| Онбординг | Дашборд-чекліст і підказки першого запуску |
+
+---
+
+## Поточні правила тегів
+
+- `Важке`: якщо є хоча б один робочий сет базової вправи з `RPE > 8.5`
+- `Середнє`: якщо важкий сет відсутній і `avg RPE >= 7.3`
+- `Легке`: якщо важкий сет відсутній і `avg RPE < 7.3`
+
+Для дня з кількома тренуваннями в календарі показується найінтенсивніший тег дня.
 
 ---
 
 ## Стек
 
-- **Next.js** 16.2 (Turbopack), App Router, Server Components + Route Handlers
-- **React** 19.2, **TypeScript**
+- **Next.js** 16.2 (App Router, Turbopack)
+- **React** 19.2 + **TypeScript**
 - **Prisma** 6 + **PostgreSQL**
 - **Tailwind CSS** v4
-- **Recharts** (динамічний імпорт, `optimizePackageImports`)
-- **Vitest**, **Playwright** (e2e)
+- **Recharts**
+- **Vitest**, **Playwright**
 
 ---
 
 ## Вимоги
 
 - Node.js **20+**
-- PostgreSQL (Neon, Supabase або локально)
+- PostgreSQL (Neon / Supabase / local)
 
 ---
 
 ## Швидкий старт
 
 ```bash
-git clone <repo-url> && cd GYM
+git clone <repo-url>
+cd GYM
 cp .env.example .env
 ```
 
-У `.env` вкажи `DATABASE_URL` (PostgreSQL connection string).
+У `.env` задай `DATABASE_URL`.
 
 ```bash
 npm install
 npx prisma migrate deploy
+npx prisma generate
 npm run dev
 ```
 
-Відкрий [http://localhost:3000](http://localhost:3000) — реєстрація / вхід за логіном (сесія в cookie `gym_session`).
-
-Продакшен:
-
-```bash
-npm run build
-npm start
-```
+Відкрий [http://localhost:3000](http://localhost:3000).
 
 ---
 
 ## Змінні середовища
 
-| Змінна                | Опис                                                                          |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `DATABASE_URL`        | Обовʼязково. PostgreSQL для Prisma.                                          |
-| `ALLOWED_DEV_ORIGINS` | Опційно (dev). Через кому: дозволені origins для HMR з інших хостів у мережі.   |
-| `VERCEL_URL`          | Зазвичай підставляється на Vercel для редіректів.                             |
-
-Детальніше — у `.env.example`, якщо є в репозиторії.
+| Змінна | Опис |
+| --- | --- |
+| `DATABASE_URL` | Обовʼязково. PostgreSQL URL |
+| `ALLOWED_DEV_ORIGINS` | Опційно для dev/HMR у локальній мережі |
+| `VERCEL_URL` | Опційно, для коректних редіректів у deploy |
 
 ---
 
 ## Скрипти
 
-| Команда                | Дія                                                  |
-| ---------------------- | ---------------------------------------------------- |
-| `npm run dev`          | Dev-сервер (`0.0.0.0` для доступу з телефона в LAN). |
-| `npm run build`        | `prisma generate` + `migrate deploy` + `next build`.  |
-| `npm run start`        | Продакшен-сервер після `build`.                       |
-| `npm run lint`         | ESLint.                                              |
-| `npm run format`       | Prettier — запис у файли.                             |
-| `npm run format:check` | Prettier без запису (CI).                             |
-| `npm test`             | Vitest.                                              |
-| `npm run test:e2e`     | Playwright.                                          |
+| Команда | Що робить |
+| --- | --- |
+| `npm run dev` | dev-сервер |
+| `npm run build` | `prisma generate` + `migrate deploy` + `next build` |
+| `npm run start` | старт production build |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier (write) |
+| `npm run format:check` | Prettier check |
+| `npm test` | Vitest |
+| `npm run test:e2e` | Playwright |
 
 ---
 
 ## Архітектура
 
-```
-src/app/                    # App Router: сторінки, layout, API route.ts
-  (protected)/              # Залогінена зона: dashboard, workouts, stats, profile, …
-  api/                      # Route Handlers (JSON / plain text)
-src/components/             # Клієнтські та нейтральні UI-компоненти
-src/lib/                    # Prisma client, auth, фільтри, GL, тижні, RPE, досягнення
+```text
+src/app/
+  (protected)/              # захищені сторінки: dashboard/workouts/stats/calendar/profile/templates
+  api/                      # route handlers
+src/components/             # UI-компоненти
+src/lib/                    # бізнес-логіка, auth, RPE, теги, фільтри, GL
 prisma/
   schema.prisma
   migrations/
 ```
 
-- **Авторизація:** `src/lib/auth.ts` — cookie → хеш у `Session` → `User`.
-- **API:** зміни даних через `fetch` на `src/app/api/**/route.ts`.
-- **Захищені сторінки:** `getSessionUser()` у server component; редірект на `/`, якщо немає сесії.
-- **Rate limiting:** `src/lib/rate-limit.ts` — обмеження за IP на `/api/auth/*`, важкі POST (тренування, дублікат, `PATCH /api/profile`). При перевищенні — **429** або редірект з `?err=` для HTML-форм. Лічильники **в пам’яті процесу**; на кількох інстансах для жорсткого глобального ліміту потрібен зовнішній store (Redis тощо).
-
----
-
-## Як це працює
-
-### Тренування та підходи
-
-- Сторінка сесії (`WorkoutSession`) завантажує тренування з API, локально оновлює стан, зберігає підходи PATCH на `/api/sets/[id]`.
-- **Копіювання текстом:** клієнт робить `GET /api/workouts/[id]/share-text` (лише для власника, авторизований), отримує `text/plain`, копіює в буфер. Окремого завантаження файлу немає.
-- Базовий рух вправи (`BaseLift`) використовується для статистики SBD / RPE.
-
-### Список тренувань (`/workouts`)
-
-- Фільтри в UI: після «Застосувати» в URL — `from`, `to`, `wMin`, `wMax`, **`q`**, плюс `page` / `pageSize`.
-- Умови відбору: `src/lib/workout-list-where.ts`, парсинг query: `src/lib/stats-filters.ts`.
-
-### Статистика
-
-- Тренування за діапазоном дат; вага (`wMin`, `wMax`) фільтрує підходи для **середнього RPE**.
-- **Відвідуваність** і **сума максимумів з профілю** не залежать від фільтра ваги.
-- Графік суми SBD з `ProfileSbdMaxSnapshot`.
-
-### IPF Goodlift
-
-- Розрахунок у `src/lib/ipf-gl.ts`, превʼю на профілі; рівень профілю та рейтинг узгоджені з GL-полями.
-
-### Досягнення та рейтинг
-
-- Розблокування за правилами в `src/lib/achievements.ts`, синхронізація в БД, оголошення нових через `AchievementAnnounceClient`.
-- Закріплення до трьох ідентифікаторів у профілі; колонка «Досягнення» в таблиці рейтингу (`/api/leaderboard`).
-
-### Мобільна навігація
-
-- Нижня панель (`MobileBottomNav`); шапка — аватар, шаблони, тема, вихід.
-
-### Онбординг
-
-- Дашборд: `OnboardingChecklist` + `StatsOnboardingMark` і `localStorage`.
+Ключове:
+- Авторизація: cookie-сесія (`gym_session`) + таблиця `Session`
+- Дані тренувань: `Workout` / `WorkoutExercise` / `ExerciseSet`
+- Профіль і прогрес: GL-поля, snapshots максимумів, досягнення, pinned-achievements
 
 ---
 
 ## База даних
 
-- Схема в `prisma/schema.prisma`.
-- Розробка: `prisma migrate dev`; прод: `prisma migrate deploy`.
-- `binaryTargets` у `generator` для Linux (наприклад Vercel + OpenSSL 3).
+- Міграції застосовуються через `prisma migrate deploy`
+- Поточна точність `ExerciseSet.rpe` — `Decimal(6,4)`
+- Теги інтенсивності зберігаються в `Workout.autoTag` (`HEAVY` / `MEDIUM` / `LIGHT`)
 
----

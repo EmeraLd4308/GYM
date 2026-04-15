@@ -30,6 +30,12 @@ enum GlDiscipline {
   BENCH_ONLY
 }
 
+enum WorkoutTag {
+  HEAVY
+  MEDIUM
+  LIGHT
+}
+
 model User {
   id        String   @id @default(cuid())
   login     String   @unique
@@ -53,6 +59,7 @@ model User {
   workouts               Workout[]
   profileSbdMaxSnapshots ProfileSbdMaxSnapshot[]
   achievements           UserAchievement[]
+  liftRecords            UserLiftRecord[]
 }
 
 model UserAchievement {
@@ -120,6 +127,7 @@ model Workout {
   date       DateTime          @default(now())
   title      String?
   notes      String?           @db.Text
+  autoTag    WorkoutTag?
   templateId String?
   exercises  WorkoutExercise[]
   createdAt  DateTime          @default(now())
@@ -149,7 +157,25 @@ model ExerciseSet {
   weightKg            Decimal         @db.Decimal(12, 4)
   reps                Int
   isWarmup            Boolean         @default(false)
-  rpe                 Decimal?        @db.Decimal(4, 2)
+  rpe                 Decimal?        @db.Decimal(6, 4)
 
   @@index([workoutExerciseId])
+}
+
+model UserLiftRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  baseLift      BaseLift
+  topWeightKg   Decimal? @db.Decimal(12, 4)
+  topVolumeKg   Decimal? @db.Decimal(12, 4)
+  estOneRmKg    Decimal? @db.Decimal(12, 4)
+  manualTopWeightKg Boolean @default(false)
+  manualTopVolumeKg Boolean @default(false)
+  manualEstOneRmKg  Boolean @default(false)
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, baseLift])
+  @@index([userId])
 }

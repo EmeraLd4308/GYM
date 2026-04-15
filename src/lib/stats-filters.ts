@@ -8,6 +8,7 @@ export type StatsFilterOptions = {
   weightMin?: number;
   weightMax?: number;
   search?: string;
+  tag?: "HEAVY" | "MEDIUM" | "LIGHT";
 };
 
 export type WorkoutWithExercises = Workout & {
@@ -26,6 +27,7 @@ export function parseStatsFiltersFromSearchParams(
   const wMin = get("wMin");
   const wMax = get("wMax");
   const q = get("q");
+  const tag = get("tag");
   const out: StatsFilterOptions = {};
   if (from?.trim()) out.dateFrom = from.trim();
   if (to?.trim()) out.dateTo = to.trim();
@@ -37,6 +39,9 @@ export function parseStatsFiltersFromSearchParams(
   if (wMax !== undefined && wMax !== "") {
     const n = Number(wMax);
     if (Number.isFinite(n)) out.weightMax = n;
+  }
+  if (tag && ["HEAVY", "MEDIUM", "LIGHT"].includes(tag)) {
+    out.tag = tag as "HEAVY" | "MEDIUM" | "LIGHT";
   }
   return out;
 }

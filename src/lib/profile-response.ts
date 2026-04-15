@@ -28,6 +28,17 @@ export async function buildProfileApiPayload(userId: string) {
       glEquipment: true,
       pinnedAchievementIds: true,
       achievements: { select: { achievementId: true, announcedAt: true } },
+      liftRecords: {
+        select: {
+          baseLift: true,
+          topWeightKg: true,
+          topVolumeKg: true,
+          estOneRmKg: true,
+          manualTopWeightKg: true,
+          manualTopVolumeKg: true,
+          manualEstOneRmKg: true,
+        },
+      },
     },
   });
   if (!row) return null;
@@ -79,6 +90,15 @@ export async function buildProfileApiPayload(userId: string) {
     achievementsCatalog,
     profileLevel,
     glPoints,
+    liftRecords: row.liftRecords.map((r) => ({
+      baseLift: r.baseLift,
+      topWeightKg: r.topWeightKg != null ? Number(r.topWeightKg) : null,
+      topVolumeKg: r.topVolumeKg != null ? Number(r.topVolumeKg) : null,
+      estOneRmKg: r.estOneRmKg != null ? Number(r.estOneRmKg) : null,
+      manualTopWeightKg: r.manualTopWeightKg,
+      manualTopVolumeKg: r.manualTopVolumeKg,
+      manualEstOneRmKg: r.manualEstOneRmKg,
+    })),
   };
 }
 

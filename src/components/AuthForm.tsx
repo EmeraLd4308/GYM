@@ -92,7 +92,7 @@ export function AuthForm() {
     >
       <div className="space-y-3 text-center">
         <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
-          Журнал SBD
+          Тренування SBD
         </h1>
         <p className="text-sm leading-snug text-zinc-400">
           Без пароля. Введи нік — далі «Реєстрація» (вперше) або «Увійти».

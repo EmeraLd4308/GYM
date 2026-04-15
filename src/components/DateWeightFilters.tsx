@@ -23,6 +23,7 @@ export type DateWeightFiltersProps = {
   weightRangeHint?: ReactNode;
   applyExtraParams?: Record<string, string>;
   titleSearch?: { param: string; label: string; placeholder: string };
+  tagFilter?: { param: string; label: string; options: Array<{ value: string; label: string }> };
 };
 
 export function DateWeightFilters({
@@ -34,6 +35,7 @@ export function DateWeightFilters({
   weightRangeHint,
   applyExtraParams,
   titleSearch,
+  tagFilter,
 }: DateWeightFiltersProps) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -45,6 +47,7 @@ export function DateWeightFilters({
   const [titleQ, setTitleQ] = useState(() =>
     titleSearch ? (sp.get(titleSearch.param) ?? "") : "",
   );
+  const [tag, setTag] = useState(() => (tagFilter ? (sp.get(tagFilter.param) ?? "") : ""));
 
   useEffect(() => {
     setFrom(sp.get("from") ?? "");
@@ -52,7 +55,8 @@ export function DateWeightFilters({
     setWMin(sp.get("wMin") ?? "");
     setWMax(sp.get("wMax") ?? "");
     if (titleSearch?.param) setTitleQ(sp.get(titleSearch.param) ?? "");
-  }, [sp, titleSearch?.param]);
+    if (tagFilter?.param) setTag(sp.get(tagFilter.param) ?? "");
+  }, [sp, titleSearch?.param, tagFilter?.param]);
 
   const apply = useCallback(() => {
     const q = new URLSearchParams();
@@ -61,6 +65,7 @@ export function DateWeightFilters({
     if (wMin.trim()) q.set("wMin", wMin.trim());
     if (wMax.trim()) q.set("wMax", wMax.trim());
     if (titleSearch && titleQ.trim()) q.set(searchParam, titleQ.trim().slice(0, 200));
+    if (tagFilter && tag.trim()) q.set(tagFilter.param, tag.trim());
     if (applyExtraParams) {
       for (const [k, v] of Object.entries(applyExtraParams)) {
         q.set(k, v);
@@ -76,6 +81,8 @@ export function DateWeightFilters({
     titleQ,
     titleSearch,
     searchParam,
+    tag,
+    tagFilter,
     router,
     actionBasePath,
     applyExtraParams,
@@ -87,8 +94,9 @@ export function DateWeightFilters({
     setWMin("");
     setWMax("");
     if (titleSearch) setTitleQ("");
+    if (tagFilter) setTag("");
     router.push(clearPath);
-  }, [router, clearPath, titleSearch]);
+  }, [router, clearPath, titleSearch, tagFilter]);
 
   const setPresetDays = useCallback((days: number) => {
     const end = new Date();
@@ -140,6 +148,30 @@ export function DateWeightFilters({
               value={titleQ}
               onChange={(e) => setTitleQ(e.target.value)}
             />
+          </div>
+        ) : null}
+
+        {tagFilter ? (
+          <div>
+            <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+              {tagFilter.label}
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+              Тег визначається автоматично за середнім RPE у тренуванні.
+            </p>
+            <select
+              id={`${pf}tag`}
+              className={`${input} mt-3`}
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+            >
+              <option value="">Усі теги</option>
+              {tagFilter.options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
         ) : null}
 

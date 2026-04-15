@@ -363,10 +363,23 @@ html[data-theme="light"] .hover\:text-zinc-100:hover {
   color: var(--sbd-muted);
 }
 
+.sbd-header-icon-btn[data-active="true"] {
+  border-color: rgba(227, 30, 36, 0.5);
+  background-color: rgba(227, 30, 36, 0.14);
+  color: #e31e24;
+  box-shadow: 0 0 0 1px rgba(227, 30, 36, 0.2) inset;
+}
+
 html[data-theme="light"] .sbd-header-icon-btn {
   border-color: rgba(0, 0, 0, 0.12);
   background-color: rgba(0, 0, 0, 0.04);
   color: var(--sbd-muted);
+}
+
+html[data-theme="light"] .sbd-header-icon-btn[data-active="true"] {
+  border-color: rgba(227, 30, 36, 0.45);
+  background-color: rgba(227, 30, 36, 0.12);
+  color: #c41a21;
 }
 
 .sbd-theme-toggle {
@@ -717,6 +730,16 @@ html[data-theme="light"] .sbd-template-row:hover {
   }
 }
 
+@keyframes sbd-loader-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .sbd-loading-svg .sbd-loading-bar-inner {
   stroke-dasharray: 108;
   stroke-dashoffset: 108;
@@ -757,19 +780,19 @@ html[data-theme="light"] .sbd-template-row:hover {
 @media (prefers-reduced-motion: reduce) {
   .sbd-loading-svg .sbd-loading-bar-inner,
   .sbd-loading-svg .sbd-loading-bar-glow {
-    animation: none;
+    animation: sbd-loader-soft-pulse 1.8s ease-in-out infinite;
     stroke-dashoffset: 0;
     opacity: 1;
   }
 
   .sbd-loading-plate-left,
   .sbd-loading-plate-right {
-    animation: none;
+    animation: sbd-loader-soft-pulse 1.8s ease-in-out infinite;
     opacity: 1;
   }
 
   .sbd-loading-letter {
-    animation: none;
+    animation: sbd-loader-soft-pulse 1.8s ease-in-out infinite;
     color: #e31e24;
   }
 }

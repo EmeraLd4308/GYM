@@ -10,6 +10,7 @@ export function workoutListWhere(
   const dateF = workoutWhereDateRange(filters);
   const hasWeight = filters.weightMin !== undefined || filters.weightMax !== undefined;
   const searchTrim = filters.search?.trim();
+  const tag = filters.tag;
 
   const weightWhere: Prisma.WorkoutWhereInput | undefined = hasWeight
     ? {
@@ -43,7 +44,7 @@ export function workoutListWhere(
       }
     : undefined;
 
-  if (!dateF && !weightWhere && !searchWhere) {
+  if (!dateF && !weightWhere && !searchWhere && !tag) {
     return { userId };
   }
 
@@ -51,6 +52,7 @@ export function workoutListWhere(
   if (dateF) parts.push({ date: dateF });
   if (weightWhere) parts.push(weightWhere);
   if (searchWhere) parts.push(searchWhere);
+  if (tag) parts.push({ autoTag: tag });
   return { AND: parts };
 }
 
@@ -65,6 +67,7 @@ export function workoutListQueryString(
   if (filters.weightMin !== undefined) q.set("wMin", String(filters.weightMin));
   if (filters.weightMax !== undefined) q.set("wMax", String(filters.weightMax));
   if (filters.search?.trim()) q.set("q", filters.search.trim());
+  if (filters.tag) q.set("tag", filters.tag);
   if (page > 1) q.set("page", String(page));
   if (pageSize !== WORKOUT_LIST_PAGE_SIZE_DEFAULT) q.set("pageSize", String(pageSize));
   return q.toString();

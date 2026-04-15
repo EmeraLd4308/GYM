@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
+import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
 
 const bodySchema = z.object({
   weightKg: z.number(),
@@ -52,6 +53,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         ...(rpeVal != null ? { rpe: new Prisma.Decimal(rpeVal) } : {}),
       },
     });
+    await recalculateWorkoutAutoTag(exercise.workout.id);
+    await recalculateUserLiftRecords(user.id);
     return NextResponse.json({ set });
   } catch {
     return NextResponse.json({ error: "Не вдалося зберегти підхід." }, { status: 500 });
