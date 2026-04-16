@@ -5,6 +5,8 @@ import { effectiveCalendarDayFromRequest } from "@/lib/calendar-day-cookie";
 import { localDayBoundsFromInput } from "@/lib/date-local";
 import { DashboardDuplicateActions } from "@/components/DashboardDuplicateActions";
 import { DashboardQuickGuide } from "@/components/DashboardQuickGuide";
+import { DashboardWelcome } from "@/components/DashboardWelcome";
+import { EmptyStateCallout } from "@/components/EmptyStateCallout";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
 import {
@@ -12,12 +14,20 @@ import {
   workoutTagBadgeClass,
   workoutTagLabelUk,
 } from "@/lib/workout-tags";
-
 function positiveKg(v: unknown): boolean {
   if (v == null) return false;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) && n > 0;
 }
+
+const listShell =
+  "sbd-workout-rows divide-y divide-[var(--sbd-border)] overflow-hidden rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_45%,transparent)]";
+
+const panelClass =
+  "sbd-surface-shine overflow-hidden rounded-2xl border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] shadow-sm";
+
+const primaryCta =
+  "bg-[#e31e24] hover:bg-[#c41a21] shadow-lg shadow-red-950/25 transition active:scale-[0.99]";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
@@ -96,7 +106,7 @@ export default async function DashboardPage() {
       <li key={w.id}>
         <Link
           href={`/workouts/${w.id}`}
-          className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-white/[0.04] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4"
+          className="sbd-workout-row-link flex flex-col gap-0.5 px-4 py-3.5 transition-colors duration-200 hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_97%)] sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:py-4 [html[data-theme=light]_&]:hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_94%)]"
         >
           <span className="min-w-0 font-semibold text-[var(--sbd-text)]">
             <span className="inline-flex items-center gap-2">
@@ -124,74 +134,124 @@ export default async function DashboardPage() {
 
   const hasAnyWorkout = todayWorkouts.length > 0 || recent.length > 0;
 
-  return (
-    <div className="space-y-8 md:space-y-10">
-      <DashboardQuickGuide />
+  const todayLabel = todayStart.toLocaleDateString("uk-UA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-      <OnboardingChecklist profileDone={profileDone} hasWorkout={hasWorkout} />
+  return (
+    <div className="sbd-stagger-children space-y-5 md:space-y-6">
+      <DashboardWelcome
+        login={user.login}
+        workoutTotal={workoutTotal}
+        todayLabel={todayLabel}
+      />
+
+      <div className={panelClass}>
+        <DashboardQuickGuide embedded />
+      </div>
+
+      <div className={`${panelClass} empty:hidden`}>
+        <OnboardingChecklist embedded profileDone={profileDone} hasWorkout={hasWorkout} />
+      </div>
 
       {!hasAnyWorkout ? (
-        <div className="sbd-card rounded-2xl border border-[#e31e24]/20 bg-[#e31e24]/[0.06] p-6 text-center sm:p-8">
-          <p className="font-display text-lg font-semibold text-[var(--sbd-text)]">
-            Почнімо з першого тренування
-          </p>
-          <p className="mt-2 text-sm text-zinc-400">Натисни — відкриється запис підходів і ваги.</p>
-          <Link
-            href="/workouts/new"
-            className="mt-5 inline-flex min-h-[52px] w-full max-w-xs touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-6 text-base font-bold text-white shadow-lg shadow-red-950/30 active:bg-[#a0151a] sm:w-auto"
-          >
-            Додати тренування
-          </Link>
+        <div className={panelClass}>
+          <div className="px-5 py-9 sm:px-8 sm:py-10">
+            <EmptyStateCallout
+              title="Почнімо з першого тренування"
+              description="Один запис — і зʼявляться календар, статистика й RPE. Далі можна скопіювати день або зробити шаблон."
+              nextSteps={[
+                "Натисни кнопку — відкриється форма: вправи, підходи, вага.",
+                "Після збереження тренування зʼявиться тут і в «Усі тренування».",
+                "Максимуми в профілі — за бажанням; вони покращують підказки RPE.",
+              ]}
+            >
+              <Link
+                href="/workouts/new"
+                className={`inline-flex min-h-[52px] w-full max-w-xs touch-manipulation items-center justify-center rounded-xl px-6 text-base font-bold text-white ${primaryCta} sm:w-auto`}
+              >
+                Додати тренування
+              </Link>
+            </EmptyStateCallout>
+          </div>
         </div>
       ) : null}
 
       {hasAnyWorkout ? (
-        <>
-          <section>
-            <h2 className="font-display mb-3 text-base font-bold uppercase tracking-wide text-zinc-300 md:mb-4 md:text-lg">
-              Сьогодні
+        <div className={panelClass}>
+          <section className="px-4 py-5 sm:px-5 sm:py-6">
+            <h2 className="font-display text-xs font-bold uppercase tracking-[0.2em] text-[var(--sbd-muted)]">
+              Тренування
             </h2>
-            {todayWorkouts.length === 0 ? (
-              <div className="sbd-card rounded-xl p-5 text-sm text-zinc-500 md:p-6">
-                <p>
-                  Сьогодні ще порожньо. Нижче можна скопіювати запис з іншої дати; або додай новий
-                  запис одразу.
-                </p>
-                <Link
-                  href="/workouts/new"
-                  className="mt-4 inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/30 transition hover:bg-[#c41a21] active:scale-[0.99] sm:w-auto"
-                >
-                  Додати тренування
-                </Link>
-              </div>
-            ) : (
-              <ul className="sbd-card sbd-card-interactive sbd-workout-rows divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-                {todayWorkouts.map(workoutRow)}
-              </ul>
-            )}
-          </section>
+            <div className="mt-4">
+              <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
+                Сьогодні
+              </h3>
+              {todayWorkouts.length === 0 ? (
+                <div className="rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_40%,transparent)] px-4 py-5 sm:px-5">
+                  <EmptyStateCallout
+                    align="left"
+                    title="Сьогодні ще без запису"
+                    description="Додай тренування за сьогодні або скопіюй підходи з іншого дня — блок «Дублювання» нижче на цій сторінці."
+                    nextSteps={[
+                      "Швидше за все: «Додати тренування» і вибрати сьогоднішню дату.",
+                      "Або відкрий календар і тапни по вільному дню.",
+                    ]}
+                  >
+                    <Link
+                      href="/workouts/new"
+                      className={`inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-4 text-sm font-bold uppercase tracking-wide text-white ${primaryCta} sm:w-auto sm:min-w-[14rem]`}
+                    >
+                      Додати тренування
+                    </Link>
+                  </EmptyStateCallout>
+                </div>
+              ) : (
+                <ul className={`sbd-card-interactive ${listShell}`}>{todayWorkouts.map(workoutRow)}</ul>
+              )}
+            </div>
 
-          <DashboardDuplicateActions />
-
-          <section>
-            <h2 className="font-display mb-3 text-base font-bold uppercase tracking-wide text-zinc-300 md:mb-4 md:text-lg">
-              Останні тренування
-            </h2>
-            {otherRecent.length === 0 && todayWorkouts.length === 0 ? (
-              <div className="sbd-card rounded-xl p-6 text-center text-sm text-zinc-500 md:p-8">
-                Інших записів ще немає — див. блок вище або «Тренування» у нижній панелі.
-              </div>
-            ) : otherRecent.length === 0 ? (
-              <div className="sbd-card rounded-xl p-6 text-sm text-zinc-500">
-                Інших нещодавніх у списку немає — глянь «Сьогодні» або календар.
-              </div>
-            ) : (
-              <ul className="sbd-card sbd-card-interactive sbd-workout-rows divide-y divide-white/[0.06] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-                {otherRecent.map(workoutRow)}
-              </ul>
-            )}
+            <div className="mt-3">
+              <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
+                Нещодавні
+              </h3>
+              {otherRecent.length === 0 ? (
+                <div className="rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_35%,transparent)] px-4 py-4 sm:px-5">
+                  <EmptyStateCallout
+                    align="left"
+                    title="Нещодавніх окремо немає"
+                    description="У блоці вище показані лише останні записи, яких немає в «Сьогодні». Якщо сьогодні теж порожньо — відкрий повний список або календар."
+                    nextSteps={["Переглянути всі записи з фільтрами — у розділі «Тренування»."]}
+                  >
+                    <Link
+                      href="/workouts"
+                      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_50%,transparent)] px-4 text-sm font-semibold text-[var(--sbd-text)] transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 sm:w-auto sm:min-w-[12rem]"
+                    >
+                      Усі тренування
+                    </Link>
+                    <Link
+                      href="/calendar"
+                      className="text-center text-sm font-medium text-[#e31e24] underline-offset-2 hover:underline sm:text-left"
+                    >
+                      Відкрити календар
+                    </Link>
+                  </EmptyStateCallout>
+                </div>
+              ) : (
+                <ul className={`sbd-card-interactive ${listShell}`}>{otherRecent.map(workoutRow)}</ul>
+              )}
+            </div>
           </section>
-        </>
+        </div>
+      ) : null}
+
+      {hasAnyWorkout ? (
+        <div className={panelClass}>
+          <DashboardDuplicateActions embedded />
+        </div>
       ) : null}
     </div>
   );

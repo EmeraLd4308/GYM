@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ProfileMaxHistoryPoint } from "@/lib/profile-max-history";
 import {
   CartesianGrid,
@@ -28,9 +29,15 @@ export function SbdTotalChart({ data }: { data: ProfileMaxHistoryPoint[] }) {
           Сума максимумів SBD (кг)
         </h3>
         <p className="text-sm leading-relaxed text-zinc-500">
-          Додай максимуми присяду, жиму та/або тяги в профілі й збережи — після кожної зміни тут
-          з&apos;являтиметься нова точка. Поки в профілі немає жодного максимуму, графік порожній.
+          Відкрий профіль → введи присяд, жим і/або тягу → «Зберегти». Кожне оновлення максимумів
+          додає точку на графіку; без жодного значення лінія не показується.
         </p>
+        <Link
+          href="/profile"
+          className="mt-4 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 transition hover:underline"
+        >
+          Відкрити профіль
+        </Link>
       </div>
     );
   }

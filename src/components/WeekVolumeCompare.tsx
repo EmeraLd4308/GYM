@@ -31,7 +31,7 @@ export function WeekVolumeCompare({
 }) {
   if (!data) {
     return (
-      <div className="sbd-card rounded-xl p-5">
+      <div className="sbd-card sbd-surface-shine rounded-xl p-5">
         <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">
           Тиждень до тижня
         </h3>
@@ -45,7 +45,7 @@ export function WeekVolumeCompare({
   const { prev, curr } = data;
 
   return (
-    <div className="sbd-card rounded-xl p-5">
+    <div className="sbd-card sbd-surface-shine rounded-xl p-5">
       <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">{title}</h3>
       <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
       <p className="mt-2 text-xs text-zinc-500">

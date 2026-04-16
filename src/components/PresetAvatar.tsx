@@ -145,7 +145,7 @@ export function PresetAvatar({
       width={size}
       height={size}
       viewBox="0 0 32 32"
-      className={`shrink-0 rounded-full bg-gradient-to-br from-zinc-900 to-black ring-1 ring-white/10 ${className ?? ""}`}
+      className={`shrink-0 rounded-full bg-zinc-900 ring-1 ring-white/10 ${className ?? ""}`}
       role={decorative ? "presentation" : "img"}
       aria-hidden={decorative ? true : undefined}
       aria-label={decorative ? undefined : label}

@@ -92,10 +92,10 @@ export default async function StatsPage({
   };
 
   return (
-    <div className="space-y-8 md:space-y-10">
+    <div className="sbd-stagger-children space-y-8 md:space-y-10">
       <StatsOnboardingMark />
       <div className="grid gap-4">
-        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/90 shadow-lg shadow-black/30 transition-[box-shadow,transform] duration-300 open:scale-[1.002] open:shadow-xl open:shadow-black/40 motion-reduce:open:scale-100">
           <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
             <span className="flex items-center justify-between gap-3">
               <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
@@ -117,7 +117,7 @@ export default async function StatsPage({
           </div>
         </details>
 
-        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/90 shadow-lg shadow-black/30 transition-[box-shadow,transform] duration-300 open:scale-[1.002] open:shadow-xl open:shadow-black/40 motion-reduce:open:scale-100">
           <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
             <span className="flex items-center justify-between gap-3">
               <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">

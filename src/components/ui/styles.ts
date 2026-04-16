@@ -7,7 +7,7 @@ export const uiInputClass =
 export const uiInputLgClass = `${uiInputClass} min-h-[52px] rounded-xl px-4 py-3 text-base`;
 
 export const uiButtonPrimaryClass =
-  "min-h-[44px] touch-manipulation rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-[#c41a21] disabled:opacity-50";
+  "min-h-[44px] touch-manipulation rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm shadow-red-950/25 transition hover:bg-[#c41a21] active:opacity-[0.92] disabled:opacity-50";
 
 export const uiButtonSecondaryClass =
   "min-h-[44px] touch-manipulation rounded-md border border-white/15 bg-transparent px-4 py-2.5 text-sm font-semibold text-zinc-300 transition hover:bg-white/10 disabled:opacity-50";

@@ -4,7 +4,7 @@ import type { User } from "@prisma/client";
 import { prisma } from "./prisma";
 
 export const SESSION_COOKIE = "gym_session";
-const SESSION_SECONDS = 4 * 60 * 60;
+const SESSION_SECONDS = 11 * 60 * 60;
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

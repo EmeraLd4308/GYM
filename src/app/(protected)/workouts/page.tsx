@@ -5,18 +5,18 @@ import { getSessionUser } from "@/lib/auth";
 import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
 import { workoutListWhere, workoutListQueryString } from "@/lib/workout-list-where";
 import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
+import { EmptyStateCallout } from "@/components/EmptyStateCallout";
 import { WorkoutListFilters } from "@/components/WorkoutListFilters";
 import { WorkoutListPagination } from "@/components/WorkoutListPagination";
 import { workoutTagBadgeClass, workoutTagLabelUk, inferWorkoutTagFromExercises } from "@/lib/workout-tags";
 import { sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
 import { recalculateAllWorkoutTagsForUser } from "@/lib/lift-records";
-
 const btnPrimary =
-  "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21]";
+  "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#c41a21] hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.48)] active:translate-y-0";
 const btnPrimaryLg =
-  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.98]";
+  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#c41a21] hover:shadow-[0_14px_32px_-14px_rgba(0,0,0,0.5)] active:translate-y-0 active:scale-[0.98]";
 const btnGhost =
-  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 text-sm font-semibold text-zinc-200 transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 active:scale-[0.98]";
+  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 text-sm font-semibold text-zinc-200 transition-[transform,box-shadow,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)] active:translate-y-0 active:scale-[0.98]";
 
 function getParam(
   sp: Record<string, string | string[] | undefined>,
@@ -111,7 +111,7 @@ export default async function WorkoutsListPage({
   const pagePastEnd = workouts.length === 0 && total > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="sbd-stagger-children space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold uppercase tracking-tight text-[var(--sbd-text)] md:text-4xl">
@@ -123,7 +123,7 @@ export default async function WorkoutsListPage({
         </Link>
       </div>
 
-      <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-zinc-950/90 via-black/40 to-black/30 shadow-lg shadow-black/30 open:shadow-xl open:shadow-black/40">
+      <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/90 shadow-lg shadow-black/30 transition-[box-shadow,transform] duration-300 open:scale-[1.002] open:shadow-xl open:shadow-black/40 motion-reduce:open:scale-100">
         <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
           <span className="flex items-center justify-between gap-3">
             <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
@@ -140,53 +140,62 @@ export default async function WorkoutsListPage({
       </details>
 
       {workoutsWithTag.length === 0 ? (
-        <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 text-center sm:p-10">
+        <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 sm:p-10">
           {pagePastEnd ? (
-            <>
-              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
-                На цій сторінці записів немає
-              </p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
-                Повернись до початку списку або зміни фільтри.
-              </p>
-            </>
-          ) : filteredOutAll ? (
-            <>
-              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
-                Жодне тренування не підходить
-              </p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
-                Спробуй скинути пошук, діапазон дат чи вагу — або створи новий запис.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-display text-base font-semibold text-[var(--sbd-text)] sm:text-lg">
-                Ще немає тренувань
-              </p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
-                Додай перше тренування або відкрий профіль — максимуми знадобляться для статистики
-                RPE.
-              </p>
-            </>
-          )}
-          <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            {pagePastEnd ? (
+            <EmptyStateCallout
+              title="Ця сторінка списку порожня"
+              description="Номер сторінки був занадто великий — повернись на початок або обери сторінку з пагінації внизу, коли зʼявляться записи."
+              nextSteps={["Почни з першої сторінки — там завжди актуальні тренування."]}
+            >
               <Link href="/workouts" className={btnPrimaryLg}>
-                До списку
+                На початок списку
               </Link>
-            ) : hasFilters ? (
-              <Link href="/workouts" className={btnGhost}>
+              <Link
+                href="/workouts/new"
+                className="text-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline sm:text-left"
+              >
+                Або створити нове тренування
+              </Link>
+            </EmptyStateCallout>
+          ) : filteredOutAll ? (
+            <EmptyStateCallout
+              title="За цими фільтрами нічого не знайдено"
+              description="Записи є, але жоден не підходить під обрані дату, пошук, вагу чи тег. Скинь фільтри — і одразу побачиш увесь журнал."
+              nextSteps={[
+                "Відкрий «Фільтри тренувань» вище й прибери зайві умови.",
+                "Або натисни скинути — повернеться повний список.",
+              ]}
+            >
+              <Link href="/workouts" className={btnPrimaryLg}>
                 Скинути фільтри
               </Link>
-            ) : null}
-            <Link href="/workouts/new" className={btnPrimaryLg}>
-              Нове тренування
-            </Link>
-            <Link href="/profile" className={btnGhost}>
-              Відкрити профіль
-            </Link>
-          </div>
+              <Link
+                href="/workouts/new"
+                className="text-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline sm:text-left"
+              >
+                Додати нове тренування
+              </Link>
+            </EmptyStateCallout>
+          ) : (
+            <EmptyStateCallout
+              title="У журналі ще нічого немає"
+              description="Перший запис займає хвилину: дата, вправи, підходи. Після цього зʼявляться календар, графіки та RPE — точніші, якщо вказати максимуми в профілі."
+              nextSteps={[
+                "Натисни «Нове тренування» і заповни хоча б одну вправу.",
+                "За бажанням: профіль → максимуми SBD для кращих оцінок RPE.",
+              ]}
+            >
+              <Link href="/workouts/new" className={btnPrimaryLg}>
+                Нове тренування
+              </Link>
+              <Link
+                href="/profile"
+                className="text-center text-sm font-medium text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline sm:text-left"
+              >
+                Максимуми в профілі (для RPE)
+              </Link>
+            </EmptyStateCallout>
+          )}
         </div>
       ) : (
         <div className="sbd-card overflow-hidden rounded-xl shadow-2xl shadow-black/50">

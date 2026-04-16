@@ -143,7 +143,6 @@ model WorkoutExercise {
   sortOrder Int
   name      String
   baseLift  BaseLift       @default(NONE)
-  planDone  Boolean        @default(false)
   sets      ExerciseSet[]
 
   @@index([workoutId])

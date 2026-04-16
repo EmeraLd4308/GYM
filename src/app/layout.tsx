@@ -49,13 +49,18 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${body.variable} ${display.variable} min-h-dvh antialiased`}
     >
-      <body className="flex min-h-dvh flex-col font-sans">
+      <body className="relative isolate flex min-h-dvh flex-col font-sans">
+        <div className="sbd-ambient" aria-hidden="true">
+          <span className="sbd-ambient__grain" />
+        </div>
         <Script
           id="sbd-theme-boot"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
         />
-        <Providers>{children}</Providers>
+        <div className="relative z-[1] flex min-h-dvh flex-col">
+          <Providers>{children}</Providers>
+        </div>
       </body>
     </html>
   );

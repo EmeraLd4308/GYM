@@ -1,6 +1,6 @@
 export function StreakCard({ weeks }: { weeks: number }) {
   return (
-    <div className="sbd-card rounded-xl p-5">
+    <div className="sbd-card sbd-surface-shine rounded-xl p-5">
       <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">
         Streak (≥3 тренувань / тиждень)
       </h3>

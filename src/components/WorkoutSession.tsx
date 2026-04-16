@@ -1,29 +1,14 @@
 "use client";
 
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BASE_LIFT_OPTIONS, baseLiftLabel } from "@/lib/base-lift";
 import type { BaseLift } from "@prisma/client";
 import { formatDateForInput, todayDateInput } from "@/lib/date-local";
+import { useWorkoutSetDone } from "@/lib/use-workout-set-done";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { ExercisePlanCheck } from "@/components/ExercisePlanCheck";
 import { SortableExerciseSection } from "@/components/SortableExerciseSection";
 import { WorkoutSessionSkeleton } from "@/components/WorkoutSessionSkeleton";
 import { useToast } from "@/components/ToastProvider";
@@ -49,7 +34,6 @@ type ExerciseRow = {
   sortOrder: number;
   name: string;
   baseLift: BaseLift;
-  planDone: boolean;
   sets: SetRow[];
 };
 
@@ -68,6 +52,12 @@ const inpMobile = `${inp} min-h-[48px] w-full px-3 text-base`;
 
 const setMoveBtn =
   "flex min-h-9 min-w-9 touch-manipulation items-center justify-center rounded-lg border border-white/15 bg-black/40 text-base leading-none text-zinc-300 transition enabled:active:scale-95 enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35 md:min-h-[36px] md:min-w-[36px]";
+
+const setTableCheckbox =
+  "h-4 w-4 shrink-0 rounded border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_82%,transparent)] accent-[var(--sbd-red)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[var(--sbd-focus-ring)] focus:ring-offset-0 focus:ring-offset-[var(--sbd-bg)]";
+
+const setMobileCheckbox =
+  "h-5 w-5 shrink-0 rounded border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_82%,transparent)] accent-[var(--sbd-red)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[var(--sbd-focus-ring)] focus:ring-offset-0 focus:ring-offset-[var(--sbd-bg)]";
 
 function formatWeightForInput(w: unknown): string {
   if (w == null) return "";
@@ -110,13 +100,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   titleDraftRef.current = titleDraft;
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 6 },
-    }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const { isSetDone, setSetDone } = useWorkoutSetDone(workoutId);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/workouts/${workoutId}`);
@@ -139,7 +123,6 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           sortOrder: number;
           name: string;
           baseLift: BaseLift;
-          planDone?: boolean;
           sets: Array<{
             id: string;
             sortOrder: number;
@@ -150,7 +133,6 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           }>;
         }) => ({
           ...ex,
-          planDone: ex.planDone ?? false,
           sets: ex.sets.map((s) => ({
             ...s,
             weightKg: formatWeightForInput(s.weightKg),
@@ -249,16 +231,6 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
       return;
     }
     router.refresh();
-  }
-
-  async function onDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id || !workout) return;
-    const oldIndex = workout.exercises.findIndex((e) => e.id === active.id);
-    const newIndex = workout.exercises.findIndex((e) => e.id === over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    const nextEx = arrayMove(workout.exercises, oldIndex, newIndex);
-    await persistExerciseOrder(nextEx);
   }
 
   function moveExerciseRelative(exerciseId: string, delta: -1 | 1) {
@@ -728,7 +700,7 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
           </button>
           <button
             type="button"
-            className="box-border inline-flex h-11 items-center justify-center rounded-md bg-[#e31e24]/90 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#c41a21]"
+            className="box-border inline-flex h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#c41a21] active:opacity-[0.92]"
             onClick={() => duplicateWorkout(todayDateInput())}
           >
             Копія на сьогодні
@@ -737,40 +709,15 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
         </div>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext
-          items={workout.exercises.map((e) => e.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-8">
-            {workout.exercises.map((ex, exerciseIndex) => (
-              <SortableExerciseSection
-                key={ex.id}
-                id={ex.id}
-                canMoveUp={exerciseIndex > 0}
-                canMoveDown={exerciseIndex < workout.exercises.length - 1}
-                onMoveUp={() => moveExerciseRelative(ex.id, -1)}
-                onMoveDown={() => moveExerciseRelative(ex.id, 1)}
-              >
-                {ex.baseLift === "NONE" ? (
-                  <ExercisePlanCheck
-                    workoutId={workoutId}
-                    exerciseId={ex.id}
-                    planDone={ex.planDone}
-                    onPlanDoneChange={(next) =>
-                      setWorkout((w) =>
-                        w
-                          ? {
-                              ...w,
-                              exercises: w.exercises.map((row) =>
-                                row.id === ex.id ? { ...row, planDone: next } : row,
-                              ),
-                            }
-                          : w,
-                      )
-                    }
-                  />
-                ) : null}
+      <div className="space-y-8">
+        {workout.exercises.map((ex, exerciseIndex) => (
+          <SortableExerciseSection
+            key={ex.id}
+            canMoveUp={exerciseIndex > 0}
+            canMoveDown={exerciseIndex < workout.exercises.length - 1}
+            onMoveUp={() => moveExerciseRelative(ex.id, -1)}
+            onMoveDown={() => moveExerciseRelative(ex.id, 1)}
+          >
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
                   <div className="min-w-0 w-full flex-1 sm:max-w-xl">
                     <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
@@ -974,72 +921,70 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                           />
                         </div>
                       </div>
-                      {ex.baseLift !== "NONE" ? (
-                        <div className="mt-3 min-w-0 space-y-1">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                            RPE
-                          </div>
-                          <div
-                            className={`${inpMobile} flex items-center border border-white/10 bg-black/30 text-zinc-200`}
-                          >
-                            {s.rpe.trim() === "" ? "—" : s.rpe.trim()}
-                          </div>
-                          <p className="text-[11px] leading-snug text-zinc-600">
-                            За вагою, повторами та максимумами в профілі.
-                          </p>
-                        </div>
-                      ) : null}
-                      <label className="mt-3 flex min-h-[44px] cursor-pointer items-center gap-3 touch-manipulation">
-                        <input
-                          type="checkbox"
-                          className="h-5 w-5 shrink-0 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
-                          checked={s.isWarmup}
-                          onChange={(e) => {
-                            const isWarmup = e.target.checked;
-                            setWorkout((w) =>
-                              w
-                                ? {
-                                    ...w,
-                                    exercises: w.exercises.map((x) =>
-                                      x.id === ex.id
-                                        ? {
-                                            ...x,
-                                            sets: x.sets.map((row) =>
-                                              row.id === s.id ? { ...row, isWarmup } : row,
-                                            ),
-                                          }
-                                        : x,
-                                    ),
-                                  }
-                                : w,
-                            );
-                            updateSet(s.id, { isWarmup });
-                          }}
-                        />
-                        <span className="text-sm text-zinc-300">Розминка</span>
-                      </label>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 touch-manipulation">
+                          <input
+                            type="checkbox"
+                            className={setMobileCheckbox}
+                            checked={isSetDone(s.id)}
+                            onChange={(e) => setSetDone(s.id, e.target.checked)}
+                          />
+                          <span className="text-sm text-[var(--sbd-muted)]">Зроблено</span>
+                        </label>
+                        <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 touch-manipulation">
+                          <input
+                            type="checkbox"
+                            className={setMobileCheckbox}
+                            checked={s.isWarmup}
+                            onChange={(e) => {
+                              const isWarmup = e.target.checked;
+                              setWorkout((w) =>
+                                w
+                                  ? {
+                                      ...w,
+                                      exercises: w.exercises.map((x) =>
+                                        x.id === ex.id
+                                          ? {
+                                              ...x,
+                                              sets: x.sets.map((row) =>
+                                                row.id === s.id ? { ...row, isWarmup } : row,
+                                              ),
+                                            }
+                                          : x,
+                                      ),
+                                    }
+                                  : w,
+                              );
+                              updateSet(s.id, { isWarmup });
+                            }}
+                          />
+                          <span className="text-sm text-[var(--sbd-muted)]">Розминка</span>
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full min-w-[640px] text-sm">
-                    <thead>
-                      <tr className="border-b border-white/10 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                        <th className="w-[2.75rem] py-2 pr-1 text-center">Пор.</th>
-                        <th className="py-2 pr-2">Вага (кг)</th>
-                        <th className="py-2 pr-2">Повтори</th>
-                        {ex.baseLift !== "NONE" ? (
-                          <th className="py-2 pr-2">RPE</th>
-                        ) : null}
-                        <th className="py-2 pr-2">Розминка</th>
-                        <th className="py-2" />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ex.sets.map((s, setIndex) => (
-                        <tr key={s.id} className="border-b border-white/[0.04]">
-                          <td className="py-2 pr-1 align-middle">
+                <div className="hidden md:block overflow-x-auto">
+                  <div className="overflow-hidden rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_92%,transparent)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] [html[data-theme=light]_&]:shadow-[inset_0_1px_0_0_rgba(0,0,0,0.04)]">
+                    <table className="w-full min-w-[640px] border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_75%,var(--sbd-red))] text-left text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
+                          <th className="w-[2.75rem] py-2.5 pl-3 pr-1 text-center">Пор.</th>
+                          <th className="py-2.5 pr-2">Вага (кг)</th>
+                          <th className="py-2.5 pr-2">Повтори</th>
+                          <th className="w-[4.5rem] py-2.5 pr-2">Зроблено</th>
+                          <th className="w-[4.5rem] py-2.5 pr-2">Розминка</th>
+                          <th className="w-10 py-2.5 pr-3" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ex.sets.map((s, setIndex) => (
+                          <tr
+                            key={s.id}
+                            className="border-b border-[var(--sbd-border)] transition-colors last:border-b-0 hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_96%)]"
+                          >
+                          <td className="py-2 pl-3 pr-1 align-middle">
                             <div className="flex flex-col gap-0.5">
                               <button
                                 type="button"
@@ -1150,15 +1095,19 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               }}
                             />
                           </td>
-                          {ex.baseLift !== "NONE" ? (
-                            <td className="py-2 pr-2 align-middle text-zinc-300">
-                              {s.rpe.trim() === "" ? "—" : s.rpe.trim()}
-                            </td>
-                          ) : null}
-                          <td className="py-2 pr-2">
+                          <td className="py-2 pr-2 align-middle">
                             <input
                               type="checkbox"
-                              className="h-4 w-4 rounded border-white/20 bg-black/50 text-[#e31e24] focus:ring-[#e31e24]/50"
+                              className={setTableCheckbox}
+                              checked={isSetDone(s.id)}
+                              onChange={(e) => setSetDone(s.id, e.target.checked)}
+                              aria-label={`Зроблено, підхід ${setIndex + 1}`}
+                            />
+                          </td>
+                          <td className="py-2 pr-2 align-middle">
+                            <input
+                              type="checkbox"
+                              className={setTableCheckbox}
                               checked={s.isWarmup}
                               onChange={(e) => {
                                 const isWarmup = e.target.checked;
@@ -1183,19 +1132,20 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                               }}
                             />
                           </td>
-                          <td className="py-2 text-right">
+                          <td className="py-2 pr-3 text-right">
                             <button
                               type="button"
-                              className="text-red-400/90 hover:text-red-300"
+                              className="text-[var(--sbd-red)]/90 transition hover:text-[var(--sbd-red)]"
                               onClick={() => setConfirm({ kind: "set", id: s.id })}
                             >
                               ×
                             </button>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -1204,18 +1154,16 @@ export function WorkoutSession({ workoutId }: { workoutId: string }) {
                 >
                   + Підхід
                 </button>
-              </SortableExerciseSection>
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+          </SortableExerciseSection>
+        ))}
+      </div>
 
       <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-600 sm:text-left sm:text-xs">
-        Для жиму / присіду / тяги RPE рахується автоматично з ваги, повторів та{" "}
+        Для базових вправ RPE для статистики береться з ваги, повторів та{" "}
         <Link href="/profile" className="text-[#e31e24] underline-offset-2 hover:underline">
           максимумів у профілі
         </Link>
-        . Для інших вправ RPE не використовується.
+        . Галочки «Зроблено» лише на цьому пристрої (до ~2 днів).
       </p>
 
       <div className="rounded-xl border border-dashed border-white/15 bg-black/30 p-5 transition-colors hover:border-[#e31e24]/25">

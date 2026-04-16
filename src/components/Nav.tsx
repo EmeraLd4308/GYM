@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { IconLogout, IconTemplates } from "@/components/icons";
 
 const base =
-  "relative inline-flex min-h-[40px] items-center rounded-md px-2 py-2 text-sm font-medium uppercase tracking-wide text-zinc-400 transition-colors duration-200 hover:text-[var(--sbd-text)]";
+  "relative inline-flex min-h-[40px] items-center rounded-md px-2 py-2 text-sm font-medium uppercase tracking-wide text-zinc-400 transition-[color,transform] duration-200 hover:scale-[1.03] hover:text-[var(--sbd-text)] motion-reduce:hover:scale-100";
 
 const iconBtn =
   "sbd-header-icon-btn flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-xl border transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
@@ -56,7 +56,7 @@ export function Nav({
   return (
     <>
       <header className="sbd-app-header sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl backdrop-saturate-150 md:z-50">
-        <div className="mx-auto flex w-full max-w-4xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:max-w-6xl md:gap-4 md:px-6 xl:px-8">
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-2 py-2.5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:gap-3 sm:py-3 sm:pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1rem,env(safe-area-inset-right))] md:max-w-6xl md:gap-4 md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] xl:pl-[max(2rem,env(safe-area-inset-left))] xl:pr-[max(2rem,env(safe-area-inset-right))]">
         <Link
           href="/dashboard"
           className="group flex min-h-[44px] min-w-0 shrink-0 touch-manipulation items-center gap-2 overflow-hidden sm:gap-2.5 md:max-w-[min(100%,14rem)] lg:max-w-[min(100%,16rem)]"
@@ -95,6 +95,7 @@ export function Nav({
             <Link
               key={href}
               href={href}
+              aria-current={isActive(href) ? "page" : undefined}
               className={`${base} ${isActive(href) ? "nav-link-active text-[#e31e24]" : ""}`}
             >
               {label}

@@ -38,7 +38,7 @@ export default async function NewWorkoutPage() {
       </div>
 
       <div className="sbd-card overflow-hidden rounded-2xl shadow-2xl shadow-black/50">
-        <div className="border-b border-white/[0.06] bg-gradient-to-r from-[#e31e24]/[0.08] to-transparent px-5 py-4 sm:px-6">
+        <div className="border-b border-white/[0.06] bg-[#e31e24]/[0.08] px-5 py-4 sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
             Крок 1 — параметри
           </p>

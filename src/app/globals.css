@@ -55,6 +55,7 @@ html[data-theme="light"] {
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -109,6 +110,72 @@ html[data-theme="light"] body {
     radial-gradient(ellipse 50% 35% at 100% 0%, rgba(227, 30, 36, 0.06), transparent 42%);
 }
 
+/* Slow-moving light layer — uses existing tokens only */
+.sbd-ambient {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.sbd-ambient::before,
+.sbd-ambient::after {
+  content: "";
+  position: absolute;
+  will-change: transform;
+}
+
+.sbd-ambient::before {
+  left: -22%;
+  top: -38%;
+  width: 135%;
+  height: 95%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 72% 62% at 50% 42%, var(--sbd-red-glow), transparent 62%);
+  opacity: 0.44;
+  animation: sbd-ambient-drift 20s ease-in-out infinite alternate;
+}
+
+.sbd-ambient::after {
+  right: -12%;
+  top: -12%;
+  width: 58%;
+  height: 48%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 68% 58% at 72% 8%,
+    color-mix(in oklab, var(--sbd-red), transparent 90%),
+    transparent 58%
+  );
+  opacity: 0.48;
+  animation: sbd-ambient-drift 26s ease-in-out infinite alternate-reverse;
+  animation-delay: -5s;
+}
+
+@keyframes sbd-ambient-drift {
+  from {
+    transform: translate3d(-2.8%, -1.8%, 0) scale(1.02);
+  }
+  to {
+    transform: translate3d(2.8%, 2.2%, 0) scale(1.07);
+  }
+}
+
+.sbd-ambient__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.038;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+html[data-theme="light"] .sbd-ambient__grain {
+  opacity: 0.028;
+  mix-blend-mode: multiply;
+}
+
 input[type="date"],
 input[type="datetime-local"],
 select {
@@ -132,7 +199,24 @@ html[data-theme="light"] textarea {
 @keyframes content-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px) scale(0.985);
+    filter: blur(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-content-in {
+  animation: content-in 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sbd-child-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -140,8 +224,101 @@ html[data-theme="light"] textarea {
   }
 }
 
-.animate-content-in {
-  animation: content-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+.sbd-stagger-children > * {
+  animation: sbd-child-rise 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sbd-stagger-children > *:nth-child(1) {
+  animation-delay: 0.03s;
+}
+.sbd-stagger-children > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.sbd-stagger-children > *:nth-child(3) {
+  animation-delay: 0.13s;
+}
+.sbd-stagger-children > *:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.sbd-stagger-children > *:nth-child(5) {
+  animation-delay: 0.23s;
+}
+.sbd-stagger-children > *:nth-child(6) {
+  animation-delay: 0.28s;
+}
+.sbd-stagger-children > *:nth-child(7) {
+  animation-delay: 0.33s;
+}
+.sbd-stagger-children > *:nth-child(8) {
+  animation-delay: 0.38s;
+}
+.sbd-stagger-children > *:nth-child(9) {
+  animation-delay: 0.43s;
+}
+.sbd-stagger-children > *:nth-child(10) {
+  animation-delay: 0.48s;
+}
+.sbd-stagger-children > *:nth-child(11) {
+  animation-delay: 0.53s;
+}
+.sbd-stagger-children > *:nth-child(12) {
+  animation-delay: 0.58s;
+}
+.sbd-stagger-children > *:nth-child(13) {
+  animation-delay: 0.63s;
+}
+.sbd-stagger-children > *:nth-child(14) {
+  animation-delay: 0.68s;
+}
+
+.sbd-surface-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sbd-surface-shine {
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sbd-surface-shine:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 22px 44px -22px color-mix(in oklab, black 62%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--sbd-border) 85%, transparent);
+  }
+
+  html[data-theme="light"] .sbd-surface-shine:hover {
+    box-shadow:
+      0 18px 40px -18px color-mix(in oklab, black 16%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--sbd-border) 90%, transparent);
+  }
+
+  .sbd-surface-shine::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 44%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 255, 255, 0.055) 50%,
+      transparent 62%,
+      transparent 100%
+    );
+    transform: translateX(-125%);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .sbd-surface-shine:hover::after {
+    transform: translateX(125%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -149,6 +326,31 @@ html[data-theme="light"] textarea {
     animation: none;
     opacity: 1;
     transform: none;
+    filter: none;
+  }
+
+  .sbd-ambient::before,
+  .sbd-ambient::after {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .sbd-ambient__grain {
+    opacity: 0.02 !important;
+  }
+
+  .sbd-stagger-children > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .sbd-surface-shine:hover {
+    transform: none !important;
+  }
+
+  .sbd-app-dock a[aria-current="page"] svg {
+    transform: none !important;
   }
 
   .toast-slide-in {
@@ -220,12 +422,54 @@ html[data-theme="light"] .sbd-card:hover {
     box-shadow 0.35s ease;
 }
 
+.sbd-app-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0.65;
+  background: linear-gradient(
+    90deg,
+    transparent 8%,
+    color-mix(in oklab, var(--sbd-red), transparent 70%),
+    transparent 92%
+  );
+}
+
 .sbd-app-dock {
   border-top-color: var(--sbd-nav-border) !important;
   background: color-mix(in oklab, var(--sbd-nav-bg) 96%, transparent) !important;
   transition:
     background 0.35s ease,
     border-color 0.35s ease;
+}
+
+.sbd-app-dock::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0.58;
+  background: linear-gradient(
+    90deg,
+    transparent 6%,
+    color-mix(in oklab, var(--sbd-red), transparent 68%),
+    transparent 94%
+  );
+}
+
+.sbd-app-dock a svg {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sbd-app-dock a[aria-current="page"] svg {
+  transform: scale(1.08);
 }
 
 .sbd-loading-card-inner {
@@ -661,6 +905,26 @@ html[data-theme="light"] .sbd-template-row:hover {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .sbd-template-row {
+    transition:
+      transform 0.22s ease,
+      background-color 0.2s ease;
+  }
+
+  .sbd-template-row:hover {
+    transform: translateY(-1px);
+  }
+
+  .sbd-workout-rows .sbd-workout-row-link {
+    transition:
+      background-color 0.2s ease,
+      box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sbd-workout-rows .sbd-workout-row-link:hover {
+    box-shadow: inset 3px 0 0 0 color-mix(in oklab, var(--sbd-red), transparent 52%);
+  }
+
   .sbd-card-interactive:hover {
     transform: translateY(-2px);
   }

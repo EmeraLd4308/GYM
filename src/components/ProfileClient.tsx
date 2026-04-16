@@ -292,7 +292,7 @@ export function ProfileClient() {
   }
 
   return (
-    <div className="space-y-10 pb-6 md:space-y-12 md:pb-8">
+    <div className="sbd-stagger-children space-y-10 pb-6 md:space-y-12 md:pb-8">
       <header className="max-w-3xl space-y-3">
         <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
           Силові максимуми та GL
@@ -304,7 +304,7 @@ export function ProfileClient() {
           className="order-1 space-y-4 sm:space-y-5 lg:order-2 lg:col-span-5 lg:space-y-6"
           aria-label="Попередній перегляд GL"
         >
-          <div className="sbd-card flex flex-col gap-4 rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md shadow-black/10 sm:flex-row sm:items-center sm:justify-between sm:p-5 lg:flex-col lg:items-stretch">
+          <div className="sbd-card sbd-surface-shine flex flex-col gap-4 rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md shadow-black/10 sm:flex-row sm:items-center sm:justify-between sm:p-5 lg:flex-col lg:items-stretch">
             <div className="flex items-center gap-4 sm:gap-5">
               <div className="relative shrink-0 rounded-2xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-2.5 shadow-sm ring-1 ring-[#e31e24]/12">
                 <PresetAvatar avatarId={avatarId} size={104} className="ring-2 ring-[#e31e24]/20" />
@@ -346,13 +346,9 @@ export function ProfileClient() {
               GL оновлюється після змін у відкритому блоці редагування.
             </p>
           </div>
-          <div className="sbd-gl-preview relative overflow-hidden rounded-2xl border border-[#e31e24]/30 bg-gradient-to-b from-[#e31e24]/[0.14] via-zinc-950/80 to-black p-5 shadow-xl shadow-black/50 sm:p-8">
+          <div className="sbd-gl-preview relative overflow-hidden rounded-2xl border border-[#e31e24]/30 bg-zinc-950/85 p-5 shadow-xl shadow-black/50 sm:p-8">
             <div
               className="sbd-gl-preview-deco pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#e31e24]/20 blur-3xl"
-              aria-hidden
-            />
-            <div
-              className="sbd-gl-preview-deco pointer-events-none absolute bottom-0 left-1/2 h-24 w-[120%] -translate-x-1/2 bg-gradient-to-t from-black/80 to-transparent"
               aria-hidden
             />
             <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-[#e31e24]/90">
@@ -377,7 +373,7 @@ export function ProfileClient() {
             )}
           </div>
 
-          <div className="sbd-card rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md sm:p-5">
+          <div className="sbd-card sbd-surface-shine rounded-2xl border border-[var(--sbd-border)] p-4 shadow-md sm:p-5">
             <p className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--sbd-muted)]">
               Рівень профілю
             </p>
@@ -740,10 +736,19 @@ export function ProfileClient() {
             <p className="text-sm text-[var(--sbd-muted)]">Завантаження…</p>
           ) : lbRows.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-4 py-10 text-center">
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-[var(--sbd-muted)]">
-                Поки нікого з повними даними для цього режиму. Розкрий «Редагувати профіль», збережи
-                дані — ти з&apos;явишся тут, коли їх буде достатньо.
+              <p className="font-display text-sm font-semibold text-[var(--sbd-text)]">
+                Поки немає рядків у рейтингу
               </p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[var(--sbd-muted)]">
+                У цьому режимі показують лише атлетів із повним GL-профілем. Перевір вагу, стать,
+                екіпірування та максимуми — після збереження ти можеш з&apos;явитися в таблиці.
+              </p>
+              <a
+                href="#profile-edit"
+                className="mt-5 inline-flex min-h-[44px] items-center justify-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline"
+              >
+                До блоку «Редагувати профіль»
+              </a>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl ring-1 ring-white/[0.06]">

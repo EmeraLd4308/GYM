@@ -51,7 +51,7 @@ export function TemplateListRow({
         href={`/templates/${id}`}
         className={`sbd-template-row flex min-w-0 flex-1 gap-3 px-4 py-4 transition-colors duration-200 hover:bg-white/[0.04] sm:items-center ${
           isOwn
-            ? "border-l-[3px] border-l-[#e31e24] bg-gradient-to-r from-[#e31e24]/[0.07] to-transparent"
+            ? "border-l-[3px] border-l-[#e31e24] bg-[#e31e24]/[0.07]"
             : "border-l-[3px] border-l-transparent"
         }`}
       >

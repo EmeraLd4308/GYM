@@ -2,11 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { EmptyStateCallout } from "@/components/EmptyStateCallout";
 import { TemplateListRow } from "@/components/TemplateListRow";
 import { TemplatesListPagination } from "@/components/TemplatesListPagination";
-
 const btnPrimary =
-  "rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition hover:bg-[#c41a21] active:scale-[0.98]";
+  "rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#c41a21] hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.48)] active:translate-y-0 active:scale-[0.98]";
 const TEMPLATES_PAGE_SIZE = 12;
 
 function getParam(
@@ -52,7 +52,7 @@ export default async function TemplatesPage({
   const pagePastEnd = templates.length === 0 && total > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="sbd-stagger-children space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold uppercase tracking-tight text-white md:text-4xl">
@@ -72,18 +72,40 @@ export default async function TemplatesPage({
       </div>
 
       {pagePastEnd ? (
-        <div className="sbd-card rounded-xl p-8 text-center text-zinc-500">
-          <p>На цій сторінці записів немає.</p>
-          <Link
-            href="/templates"
-            className="mt-4 inline-block text-sm font-medium text-[#e31e24] underline-offset-2 hover:underline"
+        <div className="sbd-card rounded-xl p-6 sm:p-10">
+          <EmptyStateCallout
+            title="На цій сторінці нічого немає"
+            description="Номер сторінки завеликий — повернись на початок списку шаблонів."
+            nextSteps={["Усі шаблони починаються з першої сторінки — там актуальні записи."]}
           >
-            До початку списку
-          </Link>
+            <Link href="/templates" className={`${btnPrimary} inline-flex min-h-[48px] w-full max-w-sm items-center justify-center sm:w-auto`}>
+              До початку списку
+            </Link>
+          </EmptyStateCallout>
         </div>
       ) : templates.length === 0 ? (
-        <div className="sbd-card rounded-xl p-8 text-center text-zinc-500">
-          Шаблонів ще немає — створи перший кнопкою справа.
+        <div className="sbd-card rounded-xl p-6 sm:p-10">
+          <EmptyStateCallout
+            title="Шаблонів поки немає"
+            description="Шаблон зберігає набір вправ — його можна обрати при створенні тренування й не вводити все з нуля."
+            nextSteps={[
+              "Натисни «Новий шаблон», додай вправи й збережи.",
+              "Потім у «Нове тренування» вибери цей шаблон зі списку.",
+            ]}
+          >
+            <Link
+              href="/templates/new"
+              className={`${btnPrimary} inline-flex min-h-[52px] w-full max-w-sm items-center justify-center text-base sm:w-auto`}
+            >
+              Створити перший шаблон
+            </Link>
+            <Link
+              href="/workouts/new"
+              className="text-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline"
+            >
+              Або одразу нове тренування без шаблону
+            </Link>
+          </EmptyStateCallout>
         </div>
       ) : (
         <div className="sbd-card overflow-hidden rounded-xl shadow-2xl shadow-black/50">

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { todayDateInput, tomorrowDateInput, yesterdayDateInput } from "@/lib/date-local";
 import { SbdLoadingPortal } from "@/components/SbdLoadingPortal";
 import { templateOptionLabel } from "@/lib/template-author-label";
-
 type Tpl = {
   id: string;
   name: string;

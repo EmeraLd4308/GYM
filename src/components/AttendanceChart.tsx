@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { WeeklyAttendanceRow } from "@/lib/weekly-attendance";
 import {
   CartesianGrid,
@@ -21,9 +22,16 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
         <h3 className="font-display mb-2 text-sm font-bold uppercase tracking-wide text-white">
           Відвідуваність
         </h3>
-        <p className="text-sm text-zinc-500">
-          Ще немає тренувань — графік з&apos;явиться після першого запису.
+        <p className="text-sm leading-relaxed text-zinc-500">
+          Додай тренування з датою — тоді тижні з&apos;являться на графіку автоматично. Один запис
+          достатньо, щоб лінія почала будуватися.
         </p>
+        <Link
+          href="/workouts/new"
+          className="mt-4 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 transition hover:underline"
+        >
+          Додати тренування
+        </Link>
       </div>
     );
   }

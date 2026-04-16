@@ -10,18 +10,20 @@ import {
 const DISMISS_KEY = "gym_onboarding_checklist_dismissed";
 
 const row =
-  "flex items-start gap-3 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3 text-sm text-zinc-200";
+  "flex items-start gap-3 rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_65%,transparent)] px-4 py-3 text-sm text-[var(--sbd-text)]";
 const doneBadge =
   "mt-0.5 shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300";
 const todoBadge =
-  "mt-0.5 shrink-0 rounded-full border border-white/[0.12] bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500";
+  "mt-0.5 shrink-0 rounded-full border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_55%,transparent)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--sbd-muted)]";
 
 export function OnboardingChecklist({
   profileDone,
   hasWorkout,
+  embedded = false,
 }: {
   profileDone: boolean;
   hasWorkout: boolean;
+  embedded?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -68,23 +70,27 @@ export function OnboardingChecklist({
 
   return (
     <section
-      className="overflow-hidden rounded-2xl border border-[#e31e24]/25 bg-gradient-to-br from-[#e31e24]/[0.12] via-zinc-950/90 to-black/90 p-5 shadow-xl shadow-black/40 sm:p-6"
+      className={
+        embedded
+          ? "border-0 bg-[color-mix(in_oklab,var(--sbd-red)_7%,transparent)] p-5 sm:p-6"
+          : "overflow-hidden rounded-2xl border border-[#e31e24]/25 bg-zinc-950/90 p-5 shadow-xl shadow-black/40 sm:p-6"
+      }
       aria-label="Перші кроки"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-display text-base font-bold uppercase tracking-wide text-white sm:text-lg">
+          <h2 className="font-display text-base font-bold uppercase tracking-wide text-[var(--sbd-text)] sm:text-lg">
             Перші кроки
           </h2>
-          <p className="mt-1 max-w-xl text-xs leading-relaxed text-zinc-400 sm:text-sm">
-            Після реєстрації варто заповнити профіль, додати тренування й зазирнути в статистику —
-            так швидше зʼявляться графіки та порівняння тижнів.
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-[var(--sbd-muted)] sm:text-sm">
+            Три короткі кроки: максимуми в профілі → перше тренування → зайти в статистику. Тоді
+            запрацюють графіки RPE, відвідуваність і порівняння тижнів.
           </p>
         </div>
         <button
           type="button"
           onClick={dismiss}
-          className="shrink-0 touch-manipulation rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.98]"
+          className="shrink-0 touch-manipulation rounded-lg border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_50%,transparent)] px-3 py-2 text-xs font-semibold text-[var(--sbd-text)] transition hover:bg-[color-mix(in_oklab,var(--sbd-card)_70%,transparent)] active:scale-[0.98]"
         >
           Закрити
         </button>
@@ -96,9 +102,9 @@ export function OnboardingChecklist({
             {profileDone ? "Готово" : "Крок 1"}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-white">Профіль</p>
-            <p className="mt-0.5 text-xs text-zinc-500">
-              Вага тіла або максимуми SBD — для GL і точніших підказок.
+            <p className="font-medium text-[var(--sbd-text)]">Профіль</p>
+            <p className="mt-0.5 text-xs text-[var(--sbd-muted)]">
+              Вага тіла або максимуми SBD — для GL і точніших оцінок RPE у журналі.
             </p>
             {!profileDone ? (
               <Link
@@ -115,8 +121,10 @@ export function OnboardingChecklist({
             {hasWorkout ? "Готово" : "Крок 2"}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-white">Перше тренування</p>
-            <p className="mt-0.5 text-xs text-zinc-500">Запиши підходи й вагу — журнал оживе.</p>
+            <p className="font-medium text-[var(--sbd-text)]">Перше тренування</p>
+            <p className="mt-0.5 text-xs text-[var(--sbd-muted)]">
+              Один запис — і зʼявляться календар, список і ця стрічка на головній.
+            </p>
             {!hasWorkout ? (
               <Link
                 href="/workouts/new"
@@ -132,8 +140,8 @@ export function OnboardingChecklist({
             {statsDone ? "Готово" : "Крок 3"}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-white">Статистика</p>
-            <p className="mt-0.5 text-xs text-zinc-500">
+            <p className="font-medium text-[var(--sbd-text)]">Статистика</p>
+            <p className="mt-0.5 text-xs text-[var(--sbd-muted)]">
               Тижневі графіки RPE, відвідуваність і серії.
             </p>
             {!statsDone ? (

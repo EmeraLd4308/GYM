@@ -11,7 +11,6 @@ const patchSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   baseLift: z.enum(["NONE", "BENCH", "SQUAT", "DEADLIFT"]).optional(),
   sortOrder: z.number().int().min(0).optional(),
-  planDone: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -38,7 +37,6 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.baseLift !== undefined ? { baseLift: data.baseLift as BaseLift } : {}),
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
-        ...(data.planDone !== undefined ? { planDone: data.planDone } : {}),
       },
       include: { sets: { orderBy: { sortOrder: "asc" } }, workout: true },
     });

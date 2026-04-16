@@ -146,14 +146,16 @@ export function MobileBottomNav() {
             href={href}
             title={label}
             aria-current={active ? "page" : undefined}
-            className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 touch-manipulation ${
-              active ? "text-[#e31e24]" : "text-zinc-500"
+            className={`flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 touch-manipulation transition-[color,background-color,box-shadow] duration-200 ${
+              active
+                ? "bg-[color-mix(in_oklab,var(--sbd-red)_16%,transparent)] text-[#e31e24] shadow-[inset_0_0_0_1px_rgba(227,30,36,0.22)]"
+                : "text-zinc-500 active:bg-white/[0.04]"
             }`}
           >
             <Icon active={active} />
             <span
-              className={`max-w-full text-center text-[10px] font-semibold leading-tight tracking-tight sm:text-[11px] ${
-                active ? "text-[#e31e24]" : "text-zinc-500"
+              className={`max-w-full text-center text-[10px] leading-tight tracking-tight sm:text-[11px] ${
+                active ? "font-semibold text-[#e31e24]" : "font-medium text-zinc-500"
               }`}
             >
               {label}

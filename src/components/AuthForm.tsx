@@ -17,7 +17,7 @@ export function AuthForm() {
 
   return (
     <form
-      className="sbd-auth-card w-full max-w-md space-y-5 rounded-2xl p-5 sm:space-y-6 sm:p-8"
+      className="sbd-auth-card sbd-surface-shine w-full max-w-md space-y-5 rounded-2xl p-5 sm:space-y-6 sm:p-8"
       noValidate
       aria-busy={pending}
       onSubmit={async (e) => {
@@ -138,7 +138,7 @@ export function AuthForm() {
           type="submit"
           data-action="register"
           disabled={pending}
-          className={`${uiButtonPrimaryClass} min-h-[52px] w-full rounded-xl py-3 text-base shadow-lg shadow-red-950/40 enabled:active:bg-[#a0151a]`}
+          className={`${uiButtonPrimaryClass} min-h-[52px] w-full rounded-xl py-3 text-base shadow-lg shadow-red-950/40 active:opacity-[0.92]`}
         >
           {pending ? "Зачекай…" : "Реєстрація — вперше"}
         </button>

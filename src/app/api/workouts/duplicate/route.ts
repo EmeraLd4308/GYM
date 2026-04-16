@@ -73,7 +73,6 @@ export async function POST(req: Request) {
           sortOrder: ex.sortOrder,
           name: ex.name,
           baseLift: ex.baseLift as BaseLift,
-          planDone: ex.planDone,
           sets: {
             create: ex.sets.map((s) => ({
               sortOrder: s.sortOrder,

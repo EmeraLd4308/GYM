@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { WeeklySbdRpeRow } from "@/lib/weekly-rpe";
 import {
   Area,
@@ -21,11 +22,13 @@ export type WeeklyRpeLiftHint = {
 export type WeeklyRpeChartHints = Record<"bench" | "squat" | "deadlift", WeeklyRpeLiftHint>;
 
 function emptyRpeMessage(hint: WeeklyRpeLiftHint): string {
-  if (hint.noTraining) return "Немає тренувань з цим рухом за обраний період.";
-  if (hint.noProfileMax) {
-    return "Немає даних про максимум у профілі — додай максимум для оцінки RPE з ваги або вводь RPE вручну в журналі.";
+  if (hint.noTraining) {
+    return "За обрані дати немає тренувань з цим базовим рухом. Додай запис або зміни фільтр дат зверху на сторінці статистики.";
   }
-  return "Немає підходів, за якими можна побудувати криву (перевір вагу та повторення).";
+  if (hint.noProfileMax) {
+    return "Щоб оцінити RPE з ваги, у профілі має бути максимум для цього руху. Інакше вводь RPE вручну в підходах.";
+  }
+  return "Немає робочих підходів з вагою та повторами для цієї кривої — перевір журнал.";
 }
 
 function ChartBlock({
@@ -55,6 +58,22 @@ function ChartBlock({
           {title}
         </h3>
         <p className="text-sm leading-relaxed text-zinc-500">{emptyRpeMessage(hint)}</p>
+        {hint.noTraining ? (
+          <Link
+            href="/workouts/new"
+            className="mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline"
+          >
+            Додати тренування
+          </Link>
+        ) : null}
+        {hint.noProfileMax ? (
+          <Link
+            href="/profile"
+            className="mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline"
+          >
+            Відкрити профіль
+          </Link>
+        ) : null}
       </div>
     );
   }
