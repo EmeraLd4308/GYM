@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
 
+export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
+
 const patchSchema = z.object({
   title: z.string().trim().max(200).nullable().optional(),
 
@@ -13,7 +16,8 @@ const patchSchema = z.object({
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id } = await ctx.params;
   const workout = await prisma.workout.findFirst({
     where: { id, userId: user.id },
@@ -24,21 +28,22 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       },
     },
   });
-  if (!workout) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-  return NextResponse.json({ workout });
+  if (!workout) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
+  return NextResponse.json({ workout }, { headers: noStoreHeaders });
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id } = await ctx.params;
   const existing = await prisma.workout.findFirst({ where: { id, userId: user.id } });
-  if (!existing) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
+  if (!existing) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   try {
     const json = await req.json();
     const parsed = patchSchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
+      return NextResponse.json({ error: "Некоректні дані." }, { status: 400, headers: noStoreHeaders });
     }
     const { title, date: dateRaw, notes } = parsed.data;
     let nextDate: Date | undefined;
@@ -46,7 +51,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       try {
         nextDate = parseWorkoutDateInput(dateRaw);
       } catch {
-        return NextResponse.json({ error: "Некоректна дата." }, { status: 400 });
+        return NextResponse.json({ error: "Некоректна дата." }, { status: 400, headers: noStoreHeaders });
       }
     }
     const workout = await prisma.workout.update({
@@ -63,17 +68,21 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         },
       },
     });
-    return NextResponse.json({ workout });
+    return NextResponse.json({ workout }, { headers: noStoreHeaders });
   } catch {
-    return NextResponse.json({ error: "Не вдалося оновити." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Не вдалося оновити." },
+      { status: 500, headers: noStoreHeaders },
+    );
   }
 }
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id } = await ctx.params;
   const res = await prisma.workout.deleteMany({ where: { id, userId: user.id } });
-  if (res.count === 0) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-  return NextResponse.json({ ok: true });
+  if (res.count === 0) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
+  return NextResponse.json({ ok: true }, { headers: noStoreHeaders });
 }

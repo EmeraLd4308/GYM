@@ -46,12 +46,12 @@ type WorkoutPayload = {
 };
 
 const inp =
-  "rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-zinc-100 outline-none focus:border-[#e31e24]/35 focus:ring-1 focus:ring-[#e31e24]/25";
+  "rounded-[var(--sbd-radius-md)] border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] px-2 py-1.5 text-[var(--sbd-text)] outline-none focus:border-[var(--sbd-red)]/35 focus:ring-1 focus:ring-[var(--sbd-red)]/25";
 
 const inpMobile = `${inp} min-h-[48px] w-full px-3 text-base`;
 
 const setMoveBtn =
-  "flex min-h-9 min-w-9 touch-manipulation items-center justify-center rounded-lg border border-white/15 bg-black/40 text-base leading-none text-zinc-300 transition enabled:active:scale-95 enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35 md:min-h-[36px] md:min-w-[36px]";
+  "flex min-h-9 min-w-9 touch-manipulation items-center justify-center rounded-[var(--sbd-radius-md)] border border-white/15 bg-[var(--sbd-elevated)] text-base leading-none text-zinc-300 transition enabled:active:scale-95 enabled:hover:border-[var(--sbd-red)]/35 enabled:hover:bg-[var(--sbd-red)]/10 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35 md:min-h-[36px] md:min-w-[36px]";
 
 const setTableCheckbox =
   "h-4 w-4 shrink-0 rounded border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_82%,transparent)] accent-[var(--sbd-red)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] focus:outline-none focus:ring-2 focus:ring-[var(--sbd-focus-ring)] focus:ring-offset-0 focus:ring-offset-[var(--sbd-bg)]";

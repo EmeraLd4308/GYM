@@ -11,6 +11,9 @@ import { buildProfileApiPayload, normalizePinnedForUser } from "@/lib/profile-re
 import { syncUserAchievements } from "@/lib/achievements";
 import { recalculateUserDerivedMetricsFromProfile } from "@/lib/lift-records";
 
+export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
+
 const numOrNull = z.union([z.number(), z.null()]);
 
 const avatarIdSchema = z.enum(AVATAR_IDS);
@@ -41,16 +44,18 @@ const patchSchema = z.object({
 
 export async function GET() {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   await syncUserAchievements(user.id);
   const profile = await buildProfileApiPayload(user.id);
-  if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-  return NextResponse.json({ profile });
+  if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
+  return NextResponse.json({ profile }, { headers: noStoreHeaders });
 }
 
 export async function PATCH(req: Request) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
 
   const limited = rateLimitJson(req, "profile-patch", 40, 60_000);
   if (limited) return limited;
@@ -59,7 +64,10 @@ export async function PATCH(req: Request) {
     const json = await req.json();
     const parsed = patchSchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Некоректні дані профілю." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Некоректні дані профілю." },
+        { status: 400, headers: noStoreHeaders },
+      );
     }
     const d = parsed.data;
     const { pinnedAchievementIds, liftRecords, ...rest } = d;
@@ -67,7 +75,10 @@ export async function PATCH(req: Request) {
     const hasPins = pinnedAchievementIds !== undefined;
     const hasLiftRecords = Array.isArray(liftRecords);
     if (!hasRest && !hasPins && !hasLiftRecords) {
-      return NextResponse.json({ error: "Немає полів для оновлення." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Немає полів для оновлення." },
+        { status: 400, headers: noStoreHeaders },
+      );
     }
 
     let loginNext: string | undefined;
@@ -125,6 +136,62 @@ export async function PATCH(req: Request) {
           glDiscipline: null,
         },
       });
+
+      const manualLiftUpdates: Array<Promise<unknown>> = [];
+      if (rest.glMaxBenchKg !== undefined) {
+        manualLiftUpdates.push(
+          prisma.userLiftRecord.upsert({
+            where: { userId_baseLift: { userId: user.id, baseLift: "BENCH" } },
+            update: {
+              estOneRmKg: rest.glMaxBenchKg,
+              manualEstOneRmKg: rest.glMaxBenchKg !== null,
+            },
+            create: {
+              userId: user.id,
+              baseLift: "BENCH",
+              estOneRmKg: rest.glMaxBenchKg ?? null,
+              manualEstOneRmKg: rest.glMaxBenchKg !== null,
+            },
+          }),
+        );
+      }
+      if (rest.glMaxSquatKg !== undefined) {
+        manualLiftUpdates.push(
+          prisma.userLiftRecord.upsert({
+            where: { userId_baseLift: { userId: user.id, baseLift: "SQUAT" } },
+            update: {
+              estOneRmKg: rest.glMaxSquatKg,
+              manualEstOneRmKg: rest.glMaxSquatKg !== null,
+            },
+            create: {
+              userId: user.id,
+              baseLift: "SQUAT",
+              estOneRmKg: rest.glMaxSquatKg ?? null,
+              manualEstOneRmKg: rest.glMaxSquatKg !== null,
+            },
+          }),
+        );
+      }
+      if (rest.glMaxDeadliftKg !== undefined) {
+        manualLiftUpdates.push(
+          prisma.userLiftRecord.upsert({
+            where: { userId_baseLift: { userId: user.id, baseLift: "DEADLIFT" } },
+            update: {
+              estOneRmKg: rest.glMaxDeadliftKg,
+              manualEstOneRmKg: rest.glMaxDeadliftKg !== null,
+            },
+            create: {
+              userId: user.id,
+              baseLift: "DEADLIFT",
+              estOneRmKg: rest.glMaxDeadliftKg ?? null,
+              manualEstOneRmKg: rest.glMaxDeadliftKg !== null,
+            },
+          }),
+        );
+      }
+      if (manualLiftUpdates.length > 0) {
+        await Promise.all(manualLiftUpdates);
+      }
     }
 
     const afterUpdate = await prisma.user.findUnique({
@@ -208,15 +275,18 @@ export async function PATCH(req: Request) {
     }
 
     const profile = await buildProfileApiPayload(user.id);
-    if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
-    return NextResponse.json({ profile });
+    if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
+    return NextResponse.json({ profile }, { headers: noStoreHeaders });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return NextResponse.json(
         { error: "Цей логін уже зайнятий іншим користувачем. Обери інший." },
-        { status: 409 },
+        { status: 409, headers: noStoreHeaders },
       );
     }
-    return NextResponse.json({ error: "Не вдалося зберегти." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Не вдалося зберегти." },
+      { status: 500, headers: noStoreHeaders },
+    );
   }
 }

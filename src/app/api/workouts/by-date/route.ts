@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { parseWorkoutDateInput } from "@/lib/date-local";
 
 export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
 
 const querySchema = z.object({
   day: z
@@ -15,12 +16,16 @@ const querySchema = z.object({
 
 export async function GET(req: Request) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
 
   const { searchParams } = new URL(req.url);
   const parsed = querySchema.safeParse({ day: searchParams.get("day") ?? "" });
   if (!parsed.success) {
-    return NextResponse.json({ error: "Потрібен параметр day=YYYY-MM-DD." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Потрібен параметр day=YYYY-MM-DD." },
+      { status: 400, headers: noStoreHeaders },
+    );
   }
 
   try {
@@ -53,8 +58,8 @@ export async function GET(req: Request) {
       select: { id: true },
     });
 
-    return NextResponse.json({ workout: workout ? { id: workout.id } : null });
+    return NextResponse.json({ workout: workout ? { id: workout.id } : null }, { headers: noStoreHeaders });
   } catch {
-    return NextResponse.json({ error: "Некоректна дата." }, { status: 400 });
+    return NextResponse.json({ error: "Некоректна дата." }, { status: 400, headers: noStoreHeaders });
   }
 }

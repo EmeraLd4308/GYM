@@ -4,9 +4,11 @@ import {
   addMonths,
   eachDayOfInterval,
   endOfMonth,
+  isBefore,
   format,
   isSameDay,
   isSameMonth,
+  startOfDay,
   startOfMonth,
   startOfWeek,
   endOfWeek,
@@ -133,9 +135,10 @@ export function TrainingCalendar({
           const key = format(day, "yyyy-MM-dd");
           const inMonth = isSameMonth(day, viewMonth);
           const isToday = isSameDay(day, today);
+          const isPastDay = isBefore(startOfDay(day), startOfDay(today));
           const hasWorkout = trained.has(key);
           const tag = dayTagByKey?.[key];
-          const cellClass = `flex aspect-square min-h-[36px] w-full flex-col items-center justify-center rounded-lg border text-xs sm:min-h-[44px] ${
+          const cellClass = `relative flex aspect-square min-h-[36px] w-full flex-col items-center justify-center overflow-hidden rounded-[var(--sbd-radius-md)] border text-xs sm:min-h-[44px] ${
             !inMonth
               ? "border-transparent text-zinc-600 opacity-40"
               : hasWorkout
@@ -143,7 +146,7 @@ export function TrainingCalendar({
                   ? tagCellClass(tag)
                   : workoutNoTagCellClass()
                 : tagCellClass(undefined)
-          } ${isToday && inMonth ? "ring-1 ring-[#e31e24]/60" : ""}`;
+          }`;
           const busy = openingDay === key;
 
           if (hasWorkout) {
@@ -153,11 +156,33 @@ export function TrainingCalendar({
                 type="button"
                 disabled={busy}
                 aria-label={`Відкрити тренування за ${format(day, "d MMMM yyyy", { locale: uk })}${tag ? `, інтенсивність: ${workoutTagLabelUk(tag)}` : ", інтенсивність: без визначення"}`}
-                className={`${cellClass} touch-manipulation transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e31e24]/70 disabled:opacity-60`}
+                className={`${cellClass} touch-manipulation transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sbd-red)]/70 disabled:opacity-60`}
                 onClick={() => void openWorkoutForDay(key)}
               >
-                <span className={`font-semibold ${inMonth ? "text-zinc-100" : ""}`}>
-                  {format(day, "d")}
+                {isToday && inMonth ? (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-zinc-200/30"
+                  />
+                ) : null}
+                {isPastDay && inMonth ? (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[1px] w-[85%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-zinc-200/30"
+                  />
+                ) : null}
+                {isPastDay && inMonth ? (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[1px] w-[85%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-zinc-200/30"
+                  />
+                ) : null}
+                <span className="relative z-10 inline-flex">
+                  <span
+                    className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-semibold ${inMonth ? "text-zinc-100" : ""}`}
+                  >
+                    {format(day, "d")}
+                  </span>
                 </span>
               </button>
             );
@@ -165,8 +190,30 @@ export function TrainingCalendar({
 
           return (
             <div key={key} className={cellClass}>
-              <span className={`font-semibold ${inMonth ? "text-zinc-100" : ""}`}>
-                {format(day, "d")}
+              {isToday && inMonth ? (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-zinc-200/30"
+                />
+              ) : null}
+              {isPastDay && inMonth ? (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[1px] w-[85%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-zinc-200/30"
+                />
+              ) : null}
+              {isPastDay && inMonth ? (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[1px] w-[85%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-zinc-200/30"
+                />
+              ) : null}
+              <span className="relative z-10 inline-flex">
+                <span
+                  className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-semibold ${inMonth ? "text-zinc-100" : ""}`}
+                >
+                  {format(day, "d")}
+                </span>
               </span>
             </div>
           );
@@ -194,8 +241,15 @@ export function TrainingCalendar({
           <span className="h-3 w-3 rounded border border-white/[0.06] bg-black/25" /> Без запису
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-white/[0.06] ring-1 ring-[#e31e24]/60" />{" "}
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-200/30" />{" "}
           Сьогодні
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="relative inline-flex h-4 w-4 items-center justify-center">
+            <span className="absolute h-[1px] w-4 rotate-45 bg-zinc-400/30" />
+            <span className="absolute h-[1px] w-4 -rotate-45 bg-zinc-400/30" />
+          </span>{" "}
+          Минулі дні
         </span>
       </div>
     </div>

@@ -93,8 +93,7 @@ export async function POST(req: Request) {
     },
   });
 
-  await recalculateWorkoutAutoTag(workout.id);
-  await recalculateUserLiftRecords(user.id);
+  await Promise.all([recalculateWorkoutAutoTag(workout.id), recalculateUserLiftRecords(user.id)]);
 
   return NextResponse.json({ workout });
 }

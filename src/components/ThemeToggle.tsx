@@ -6,11 +6,11 @@ import type { ThemePreference } from "@/lib/theme";
 const segBase =
   "relative flex touch-manipulation items-center justify-center rounded-lg font-bold uppercase tracking-wider transition";
 
-const segNormal = `${segBase} min-h-11 flex-1 px-2 text-[10px] sm:px-2.5 sm:text-[11px]`;
+const segNormal = `${segBase} min-h-11 flex-1 px-2 text-xs sm:px-2.5 sm:text-[13px]`;
 
-const segCompact = `${segBase} min-h-10 flex-1 px-1.5 text-[9px] sm:min-h-11 sm:px-2 sm:text-[10px]`;
+const segCompact = `${segBase} min-h-10 flex-1 px-1.5 text-xs sm:min-h-11 sm:px-2 sm:text-[13px]`;
 
-const segNav = `${segBase} h-full min-h-0 min-w-0 flex-1 rounded-md px-0.5 text-[9px] max-md:py-0 md:h-auto md:min-h-9 md:flex-initial md:px-2 md:text-[10px]`;
+const segNav = `${segBase} h-full min-h-0 min-w-0 flex-1 rounded-md px-0.5 text-xs max-md:py-0 md:h-auto md:min-h-9 md:flex-initial md:px-2 md:text-[13px]`;
 
 function SunIcon({ className }: { className?: string }) {
   return (

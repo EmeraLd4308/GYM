@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
-import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+import { recalculateUserLiftRecordForLift, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+
+export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
 
 const patchSchema = z.object({
   weightKg: z.number().optional(),
@@ -15,20 +18,21 @@ const patchSchema = z.object({
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id } = await ctx.params;
   const row = await prisma.exerciseSet.findFirst({
     where: { id },
     include: { workoutExercise: { include: { workout: true } } },
   });
   if (!row || row.workoutExercise.workout.userId !== user.id) {
-    return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
+    return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   try {
     const json = await req.json();
     const parsed = patchSchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
+      return NextResponse.json({ error: "Некоректні дані." }, { status: 400, headers: noStoreHeaders });
     }
     const d = parsed.data;
     const nextWeight = d.weightKg !== undefined ? d.weightKg : Number(row.weightKg);
@@ -56,27 +60,35 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         rpe: rpeVal != null ? new Prisma.Decimal(rpeVal) : null,
       },
     });
-    await recalculateWorkoutAutoTag(row.workoutExercise.workout.id);
-    await recalculateUserLiftRecords(user.id);
-    return NextResponse.json({ set });
+    await Promise.all([
+      recalculateWorkoutAutoTag(row.workoutExercise.workout.id),
+      recalculateUserLiftRecordForLift(user.id, row.workoutExercise.baseLift),
+    ]);
+    return NextResponse.json({ set }, { headers: noStoreHeaders });
   } catch {
-    return NextResponse.json({ error: "Не вдалося оновити." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Не вдалося оновити." },
+      { status: 500, headers: noStoreHeaders },
+    );
   }
 }
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id } = await ctx.params;
   const row = await prisma.exerciseSet.findFirst({
     where: { id },
     include: { workoutExercise: { include: { workout: true } } },
   });
   if (!row || row.workoutExercise.workout.userId !== user.id) {
-    return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
+    return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   await prisma.exerciseSet.delete({ where: { id } });
-  await recalculateWorkoutAutoTag(row.workoutExercise.workout.id);
-  await recalculateUserLiftRecords(user.id);
-  return NextResponse.json({ ok: true });
+  await Promise.all([
+    recalculateWorkoutAutoTag(row.workoutExercise.workout.id),
+    recalculateUserLiftRecordForLift(user.id, row.workoutExercise.baseLift),
+  ]);
+  return NextResponse.json({ ok: true }, { headers: noStoreHeaders });
 }

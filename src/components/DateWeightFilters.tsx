@@ -7,7 +7,7 @@ const input =
   "mt-1.5 w-full rounded-xl border border-white/[0.1] bg-zinc-950/80 px-3 py-2.5 text-sm text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-zinc-600 focus:border-[#e31e24]/45 focus:ring-2 focus:ring-[#e31e24]/12";
 
 const presetBtn =
-  "touch-manipulation rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-400 transition hover:border-[#e31e24]/30 hover:bg-[#e31e24]/10 hover:text-zinc-100 active:scale-[0.98]";
+  "touch-manipulation rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[13px] font-semibold text-zinc-400 transition hover:border-[#e31e24]/30 hover:bg-[#e31e24]/10 hover:text-zinc-100 active:scale-[0.98]";
 
 function toIsoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -132,10 +132,13 @@ export function DateWeightFilters({
       <div className="space-y-6">
         {titleSearch ? (
           <div>
-            <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+            <label
+              htmlFor={`${pf}search`}
+              className="font-display text-xs font-bold uppercase tracking-[0.2em] text-zinc-500"
+            >
               {titleSearch.label}
-            </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+            </label>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">
               За назвою тренування або назвою вправи. Натисни «Застосувати», щоб оновити список.
             </p>
             <input
@@ -153,10 +156,13 @@ export function DateWeightFilters({
 
         {tagFilter ? (
           <div>
-            <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+            <label
+              htmlFor={`${pf}tag`}
+              className="font-display text-xs font-bold uppercase tracking-[0.2em] text-zinc-500"
+            >
               {tagFilter.label}
-            </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+            </label>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-600">
               Тег визначається автоматично за середнім RPE у тренуванні.
             </p>
             <select
@@ -176,7 +182,7 @@ export function DateWeightFilters({
         ) : null}
 
         <div>
-          <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-[#e31e24]/85">
+          <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-[#e31e24]/85">
             Період
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -196,7 +202,7 @@ export function DateWeightFilters({
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label
-                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 htmlFor={`${pf}from`}
               >
                 Від
@@ -211,7 +217,7 @@ export function DateWeightFilters({
             </div>
             <div>
               <label
-                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 htmlFor={`${pf}to`}
               >
                 До
@@ -228,10 +234,10 @@ export function DateWeightFilters({
         </div>
 
         <div className="border-t border-white/[0.06] pt-6">
-          <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+          <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
             Вага штанги (кг)
           </p>
-          <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+          <p className="mt-1 text-xs leading-relaxed text-zinc-600">
             {weightRangeHint ?? (
               <>
                 Робочі підходи базових вправ (без розминки). Якщо не впевнений — залиш поля
@@ -242,7 +248,7 @@ export function DateWeightFilters({
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label
-                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 htmlFor={`${pf}wmin`}
               >
                 Мінімум
@@ -261,7 +267,7 @@ export function DateWeightFilters({
             </div>
             <div>
               <label
-                className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+                className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 htmlFor={`${pf}wmax`}
               >
                 Максимум
@@ -298,7 +304,7 @@ export function DateWeightFilters({
               Усе скинути
             </button>
           </div>
-          <p className="text-[11px] text-zinc-600 sm:max-w-[14rem] sm:text-right">
+          <p className="text-xs text-zinc-600 sm:max-w-[14rem] sm:text-right">
             Після змін натисни «Застосувати», інакше URL не оновиться.
           </p>
         </div>

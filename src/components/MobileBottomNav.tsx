@@ -154,7 +154,7 @@ export function MobileBottomNav() {
           >
             <Icon active={active} />
             <span
-              className={`max-w-full text-center text-[10px] leading-tight tracking-tight sm:text-[11px] ${
+              className={`max-w-full text-center text-xs leading-tight tracking-tight sm:text-[13px] ${
                 active ? "font-semibold text-[#e31e24]" : "font-medium text-zinc-500"
               }`}
             >

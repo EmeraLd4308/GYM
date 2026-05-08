@@ -21,9 +21,9 @@ export default async function ProtectedLayout({
         <AchievementAnnounceClient />
         <PageToolbar />
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1">
+          <main id="main-content" className="min-h-0 flex-1" role="main">
             <ContentFade>{children}</ContentFade>
-          </div>
+          </main>
           <footer className="shrink-0 pt-10">
             <AppCredit />
           </footer>

@@ -118,6 +118,7 @@ model TemplateExercise {
   baseLift   BaseLift        @default(NONE)
 
   @@index([templateId])
+  @@unique([templateId, sortOrder])
 }
 
 model Workout {
@@ -146,6 +147,7 @@ model WorkoutExercise {
   sets      ExerciseSet[]
 
   @@index([workoutId])
+  @@unique([workoutId, sortOrder])
 }
 
 model ExerciseSet {
@@ -159,6 +161,7 @@ model ExerciseSet {
   rpe                 Decimal?        @db.Decimal(6, 4)
 
   @@index([workoutExerciseId])
+  @@unique([workoutExerciseId, sortOrder])
 }
 
 model UserLiftRecord {

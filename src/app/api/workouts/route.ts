@@ -9,6 +9,9 @@ import { workoutListWhere } from "@/lib/workout-list-where";
 import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
 import { rateLimitJson } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
+
 const createSchema = z.object({
   templateId: z.string().cuid().optional(),
   title: z.string().trim().max(200).optional(),
@@ -18,7 +21,8 @@ const createSchema = z.object({
 
 export async function GET(req: Request) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
 
   const { searchParams } = new URL(req.url);
   const filters = parseStatsFiltersFromSearchParams(Object.fromEntries(searchParams.entries()));
@@ -45,12 +49,13 @@ export async function GET(req: Request) {
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  return NextResponse.json({ workouts, total, page, pageSize, totalPages });
+  return NextResponse.json({ workouts, total, page, pageSize, totalPages }, { headers: noStoreHeaders });
 }
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
 
   const limited = rateLimitJson(req, "workouts-create", 40, 60_000);
   if (limited) return limited;
@@ -59,7 +64,7 @@ export async function POST(req: Request) {
     const json = await req.json();
     const parsed = createSchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
+      return NextResponse.json({ error: "Некоректні дані." }, { status: 400, headers: noStoreHeaders });
     }
     const { templateId, title, date: dateRaw } = parsed.data;
 
@@ -68,7 +73,7 @@ export async function POST(req: Request) {
       try {
         workoutDate = parseWorkoutDateInput(dateRaw);
       } catch {
-        return NextResponse.json({ error: "Некоректна дата." }, { status: 400 });
+        return NextResponse.json({ error: "Некоректна дата." }, { status: 400, headers: noStoreHeaders });
       }
     }
 
@@ -78,7 +83,7 @@ export async function POST(req: Request) {
         include: { exercises: { orderBy: { sortOrder: "asc" } } },
       });
       if (!template) {
-        return NextResponse.json({ error: "Шаблон не знайдено." }, { status: 404 });
+        return NextResponse.json({ error: "Шаблон не знайдено." }, { status: 404, headers: noStoreHeaders });
       }
       const workout = await prisma.workout.create({
         data: {
@@ -98,7 +103,7 @@ export async function POST(req: Request) {
           exercises: { orderBy: { sortOrder: "asc" }, include: { sets: true } },
         },
       });
-      return NextResponse.json({ workout });
+      return NextResponse.json({ workout }, { headers: noStoreHeaders });
     }
 
     const workout = await prisma.workout.create({
@@ -111,8 +116,11 @@ export async function POST(req: Request) {
         exercises: { orderBy: { sortOrder: "asc" }, include: { sets: true } },
       },
     });
-    return NextResponse.json({ workout });
+    return NextResponse.json({ workout }, { headers: noStoreHeaders });
   } catch {
-    return NextResponse.json({ error: "Не вдалося створити тренування." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Не вдалося створити тренування." },
+      { status: 500, headers: noStoreHeaders },
+    );
   }
 }

@@ -47,6 +47,10 @@ export default async function StatsPage({
   const sp = await searchParams;
   const filters = parseStatsFiltersFromSearchParams(sp);
   const dateFilter = workoutWhereDateRange(filters);
+  const profileRow = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { glMaxBenchKg: true, glMaxSquatKg: true, glMaxDeadliftKg: true },
+  });
 
   const workouts = await prisma.workout.findMany({
     where: {
@@ -66,7 +70,9 @@ export default async function StatsPage({
   const profileMaxHistory = await getProfileMaxHistoryPoints(user.id);
 
   const rpeWorkouts = applyWeightFilterForVolume(workouts, filters.weightMin, filters.weightMax);
-  const profileMaxKg = profileMaxFromUser(user);
+  const profileMaxKg = profileMaxFromUser(
+    profileRow ?? { glMaxBenchKg: null, glMaxSquatKg: null, glMaxDeadliftKg: null },
+  );
   const rpeSeries = buildWeeklySbdRpeSeries(rpeWorkouts, profileMaxKg);
   const monthCmp = compareMonthVsPrevious(rpeSeries);
 
@@ -75,19 +81,19 @@ export default async function StatsPage({
       noTraining: !rpeWorkouts.some((w) =>
         w.exercises.some((ex) => ex.baseLift === "BENCH" && ex.sets.some((s) => !s.isWarmup)),
       ),
-      noProfileMax: !positiveKg(user.glMaxBenchKg),
+      noProfileMax: !positiveKg(profileRow?.glMaxBenchKg),
     },
     squat: {
       noTraining: !rpeWorkouts.some((w) =>
         w.exercises.some((ex) => ex.baseLift === "SQUAT" && ex.sets.some((s) => !s.isWarmup)),
       ),
-      noProfileMax: !positiveKg(user.glMaxSquatKg),
+      noProfileMax: !positiveKg(profileRow?.glMaxSquatKg),
     },
     deadlift: {
       noTraining: !rpeWorkouts.some((w) =>
         w.exercises.some((ex) => ex.baseLift === "DEADLIFT" && ex.sets.some((s) => !s.isWarmup)),
       ),
-      noProfileMax: !positiveKg(user.glMaxDeadliftKg),
+      noProfileMax: !positiveKg(profileRow?.glMaxDeadliftKg),
     },
   };
 

@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
-import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+import { recalculateUserLiftRecordForLift, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+
+export const dynamic = "force-dynamic";
+const noStoreHeaders = { "Cache-Control": "private, no-store" };
 
 const bodySchema = z.object({
   weightKg: z.number(),
@@ -14,20 +17,24 @@ const bodySchema = z.object({
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Потрібен вхід." }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
   const { id: exerciseId } = await ctx.params;
   const exercise = await prisma.workoutExercise.findFirst({
     where: { id: exerciseId },
     include: { workout: true, sets: true },
   });
   if (!exercise || exercise.workout.userId !== user.id) {
-    return NextResponse.json({ error: "Не знайдено." }, { status: 404 });
+    return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   try {
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Некоректні дані підходу." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Некоректні дані підходу." },
+        { status: 400, headers: noStoreHeaders },
+      );
     }
     const maxOrder = exercise.sets.reduce((m, s) => Math.max(m, s.sortOrder), -1);
     const isWarmup = parsed.data.isWarmup ?? false;
@@ -53,10 +60,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         ...(rpeVal != null ? { rpe: new Prisma.Decimal(rpeVal) } : {}),
       },
     });
-    await recalculateWorkoutAutoTag(exercise.workout.id);
-    await recalculateUserLiftRecords(user.id);
-    return NextResponse.json({ set });
+    await Promise.all([
+      recalculateWorkoutAutoTag(exercise.workout.id),
+      recalculateUserLiftRecordForLift(user.id, exercise.baseLift),
+    ]);
+    return NextResponse.json({ set }, { headers: noStoreHeaders });
   } catch {
-    return NextResponse.json({ error: "Не вдалося зберегти підхід." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Не вдалося зберегти підхід." },
+      { status: 500, headers: noStoreHeaders },
+    );
   }
 }
