@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { BaseLift } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
 
 const bodySchema = z.object({
   name: z.string().trim().min(1).max(200),

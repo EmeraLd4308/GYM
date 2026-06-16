@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { AVATAR_IDS } from "@/lib/avatars";
-import { normalizeLogin } from "@/lib/login-normalize";
-import { maxTripleChanged, recordProfileSbdMaxSnapshot } from "@/lib/profile-max-history";
-import { rateLimitJson } from "@/lib/rate-limit";
-import { buildProfileApiPayload, normalizePinnedForUser } from "@/lib/profile-response";
-import { syncUserAchievements } from "@/lib/achievements";
-import { recalculateUserDerivedMetricsFromProfile } from "@/lib/lift-records";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { AVATAR_IDS } from "@/features/profile/lib/avatars";
+import { normalizeLogin } from "@/shared/lib/login-normalize";
+import { maxTripleChanged, recordProfileSbdMaxSnapshot } from "@/features/stats/lib/profile-max-history";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
+import { buildProfileApiPayload, normalizePinnedForUser } from "@/features/profile/lib/profile-response";
+import { syncUserAchievements } from "@/features/profile/lib/achievements";
+import { recalculateUserDerivedMetricsFromProfile } from "@/features/workouts/lib/lift-records";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };
@@ -46,7 +47,11 @@ export async function GET() {
   const user = await getSessionUser();
   if (!user)
     return NextResponse.json({ error: "Потрібен вхід." }, { status: 401, headers: noStoreHeaders });
-  await syncUserAchievements(user.id);
+  after(() => {
+    void syncUserAchievements(user.id).catch((error) => {
+      console.error("[profile-achievements-sync]", error);
+    });
+  });
   const profile = await buildProfileApiPayload(user.id);
   if (!profile) return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   return NextResponse.json({ profile }, { headers: noStoreHeaders });
@@ -218,7 +223,11 @@ export async function PATCH(req: Request) {
         glMaxBenchKg: afterUpdate.glMaxBenchKg,
         glMaxDeadliftKg: afterUpdate.glMaxDeadliftKg,
       });
-      await recalculateUserDerivedMetricsFromProfile(user.id);
+      after(() => {
+        void recalculateUserDerivedMetricsFromProfile(user.id).catch((error) => {
+          console.error("[profile-metrics-recalc]", error);
+        });
+      });
     }
 
     await syncUserAchievements(user.id);

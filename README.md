@@ -98,15 +98,16 @@ npm run dev
 ## Архітектура
 
 ```text
-src/app/
-  (protected)/              # захищені сторінки: dashboard/workouts/stats/calendar/profile/templates
-  api/                      # route handlers
-src/components/             # UI-компоненти
-src/lib/                    # бізнес-логіка, auth, RPE, теги, фільтри, GL
+src/
+  app/                      # Next.js: сторінки + api/
+  features/                 # Домени: auth, workouts, templates, stats, calendar, profile, dashboard
+  shared/                   # lib, ui, shell, filters
 prisma/
   schema.prisma
   migrations/
 ```
+
+Детальний опис, правила імпортів і залежностей: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 Ключове:
 - Авторизація: cookie-сесія (`gym_session`) + таблиця `Session`

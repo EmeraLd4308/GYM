@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { applyOrderedSortOrderUpdates } from "@/shared/lib/sort-order-update";
 
 export const dynamic = "force-dynamic";
 
@@ -43,13 +44,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return NextResponse.json({ error: "Список вправ має збігатися з поточним." }, { status: 400 });
   }
 
-  await prisma.$transaction(
-    orderedIds.map((exerciseId, index) =>
-      prisma.workoutExercise.update({
-        where: { id: exerciseId },
-        data: { sortOrder: index },
-      }),
-    ),
+  await applyOrderedSortOrderUpdates(orderedIds, (exerciseId, sortOrder) =>
+    prisma.workoutExercise.update({
+      where: { id: exerciseId },
+      data: { sortOrder },
+    }),
   );
 
   return NextResponse.json({ ok: true });

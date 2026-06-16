@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { TemplateAuthorByline } from "@/components/TemplateAuthorByline";
-import { TemplateEditor } from "@/components/TemplateEditor";
-import { baseLiftLabel } from "@/lib/base-lift";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { TemplateAuthorByline } from "@/features/templates/components/TemplateAuthorByline";
+import { TemplateEditor } from "@/features/templates/components/TemplateEditor";
+import { baseLiftLabel } from "@/features/workouts/lib/base-lift";
 export default async function EditTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user) return null;

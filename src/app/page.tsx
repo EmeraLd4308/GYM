@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/lib/auth";
-import { AppCredit } from "@/components/AppCredit";
-import { AuthForm } from "@/components/AuthForm";
-import { LoginToast } from "@/components/LoginToast";
+import { getSessionUser } from "@/shared/lib/auth";
+import { AppCredit } from "@/shared/shell/AppCredit";
+import { AuthForm } from "@/features/auth/components/AuthForm";
+import { LoginToast } from "@/shared/shell/LoginToast";
 
 export default async function Home() {
   const user = await getSessionUser();

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { buildWeeklySbdRpeSeries } from "@/lib/weekly-rpe";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { buildWeeklySbdRpeSeries } from "@/features/stats/lib/weekly-rpe";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };

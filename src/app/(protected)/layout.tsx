@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/lib/auth";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Nav } from "@/components/Nav";
-import { PageToolbar } from "@/components/PageToolbar";
-import { ContentFade } from "@/components/ContentFade";
-import { AchievementAnnounceClient } from "@/components/AchievementAnnounceClient";
-import { AppCredit } from "@/components/AppCredit";
+import { getSessionUser } from "@/shared/lib/auth";
+import { MobileBottomNav } from "@/shared/shell/MobileBottomNav";
+import { Nav } from "@/shared/shell/Nav";
+import { PageToolbar } from "@/shared/shell/PageToolbar";
+import { ContentFade } from "@/shared/ui/ContentFade";
+import { AchievementAnnounceClient } from "@/features/profile/components/AchievementAnnounceClient";
+import { AppCredit } from "@/shared/shell/AppCredit";
 
 export default async function ProtectedLayout({
   children,

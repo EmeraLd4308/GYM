@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
-import { recalculateUserLiftRecordForLift, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/features/workouts/lib/derive-set-rpe";
+import { scheduleWorkoutMetricsRefresh } from "@/shared/lib/schedule-metrics-refresh";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };
@@ -60,10 +60,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         rpe: rpeVal != null ? new Prisma.Decimal(rpeVal) : null,
       },
     });
-    await Promise.all([
-      recalculateWorkoutAutoTag(row.workoutExercise.workout.id),
-      recalculateUserLiftRecordForLift(user.id, row.workoutExercise.baseLift),
-    ]);
+    scheduleWorkoutMetricsRefresh(
+      user.id,
+      row.workoutExercise.workout.id,
+      row.workoutExercise.baseLift,
+    );
     return NextResponse.json({ set }, { headers: noStoreHeaders });
   } catch {
     return NextResponse.json(
@@ -86,9 +87,10 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   await prisma.exerciseSet.delete({ where: { id } });
-  await Promise.all([
-    recalculateWorkoutAutoTag(row.workoutExercise.workout.id),
-    recalculateUserLiftRecordForLift(user.id, row.workoutExercise.baseLift),
-  ]);
+  scheduleWorkoutMetricsRefresh(
+    user.id,
+    row.workoutExercise.workout.id,
+    row.workoutExercise.baseLift,
+  );
   return NextResponse.json({ ok: true }, { headers: noStoreHeaders });
 }

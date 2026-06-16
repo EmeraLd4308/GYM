@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth";
-import { rateLimitJson } from "@/lib/rate-limit";
+import { getSessionUser } from "@/shared/lib/auth";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
 
 export async function GET(req: Request) {
   const limited = rateLimitJson(req, "auth-me", 200, 60_000);

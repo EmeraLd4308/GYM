@@ -4,9 +4,9 @@ import {
   deleteSessionInDbForCookieToken,
   getClearCookieOptionsForRequest,
   SESSION_COOKIE,
-} from "@/lib/auth";
-import { redirectUrl } from "@/lib/request-origin";
-import { takeRateToken, clientIpFromRequest } from "@/lib/rate-limit";
+} from "@/shared/lib/auth";
+import { redirectUrl } from "@/shared/lib/request-origin";
+import { takeRateToken, clientIpFromRequest } from "@/shared/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 

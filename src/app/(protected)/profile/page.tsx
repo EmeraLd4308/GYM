@@ -1,5 +1,5 @@
-import { getSessionUser } from "@/lib/auth";
-import { ProfileClient } from "@/components/ProfileClient";
+import { getSessionUser } from "@/shared/lib/auth";
+import { ProfileClient } from "@/features/profile/components/ProfileClient";
 
 export default async function ProfilePage() {
   const user = await getSessionUser();

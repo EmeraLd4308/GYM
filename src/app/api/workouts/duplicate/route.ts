@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { BaseLift } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { parseWorkoutDateInput } from "@/lib/date-local";
-import { rateLimitJson } from "@/lib/rate-limit";
-import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { parseWorkoutDateInput } from "@/shared/lib/date-local";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
+import { recalculateUserLiftRecords, recalculateWorkoutAutoTag } from "@/features/workouts/lib/lift-records";
 
 export const dynamic = "force-dynamic";
 

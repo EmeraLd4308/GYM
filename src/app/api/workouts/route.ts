@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { BaseLift } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { parseWorkoutDateInput } from "@/lib/date-local";
-import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
-import { workoutListWhere } from "@/lib/workout-list-where";
-import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
-import { rateLimitJson } from "@/lib/rate-limit";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { parseWorkoutDateInput } from "@/shared/lib/date-local";
+import { parseStatsFiltersFromSearchParams } from "@/features/stats/lib/stats-filters";
+import { workoutListWhere } from "@/features/workouts/lib/workout-list-where";
+import { parseWorkoutListPageSize } from "@/features/workouts/lib/workout-list-page-size";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };

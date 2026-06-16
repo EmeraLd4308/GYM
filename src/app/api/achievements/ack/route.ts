@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/auth";
-import { acknowledgeAchievements } from "@/lib/achievements";
-import { rateLimitJson } from "@/lib/rate-limit";
+import { getSessionUser } from "@/shared/lib/auth";
+import { acknowledgeAchievements } from "@/features/profile/lib/achievements";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
 
 const bodySchema = z.object({
   ids: z.array(z.string().max(80)).max(32),

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { achievementTitleUk, syncUserAchievements } from "@/lib/achievements";
-import { rateLimitJson } from "@/lib/rate-limit";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { achievementTitleUk, syncUserAchievements } from "@/features/profile/lib/achievements";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
 
 export async function GET(req: Request) {
   const limited = rateLimitJson(req, "achievements-pending", 120, 60_000);

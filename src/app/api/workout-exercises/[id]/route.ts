@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import type { BaseLift } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
-import { recalculateUserLiftRecordForLift, recalculateWorkoutAutoTag } from "@/lib/lift-records";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { deriveSetRpe, sbdMaxKgFromUserRow } from "@/features/workouts/lib/derive-set-rpe";
+import { scheduleWorkoutMetricsRefresh } from "@/shared/lib/schedule-metrics-refresh";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };
@@ -65,13 +65,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           });
         }),
       );
-      await Promise.all([
-        recalculateWorkoutAutoTag(updated.workout.id),
-        recalculateUserLiftRecordForLift(user.id, exercise.baseLift),
-        ...(updated.baseLift !== exercise.baseLift
-          ? [recalculateUserLiftRecordForLift(user.id, updated.baseLift)]
-          : []),
-      ]);
+      scheduleWorkoutMetricsRefresh(
+        user.id,
+        updated.workout.id,
+        exercise.baseLift,
+        updated.baseLift !== exercise.baseLift ? [updated.baseLift] : [],
+      );
     }
     const nextExercise = await prisma.workoutExercise.findFirst({
       where: { id },
@@ -99,9 +98,6 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   await prisma.workoutExercise.delete({ where: { id } });
-  await Promise.all([
-    recalculateWorkoutAutoTag(exercise.workout.id),
-    recalculateUserLiftRecordForLift(user.id, exercise.baseLift),
-  ]);
+  scheduleWorkoutMetricsRefresh(user.id, exercise.workout.id, exercise.baseLift);
   return NextResponse.json({ ok: true }, { headers: noStoreHeaders });
 }

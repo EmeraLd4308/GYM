@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { parseWorkoutDateInput } from "@/lib/date-local";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { parseWorkoutDateInput } from "@/shared/lib/date-local";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };
@@ -61,14 +61,22 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(nextDate !== undefined ? { date: nextDate } : {}),
         ...(notes !== undefined ? { notes } : {}),
       },
-      include: {
-        exercises: {
-          orderBy: { sortOrder: "asc" },
-          include: { sets: { orderBy: { sortOrder: "asc" } } },
-        },
+      select: {
+        id: true,
+        title: true,
+        date: true,
+        notes: true,
       },
     });
-    return NextResponse.json({ workout }, { headers: noStoreHeaders });
+    return NextResponse.json(
+      {
+        workout: {
+          ...workout,
+          date: workout.date.toISOString(),
+        },
+      },
+      { headers: noStoreHeaders },
+    );
   } catch {
     return NextResponse.json(
       { error: "Не вдалося оновити." },

@@ -9,7 +9,7 @@ const devLanOrigins =
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["recharts", "date-fns"],
+    optimizePackageImports: ["recharts", "date-fns", "zod"],
   },
   serverExternalPackages: ["@prisma/client", "prisma"],
   ...(devLanOrigins.length > 0 ? { allowedDevOrigins: devLanOrigins } : {}),

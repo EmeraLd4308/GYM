@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { createSessionRecord, getCookieOptionsForRequest, SESSION_COOKIE } from "@/lib/auth";
-import { normalizeLogin } from "@/lib/login-utils";
-import { rateLimitJson } from "@/lib/rate-limit";
+import { rateLimitJson } from "@/shared/lib/rate-limit";
+import { enterUser, parseLoginField } from "@/features/auth/server/enter-user";
+import { jsonAuthError, jsonWithSession } from "@/features/auth/server/session-response";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +9,7 @@ const bodySchema = z.object({
   login: z.string().trim().min(1),
 });
 
-const noStore = { "Cache-Control": "no-store, no-cache, must-revalidate" };
-
+/** JSON API: login existing user only. */
 export async function POST(req: Request) {
   const limited = rateLimitJson(req, "auth-login", 40, 60_000);
   if (limited) return limited;
@@ -21,24 +18,22 @@ export async function POST(req: Request) {
     const json = await req.json();
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Вкажіть логін." }, { status: 400, headers: noStore });
+      return jsonAuthError("Вкажіть логін.", 400);
     }
-    const login = normalizeLogin(parsed.data.login);
-    const user = await prisma.user.findUnique({ where: { login } });
-    if (!user) {
-      return NextResponse.json(
-        { error: "Користувача з таким логіном не знайдено." },
-        { status: 404, headers: noStore },
-      );
+
+    const field = parseLoginField(parsed.data.login);
+    if (!("login" in field)) {
+      return jsonAuthError(field.error, field.httpStatus ?? 400);
     }
-    const token = await createSessionRecord(user.id);
-    const res = NextResponse.json(
-      { ok: true, token, user: { id: user.id, login: user.login } },
-      { headers: noStore },
-    );
-    res.cookies.set(SESSION_COOKIE, token, getCookieOptionsForRequest(req));
-    return res;
+    const { login } = field;
+
+    const result = await enterUser(login, "login-only");
+    if (!result.ok) {
+      return jsonAuthError(result.error, result.httpStatus ?? 404);
+    }
+
+    return jsonWithSession(req, { id: result.userId, login: result.login });
   } catch {
-    return NextResponse.json({ error: "Помилка сервера." }, { status: 500, headers: noStore });
+    return jsonAuthError("Помилка сервера.", 500);
   }
 }

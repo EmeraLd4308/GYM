@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Rubik } from "next/font/google";
 import Script from "next/script";
-import { Providers } from "@/components/Providers";
-import { THEME_BOOT_SCRIPT } from "@/lib/theme";
+import { Providers } from "@/shared/shell/Providers";
+import { THEME_BOOT_SCRIPT } from "@/shared/lib/theme";
 import "./globals.css";
 
 const body = Inter({

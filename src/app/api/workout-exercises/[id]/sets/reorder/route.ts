@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/shared/lib/prisma";
+import { getSessionUser } from "@/shared/lib/auth";
+import { applyOrderedSortOrderUpdates } from "@/shared/lib/sort-order-update";
 
 const bodySchema = z.object({
   orderedIds: z.array(z.string().cuid()).min(1),
@@ -44,13 +45,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   }
 
-  await prisma.$transaction(
-    orderedIds.map((setId, index) =>
-      prisma.exerciseSet.update({
-        where: { id: setId },
-        data: { sortOrder: index },
-      }),
-    ),
+  await applyOrderedSortOrderUpdates(orderedIds, (setId, sortOrder) =>
+    prisma.exerciseSet.update({
+      where: { id: setId },
+      data: { sortOrder },
+    }),
   );
 
   return NextResponse.json({ ok: true });

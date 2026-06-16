@@ -1,22 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { parseStatsFiltersFromSearchParams } from "@/lib/stats-filters";
-import { workoutListWhere, workoutListQueryString } from "@/lib/workout-list-where";
-import { parseWorkoutListPageSize } from "@/lib/workout-list-page-size";
-import { EmptyStateCallout } from "@/components/EmptyStateCallout";
-import { WorkoutListFilters } from "@/components/WorkoutListFilters";
-import { WorkoutListPagination } from "@/components/WorkoutListPagination";
-import { workoutTagBadgeClass, workoutTagLabelUk, inferWorkoutTagFromExercises } from "@/lib/workout-tags";
-import { sbdMaxKgFromUserRow } from "@/lib/derive-set-rpe";
-import { recalculateAllWorkoutTagsForUser } from "@/lib/lift-records";
-const btnPrimary =
-  "inline-flex min-h-11 touch-manipulation items-center justify-center rounded-md bg-[#e31e24] px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-red-950/25 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#c41a21] hover:shadow-[0_12px_28px_-12px_rgba(0,0,0,0.48)] active:translate-y-0";
-const btnPrimaryLg =
-  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl bg-[#e31e24] px-5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-red-950/25 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#c41a21] hover:shadow-[0_14px_32px_-14px_rgba(0,0,0,0.5)] active:translate-y-0 active:scale-[0.98]";
-const btnGhost =
-  "inline-flex min-h-[48px] touch-manipulation items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 text-sm font-semibold text-zinc-200 transition-[transform,box-shadow,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)] active:translate-y-0 active:scale-[0.98]";
+import { getSessionUser } from "@/shared/lib/auth";
+import { parseStatsFiltersFromSearchParams } from "@/features/stats/lib/stats-filters";
+import { workoutListQueryString } from "@/features/workouts/lib/workout-list-where";
+import { parseWorkoutListPageSize } from "@/features/workouts/lib/workout-list-page-size";
+import { EmptyStateCallout } from "@/shared/ui/EmptyStateCallout";
+import { WorkoutListFilters } from "@/features/workouts/components/WorkoutListFilters";
+import { WorkoutListPagination } from "@/features/workouts/components/WorkoutListPagination";
+import { workoutTagBadgeClass, workoutTagLabelUk } from "@/features/workouts/lib/workout-tags";
+import { uiButtonPrimaryClass, uiButtonPrimaryLgClass } from "@/shared/ui/styles";
+import {
+  ensureWorkoutTagsScheduled,
+  getWorkoutsListPageData,
+} from "@/server/queries/workouts-list";
 
 function getParam(
   sp: Record<string, string | string[] | undefined>,
@@ -34,12 +30,7 @@ export default async function WorkoutsListPage({
   const user = await getSessionUser();
   if (!user) return null;
 
-  const missingTags = await prisma.workout.count({
-    where: { userId: user.id, autoTag: null },
-  });
-  if (missingTags > 0) {
-    await recalculateAllWorkoutTagsForUser(user.id);
-  }
+  await ensureWorkoutTagsScheduled(user.id);
 
   const sp = await searchParams;
   const filters = parseStatsFiltersFromSearchParams(
@@ -48,67 +39,19 @@ export default async function WorkoutsListPage({
   const page = Math.max(1, parseInt(getParam(sp, "page") ?? "1", 10) || 1);
   const pageSize = parseWorkoutListPageSize(getParam(sp, "pageSize"));
 
-  const where = workoutListWhere(user.id, filters);
-  const total = await prisma.workout.count({ where });
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(Math.max(1, page), totalPages);
+  const {
+    workoutsWithTag,
+    total,
+    totalPages,
+    safePage,
+    filteredOutAll,
+    pagePastEnd,
+  } = await getWorkoutsListPageData(user.id, filters, page, pageSize);
+
   if (page !== safePage) {
     const qs = workoutListQueryString(filters, safePage, pageSize);
     redirect(qs ? `/workouts?${qs}` : "/workouts");
   }
-
-  const [profileMax, workouts] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: user.id },
-      select: { glMaxSquatKg: true, glMaxBenchKg: true, glMaxDeadliftKg: true },
-    }),
-    prisma.workout.findMany({
-      where,
-      orderBy: { date: "desc" },
-      skip: (safePage - 1) * pageSize,
-      take: pageSize,
-      include: {
-        exercises: {
-          orderBy: { sortOrder: "asc" },
-          select: {
-            baseLift: true,
-            _count: { select: { sets: true } },
-            sets: {
-              select: { weightKg: true, reps: true, isWarmup: true },
-            },
-          },
-        },
-      },
-    }),
-  ]);
-  const maxes = sbdMaxKgFromUserRow(profileMax);
-  const workoutsWithTag = workouts.map((w) => {
-    const inferred = inferWorkoutTagFromExercises(
-      w.exercises.map((ex) => ({
-        baseLift: ex.baseLift,
-        sets: ex.sets,
-      })),
-      maxes,
-    );
-    return { ...w, displayTag: inferred ?? w.autoTag };
-  });
-
-  const hasFilters = Boolean(
-    filters.dateFrom?.trim() ||
-    filters.dateTo?.trim() ||
-    filters.weightMin !== undefined ||
-    filters.weightMax !== undefined ||
-    filters.search?.trim() ||
-    filters.tag,
-  );
-
-  let anyWorkoutsUnfiltered = 0;
-  if (workouts.length === 0) {
-    anyWorkoutsUnfiltered = await prisma.workout.count({ where: { userId: user.id } });
-  }
-
-  const filteredOutAll = workouts.length === 0 && total === 0 && anyWorkoutsUnfiltered > 0;
-  const pagePastEnd = workouts.length === 0 && total > 0;
 
   return (
     <div className="sbd-stagger-children space-y-8">
@@ -118,7 +61,7 @@ export default async function WorkoutsListPage({
             Усі тренування
           </h1>
         </div>
-        <Link href="/workouts/new" className={btnPrimary}>
+        <Link href="/workouts/new" className={uiButtonPrimaryClass}>
           Нове тренування
         </Link>
       </div>
@@ -144,10 +87,9 @@ export default async function WorkoutsListPage({
           {pagePastEnd ? (
             <EmptyStateCallout
               title="Ця сторінка списку порожня"
-              description="Номер сторінки був занадто великий — повернись на початок або обери сторінку з пагінації внизу, коли зʼявляться записи."
-              nextSteps={["Почни з першої сторінки — там завжди актуальні тренування."]}
+              description="Повернись на початок списку."
             >
-              <Link href="/workouts" className={btnPrimaryLg}>
+              <Link href="/workouts" className={uiButtonPrimaryLgClass}>
                 На початок списку
               </Link>
               <Link
@@ -160,13 +102,9 @@ export default async function WorkoutsListPage({
           ) : filteredOutAll ? (
             <EmptyStateCallout
               title="За цими фільтрами нічого не знайдено"
-              description="Записи є, але жоден не підходить під обрані дату, пошук, вагу чи тег. Скинь фільтри — і одразу побачиш увесь журнал."
-              nextSteps={[
-                "Відкрий «Фільтри тренувань» вище й прибери зайві умови.",
-                "Або натисни скинути — повернеться повний список.",
-              ]}
+              description="Спробуй скинути фільтри."
             >
-              <Link href="/workouts" className={btnPrimaryLg}>
+              <Link href="/workouts" className={uiButtonPrimaryLgClass}>
                 Скинути фільтри
               </Link>
               <Link
@@ -179,20 +117,16 @@ export default async function WorkoutsListPage({
           ) : (
             <EmptyStateCallout
               title="У журналі ще нічого немає"
-              description="Перший запис займає хвилину: дата, вправи, підходи. Після цього зʼявляться календар, графіки та RPE — точніші, якщо вказати максимуми в профілі."
-              nextSteps={[
-                "Натисни «Нове тренування» і заповни хоча б одну вправу.",
-                "За бажанням: профіль → максимуми SBD для кращих оцінок RPE.",
-              ]}
+              description="Створи перше тренування — додай вправи та підходи."
             >
-              <Link href="/workouts/new" className={btnPrimaryLg}>
+              <Link href="/workouts/new" className={uiButtonPrimaryLgClass}>
                 Нове тренування
               </Link>
               <Link
                 href="/profile"
                 className="text-center text-sm font-medium text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline sm:text-left"
               >
-                Максимуми в профілі (для RPE)
+                Максимуми в профілі
               </Link>
             </EmptyStateCallout>
           )}

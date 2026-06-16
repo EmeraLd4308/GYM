@@ -4,8 +4,8 @@ test.describe("реєстрація та нове тренування", () => {
   test("користувач реєструється і створює порожнє тренування", async ({ page }) => {
     const login = `pw${Date.now()}`;
     await page.goto("/");
-    await page.getByLabel("Логін").fill(login);
-    await page.getByRole("button", { name: "Реєстрація" }).click();
+    await page.getByLabel("Твій нік").fill(login);
+    await page.getByRole("button", { name: "Увійти" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByRole("heading", { name: "Головна" })).toBeVisible();
 

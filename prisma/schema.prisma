@@ -135,6 +135,7 @@ model Workout {
 
   @@index([userId])
   @@index([date])
+  @@index([userId, date])
 }
 
 model WorkoutExercise {
