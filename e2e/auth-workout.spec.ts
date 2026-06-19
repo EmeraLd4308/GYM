@@ -1,18 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { createEmptyWorkout, login } from "./helpers";
 
 test.describe("реєстрація та нове тренування", () => {
   test("користувач реєструється і створює порожнє тренування", async ({ page }) => {
-    const login = `pw${Date.now()}`;
-    await page.goto("/");
-    await page.getByLabel("Твій нік").fill(login);
-    await page.getByRole("button", { name: "Увійти" }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole("heading", { name: "Головна" })).toBeVisible();
-
-    await page.goto("/workouts/new");
-    await page.getByRole("button", { name: "Створити" }).click();
-    await expect(page).toHaveURL(/\/workouts\/[^/]+$/);
-    await expect(page.getByRole("button", { name: "Видалити" })).toBeVisible({ timeout: 20_000 });
+    await login(page);
+    await createEmptyWorkout(page);
+    await expect(page.getByRole("button", { name: "Видалити" })).toBeVisible();
     await expect(page.getByLabel("Назва тренування")).toBeVisible();
   });
 });
