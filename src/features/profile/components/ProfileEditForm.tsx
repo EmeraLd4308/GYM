@@ -6,6 +6,7 @@ import type { ProfileController } from "@/features/profile/lib/use-profile";
 import {
   profileAvatarPickBtnClass,
   profileFieldClass,
+  profileNumFieldClass,
   profilePinBtnClass,
   profileSegBtnClass,
 } from "@/features/profile/lib/profile-styles";
@@ -113,7 +114,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="gl-bw"
-                className={profileFieldClass}
+                className={profileNumFieldClass}
                 inputMode="decimal"
                 value={bw}
                 onChange={(e) => setBw(e.target.value)}
@@ -130,7 +131,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="profile-login"
-                className={`${profileFieldClass} max-w-full sm:max-w-md`}
+                className={`${profileFieldClass} max-w-full`}
                 value={loginEdit}
                 onChange={(e) => setLoginEdit(e.target.value.slice(0, 40))}
                 autoComplete="username"
@@ -151,7 +152,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="gl-sq"
-                className={profileFieldClass}
+                className={profileNumFieldClass}
                 inputMode="decimal"
                 value={sq}
                 onChange={(e) => setSq(e.target.value)}
@@ -168,7 +169,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="gl-bp"
-                className={profileFieldClass}
+                className={profileNumFieldClass}
                 inputMode="decimal"
                 value={bp}
                 onChange={(e) => setBp(e.target.value)}
@@ -185,7 +186,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="gl-dl"
-                className={profileFieldClass}
+                className={profileNumFieldClass}
                 inputMode="decimal"
                 value={dl}
                 onChange={(e) => setDl(e.target.value)}

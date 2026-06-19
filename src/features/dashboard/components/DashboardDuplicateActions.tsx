@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { todayDateInput } from "@/shared/lib/date-local";
 import { useToast } from "@/shared/shell/ToastProvider";
-import { uiButtonPrimaryClass, uiDateClass, uiFieldClass, uiLabelClass } from "@/shared/ui/styles";
+import { uiButtonPrimaryClass, uiBtnRowStackSmClass, uiDateClass, uiFieldFitClass, uiFormRowClass, uiLabelClass } from "@/shared/ui/styles";
 
 export function DashboardDuplicateActions({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
@@ -62,12 +62,10 @@ export function DashboardDuplicateActions({ embedded = false }: { embedded?: boo
         </span>
       </summary>
 
-      <div className="border-t border-[var(--sbd-border)] px-5 pb-5 pt-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className={uiFieldClass}>
-            <label className={uiLabelClass} htmlFor="dup-from">
-              Від (дата джерела)
-            </label>
+      <div className="border-t border-[var(--sbd-border)] px-4 pb-5 pt-4 sm:px-5">
+        <div className={uiFormRowClass}>
+          <label className={uiFieldFitClass} htmlFor="dup-from">
+            <span className={`${uiLabelClass} mb-1 block`}>Від (дата джерела)</span>
             <input
               id="dup-from"
               type="date"
@@ -75,11 +73,9 @@ export function DashboardDuplicateActions({ embedded = false }: { embedded?: boo
               value={sourceDay}
               onChange={(e) => setSourceDay(e.target.value)}
             />
-          </div>
-          <div className={uiFieldClass}>
-            <label className={uiLabelClass} htmlFor="dup-to">
-              На дату
-            </label>
+          </label>
+          <label className={uiFieldFitClass} htmlFor="dup-to">
+            <span className={`${uiLabelClass} mb-1 block`}>На дату</span>
             <input
               id="dup-to"
               type="date"
@@ -87,8 +83,8 @@ export function DashboardDuplicateActions({ embedded = false }: { embedded?: boo
               value={targetDay}
               onChange={(e) => setTargetDay(e.target.value)}
             />
-          </div>
-          <div className="flex items-end">
+          </label>
+          <div className={uiBtnRowStackSmClass}>
             <button type="button" className={uiButtonPrimaryClass} onClick={duplicateFromDayToDay}>
               Копіювати
             </button>

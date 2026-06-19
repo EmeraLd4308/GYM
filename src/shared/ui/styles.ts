@@ -1,5 +1,3 @@
-/** Shared UI class names — implemented in globals.css (design tokens). */
-
 export const uiLabelClass = "sbd-label";
 
 export const uiInputClass = "sbd-input sbd-input--sm";
@@ -11,9 +9,23 @@ export const uiInputInlineTitleClass =
 
 export const uiSelectClass = "sbd-input sbd-input--sm sbd-select";
 
-export const uiDateClass = "sbd-input sbd-input--sm sbd-date";
+export const uiDateClass = "sbd-input sbd-input--sm sbd-date sbd-input--fit-date";
 
-export const uiDateCompactClass = "sbd-input sbd-input--sm sbd-date sbd-input--date";
+export const uiInputNumClass = "sbd-input sbd-input--sm sbd-input--fit-num";
+
+export const uiSelectMdClass = "sbd-input sbd-input--sm sbd-select sbd-input--fit-select";
+
+export const uiFieldFitClass = "sbd-field sbd-field--fit";
+
+export const uiFormRowClass = "sbd-form-row";
+
+export const uiBtnRowClass = "sbd-btn-row";
+
+export const uiBtnRowStackSmClass = "sbd-btn-row sbd-btn-row--stack-sm";
+
+export const uiPresetGridClass = "sbd-preset-grid";
+
+export const uiFilterFieldsClass = "sbd-filter-fields";
 
 export const uiSearchClass = "sbd-input sbd-input--sm sbd-search";
 
@@ -40,6 +52,9 @@ export const uiButtonGhostSmClass =
   "sbd-btn sbd-btn--ghost min-h-11 items-center justify-center px-4 py-2 text-sm font-semibold";
 
 export const uiButtonAccentClass = "sbd-btn sbd-btn--accent";
+
+export const uiButtonAccentSmClass =
+  "sbd-btn sbd-btn--accent sbd-btn--accent-inline min-h-11 px-4 text-xs font-bold";
 
 export const uiButtonIconClass = "sbd-btn sbd-btn--icon";
 

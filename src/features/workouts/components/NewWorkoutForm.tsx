@@ -6,12 +6,13 @@ import { todayDateInput, tomorrowDateInput, yesterdayDateInput } from "@/shared/
 import { SbdLoadingPortal } from "@/shared/ui/SbdLoadingPortal";
 import { templateOptionLabel } from "@/features/templates/lib/template-author-label";
 import {
+  uiBtnRowClass,
   uiButtonPrimaryLgClass,
   uiChipClass,
   uiDateClass,
   uiInputClass,
   uiLabelClass,
-  uiSelectClass,
+  uiSelectMdClass,
 } from "@/shared/ui/styles";
 
 type Tpl = {
@@ -113,7 +114,7 @@ export function NewWorkoutForm({
         subMessage="Відкриваємо сторінку тренування…"
       />
       <section className="rounded-xl border border-white/[0.06] bg-black/20 p-4 sm:p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
             <span className={`${uiLabelClass} text-[var(--sbd-red)]/90`}>1</span>
             <h2
@@ -123,7 +124,7 @@ export function NewWorkoutForm({
               Дата
             </h2>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className={uiBtnRowClass}>
             <button
               type="button"
               className={`${chip} ${date === yesterday ? chipActive : ""}`}
@@ -170,7 +171,7 @@ export function NewWorkoutForm({
         </h2>
         <select
           id="tpl"
-          className={`${uiSelectClass} mt-3`}
+          className={`${uiSelectMdClass} mt-3`}
           aria-labelledby="new-wo-tpl-heading"
           value={templateId}
           onChange={(e) => setTemplateId(e.target.value)}
@@ -228,12 +229,12 @@ export function NewWorkoutForm({
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+      <div className={`flex flex-col gap-3 sm:flex-row sm:justify-end ${uiBtnRowClass}`}>
         <button
           type="button"
           disabled={loading}
           aria-busy={loading}
-          className={`${uiButtonPrimaryLgClass} w-full sm:w-auto sm:min-w-[200px]`}
+          className={`${uiButtonPrimaryLgClass} w-full sm:w-auto sm:min-w-[12rem]`}
           onClick={submit}
         >
           Створити тренування

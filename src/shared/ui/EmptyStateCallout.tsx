@@ -1,8 +1,5 @@
 import type { ReactNode } from "react";
 
-/**
- * Порожній стан: заголовок, пояснення, опційно кроки «що далі», дії ззовні (children).
- */
 export function EmptyStateCallout({
   title,
   description,

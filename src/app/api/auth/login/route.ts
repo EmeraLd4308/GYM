@@ -9,7 +9,6 @@ const bodySchema = z.object({
   login: z.string().trim().min(1),
 });
 
-/** JSON API: login existing user only. */
 export async function POST(req: Request) {
   const limited = rateLimitJson(req, "auth-login", 40, 60_000);
   if (limited) return limited;

@@ -10,7 +10,6 @@ const bodySchema = z.object({
   login: z.string().trim().min(2).max(40),
 });
 
-/** JSON API: register new user only. */
 export async function POST(req: Request) {
   const limited = rateLimitJson(req, "auth-register", 15, 60_000);
   if (limited) return limited;

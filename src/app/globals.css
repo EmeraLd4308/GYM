@@ -116,7 +116,6 @@ html[data-theme="light"] body {
   );
 }
 
-/* Slow-moving light layer — uses existing tokens only */
 .sbd-ambient {
   pointer-events: none;
   position: fixed;
@@ -971,7 +970,6 @@ html[data-theme="light"] .sbd-template-row:hover {
   background: linear-gradient(90deg, transparent, var(--sbd-red), transparent);
 }
 
-/* --- Unified controls --- */
 .sbd-label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -1035,9 +1033,118 @@ html[data-theme="light"] .sbd-template-row:hover {
   font-size: 0.875rem;
 }
 
-.sbd-input--date {
+.sbd-input--fit-date {
+  width: 11.75rem;
+  max-width: 100%;
+}
+
+.sbd-input--fit-num {
+  width: 7rem;
+  max-width: 100%;
+}
+
+.sbd-input--fit-select {
   width: 100%;
-  max-width: 11.75rem;
+  max-width: 20rem;
+}
+
+.sbd-field--fit {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.sbd-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+}
+
+.sbd-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sbd-btn-row > .sbd-btn {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.sbd-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.sbd-preset-grid > .sbd-btn {
+  width: 100%;
+  min-width: 0;
+}
+
+.sbd-filter-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (max-width: 639px) {
+  .sbd-form-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .sbd-form-row > .sbd-btn-row {
+    align-self: flex-start;
+  }
+
+  .sbd-form-row .sbd-field--fit,
+  .sbd-filter-fields .sbd-field--fit {
+    width: 100%;
+  }
+
+  .sbd-form-row .sbd-input--fit-date,
+  .sbd-form-row .sbd-input--fit-num,
+  .sbd-filter-fields .sbd-input--fit-date,
+  .sbd-filter-fields .sbd-input--fit-num {
+    width: 100%;
+    max-width: none;
+  }
+
+  .sbd-field .sbd-input--fit-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .sbd-btn-row--stack-sm {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .sbd-btn-row--stack-sm > .sbd-btn {
+    max-width: 100%;
+    text-wrap: pretty;
+  }
+}
+
+@media (min-width: 640px) {
+  .sbd-preset-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sbd-preset-grid > .sbd-btn {
+    width: auto;
+  }
+
+  .sbd-filter-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+  }
 }
 
 .sbd-input--inline-title {
@@ -1111,10 +1218,6 @@ html[data-theme="light"] .sbd-date {
 html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   filter: none;
   opacity: 0.55;
-}
-
-.sbd-search {
-  /* inherits min-height from --sm */
 }
 
 .sbd-search::-webkit-search-decoration,
@@ -1250,6 +1353,12 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
 .sbd-btn--accent:not(:disabled):hover {
   border-color: color-mix(in oklab, var(--sbd-red), transparent 36%);
   background: color-mix(in oklab, var(--sbd-red), transparent 80%);
+}
+
+.sbd-btn--accent-inline {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0.625rem 1rem;
 }
 
 .sbd-btn--icon {

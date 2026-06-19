@@ -16,11 +16,20 @@ import {
   type WorkoutConfirmState,
   type WorkoutPayload,
 } from "@/features/workouts/lib/workout-session-types";
+import { cacheWorkoutForOffline } from "@/features/workouts/lib/offline-workout-cache";
+import { getCachedWorkout } from "@/shared/lib/offline-workouts-db";
+
+type SessionOptions = {
+  readOnly?: boolean;
+  onSetMarkedDone?: () => void;
+};
 
 export function useWorkoutSession(
   workoutId: string,
   initialWorkout?: WorkoutPayload | null,
+  options: SessionOptions = {},
 ) {
+  const { readOnly = false, onSetMarkedDone } = options;
   const router = useRouter();
   const { error: toastError, success: toastSuccess } = useToast();
   const [workout, setWorkout] = useState<WorkoutPayload | null>(initialWorkout ?? null);
@@ -48,45 +57,77 @@ export function useWorkoutSession(
   const skipInitialLoadRef = useRef(initialWorkout != null);
   titleDraftRef.current = titleDraft;
 
-  const { isSetDone, setSetDone } = useWorkoutSetDone(workoutId);
+  const { isSetDone, setSetDone: persistSetDone } = useWorkoutSetDone(workoutId);
 
-  const load = useCallback(async () => {
-    const res = await fetch(`/api/workouts/${workoutId}`);
-    const data = await res.json();
-    if (!res.ok) {
-      setLoadError(data.error ?? "Не вдалося завантажити.");
-      return;
-    }
-    const w = data.workout;
+  const setSetDone = useCallback(
+    (setId: string, done: boolean) => {
+      if (readOnly) return;
+      persistSetDone(setId, done);
+      if (done) onSetMarkedDone?.();
+    },
+    [onSetMarkedDone, persistSetDone, readOnly],
+  );
+
+  const applyWorkoutPayload = useCallback((w: WorkoutPayload) => {
     setTitleDraft(w.title ?? "");
     savedTitleRef.current = w.title ?? null;
-    setWorkout({
-      id: w.id,
-      date: w.date,
-      title: w.title,
-      notes: w.notes ?? null,
-      exercises: w.exercises.map(
-        (ex: {
-          id: string;
-          sortOrder: number;
-          name: string;
-          baseLift: BaseLift;
-          sets: Array<{
+    setWorkout(w);
+    setLoadError(null);
+    void cacheWorkoutForOffline(w);
+  }, []);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/workouts/${workoutId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+          const cached = await getCachedWorkout(workoutId);
+          if (cached) {
+            applyWorkoutPayload(cached);
+            return;
+          }
+        }
+        setLoadError(data.error ?? "Не вдалося завантажити.");
+        return;
+      }
+      const w = data.workout;
+      applyWorkoutPayload({
+        id: w.id,
+        date: w.date,
+        title: w.title,
+        notes: w.notes ?? null,
+        exercises: w.exercises.map(
+          (ex: {
             id: string;
             sortOrder: number;
-            weightKg: unknown;
-            reps: number;
-            isWarmup: boolean;
-            rpe?: unknown;
-          }>;
-        }) => ({
-          ...ex,
-          sets: ex.sets.map(mapApiSet),
-        }),
-      ),
-    });
-    setLoadError(null);
-  }, [workoutId]);
+            name: string;
+            baseLift: BaseLift;
+            sets: Array<{
+              id: string;
+              sortOrder: number;
+              weightKg: unknown;
+              reps: number;
+              isWarmup: boolean;
+              rpe?: unknown;
+            }>;
+          }) => ({
+            ...ex,
+            sets: ex.sets.map(mapApiSet),
+          }),
+        ),
+      });
+    } catch {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        const cached = await getCachedWorkout(workoutId);
+        if (cached) {
+          applyWorkoutPayload(cached);
+          return;
+        }
+      }
+      setLoadError("Не вдалося завантажити.");
+    }
+  }, [applyWorkoutPayload, workoutId]);
 
   useEffect(() => {
     if (skipInitialLoadRef.current) {
@@ -95,6 +136,10 @@ export function useWorkoutSession(
     }
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (initialWorkout) void cacheWorkoutForOffline(initialWorkout);
+  }, [initialWorkout]);
 
   useEffect(() => {
     return () => {

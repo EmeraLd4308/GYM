@@ -9,7 +9,6 @@ import { redirectWithSession } from "@/features/auth/server/session-response";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Canonical browser login: find or create user, set session cookie, redirect. */
 export async function POST(req: Request) {
   const rl = takeRateToken(`auth-enter:${clientIpFromRequest(req)}`, 25, 60_000);
   if (!rl.ok) {

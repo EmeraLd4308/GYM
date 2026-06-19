@@ -5,6 +5,7 @@ import { Nav } from "@/shared/shell/Nav";
 import { PageToolbar } from "@/shared/shell/PageToolbar";
 import { ContentFade } from "@/shared/ui/ContentFade";
 import { AchievementAnnounceClient } from "@/features/profile/components/AchievementAnnounceClient";
+import { OfflineWeekProvider } from "@/features/workouts/components/OfflineWeekProvider";
 import { AppCredit } from "@/shared/shell/AppCredit";
 
 export default async function ProtectedLayout({
@@ -18,16 +19,18 @@ export default async function ProtectedLayout({
     <div className="flex min-h-dvh flex-col">
       <Nav login={user.login} avatarId={user.avatarId} nickname={user.nickname} />
       <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-6 md:max-w-6xl md:pb-8 md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] md:pt-8 xl:pl-[max(2rem,env(safe-area-inset-left))] xl:pr-[max(2rem,env(safe-area-inset-right))]">
-        <AchievementAnnounceClient />
-        <PageToolbar />
-        <div className="flex min-h-0 flex-1 flex-col">
-          <main id="main-content" className="min-h-0 flex-1" role="main">
-            <ContentFade>{children}</ContentFade>
-          </main>
-          <footer className="shrink-0 pt-10">
-            <AppCredit />
-          </footer>
-        </div>
+        <OfflineWeekProvider>
+          <AchievementAnnounceClient />
+          <PageToolbar />
+          <div className="flex min-h-0 flex-1 flex-col">
+            <main id="main-content" className="min-h-0 flex-1" role="main">
+              <ContentFade>{children}</ContentFade>
+            </main>
+            <footer className="shrink-0 pt-10">
+              <AppCredit />
+            </footer>
+          </div>
+        </OfflineWeekProvider>
       </div>
       <MobileBottomNav />
     </div>

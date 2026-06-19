@@ -2,7 +2,6 @@ import { after } from "next/server";
 import type { BaseLift } from "@prisma/client";
 import { recalculateUserLiftRecordForLift, recalculateWorkoutAutoTag } from "@/features/workouts/lib/lift-records";
 
-/** Run heavy lift/tag recalculations after the HTTP response is sent. */
 export function scheduleWorkoutMetricsRefresh(
   userId: string,
   workoutId: string,

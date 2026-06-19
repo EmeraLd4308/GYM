@@ -11,6 +11,8 @@
 | Область | Що є |
 | --- | --- |
 | Тренування | Тренування → вправи → підходи (вага, повтори, RPE, розминка), reorder, дублювання, копіювання текстом |
+| Таймер відпочинку | Пресети 1–7 хв, свій час у хвилинах (дробові, напр. 1.5), старт/стоп/знову, звук + вібрація, автостарт після «Зроблено» |
+| Офлайн | Кеш тренувань поточного тижня (Пн–Нд) в IndexedDB; перегляд без мережі |
 | Авто-RPE | RPE рахується з ваги/повторів і максимумів профілю для базових вправ (без округлення) |
 | Авто-теги | Тег інтенсивності дня: `Важке` / `Середнє` / `Легке`, кольорові бейджі в списку тренувань |
 | Календар | Дні з тренуваннями + колір інтенсивності дня; клік веде до тренування за датою |
@@ -91,7 +93,13 @@ npm run dev
 | `npm run format` | Prettier (write) |
 | `npm run format:check` | Prettier check |
 | `npm test` | Vitest |
-| `npm run test:e2e` | Playwright |
+| `npm run test:e2e` | Playwright (auth, тренування, таймер, дублювання) |
+
+---
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`): PostgreSQL, міграції, `tsc`, Vitest, Playwright e2e.
 
 ---
 
@@ -110,8 +118,9 @@ prisma/
 Детальний опис, правила імпортів і залежностей: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 Ключове:
-- Авторизація: cookie-сесія (`gym_session`) + таблиця `Session`
+- Авторизація: **httpOnly** cookie-сесія (`gym_session`) + таблиця `Session`
 - Дані тренувань: `Workout` / `WorkoutExercise` / `ExerciseSet`
+- Офлайн: `GET /api/workouts/week-cache` → IndexedDB → `OfflineWorkoutsModal`
 - Профіль і прогрес: GL-поля, snapshots максимумів, досягнення, pinned-achievements
 
 ---

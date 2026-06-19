@@ -1,4 +1,3 @@
-/** Move an item within an array without mutating the original. */
 export function arrayMove<T>(items: readonly T[], from: number, to: number): T[] {
   const next = [...items];
   const [item] = next.splice(from, 1);

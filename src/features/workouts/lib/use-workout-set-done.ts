@@ -47,7 +47,6 @@ function persist(workoutId: string, setId: string, done: boolean) {
     }
     localStorage.setItem(key, JSON.stringify(pruned));
   } catch {
-    /* ignore quota / private mode */
   }
 }
 

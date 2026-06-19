@@ -1,10 +1,13 @@
 import { formatDateForInput, todayDateInput } from "@/shared/lib/date-local";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
+  uiBtnRowStackSmClass,
   uiButtonDangerTextClass,
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
-  uiDateCompactClass,
+  uiDateClass,
+  uiFieldFitClass,
+  uiFormRowClass,
   uiInputClass,
   uiInputInlineTitleClass,
   uiLabelClass,
@@ -59,7 +62,7 @@ export function WorkoutSessionHeader({
   if (!workout) return null;
 
   return (
-    <div className="sbd-card rounded-xl p-5">
+    <div className="sbd-card rounded-xl p-4 sm:p-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0 flex-1 md:max-w-xl">
           <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wtitle">
@@ -100,32 +103,32 @@ export function WorkoutSessionHeader({
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 md:justify-end">
+        <div className={uiBtnRowStackSmClass}>
           <button
             type="button"
             disabled={copyBusy}
-            className={`${uiButtonGhostClass} shrink min-w-0 max-w-full px-3 text-xs font-bold uppercase tracking-wider`}
+            className={`${uiButtonGhostClass} max-w-full px-3 text-xs font-bold uppercase tracking-wider`}
             onClick={() => void copyWorkoutAsText()}
           >
             {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
           </button>
           <button
             type="button"
-            className={`${uiButtonDangerTextClass} shrink-0`}
+            className={uiButtonDangerTextClass}
             onClick={() => setConfirm({ kind: "wo" })}
           >
             Видалити
           </button>
         </div>
       </div>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <label className={`shrink-0 ${uiLabelClass}`} htmlFor="wdate">
+      <div className={`mt-4 ${uiFormRowClass}`}>
+        <label className={uiLabelClass} htmlFor="wdate">
           Дата тренування
         </label>
         <input
           id="wdate"
           type="date"
-          className={uiDateCompactClass}
+          className={uiDateClass}
           value={formatDateForInput(workout.date)}
           onChange={(e) => patchDate(e.target.value)}
         />
@@ -164,34 +167,34 @@ export function WorkoutSessionHeader({
           }}
         />
       </div>
-      <div className="sbd-divider mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex min-w-0 flex-col gap-1 sm:max-w-[240px]">
-          <label className={uiLabelClass} htmlFor="copydate">
-            Копіювати це тренування на дату
+      <div className="sbd-divider mt-4 border-t pt-4">
+        <div className={uiFormRowClass}>
+          <label className={uiFieldFitClass} htmlFor="copydate">
+            <span className={`${uiLabelClass} mb-1 block`}>Копіювати це тренування на дату</span>
+            <input
+              id="copydate"
+              type="date"
+              className={uiDateClass}
+              value={copyDate}
+              onChange={(e) => setCopyDate(e.target.value)}
+            />
           </label>
-          <input
-            id="copydate"
-            type="date"
-            className={uiDateCompactClass}
-            value={copyDate}
-            onChange={(e) => setCopyDate(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className={`${uiButtonGhostClass} shrink min-w-0 px-4 text-xs font-bold uppercase tracking-wider`}
-            onClick={() => duplicateWorkout(copyDate)}
-          >
-            Копіювати
-          </button>
-          <button
-            type="button"
-            className={`${uiButtonPrimarySmClass} box-border h-11`}
-            onClick={() => duplicateWorkout(todayDateInput())}
-          >
-            Копія на сьогодні
-          </button>
+          <div className={uiBtnRowStackSmClass}>
+            <button
+              type="button"
+              className={`${uiButtonGhostClass} max-w-full px-4 text-xs font-bold uppercase tracking-wider`}
+              onClick={() => duplicateWorkout(copyDate)}
+            >
+              Копіювати
+            </button>
+            <button
+              type="button"
+              className={`${uiButtonPrimarySmClass} max-w-full`}
+              onClick={() => duplicateWorkout(todayDateInput())}
+            >
+              Копія на сьогодні
+            </button>
+          </div>
         </div>
       </div>
     </div>

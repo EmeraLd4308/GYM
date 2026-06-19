@@ -3,17 +3,20 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
+  uiBtnRowClass,
   uiButtonGhostClass,
   uiButtonPrimaryClass,
   uiChipClass,
   uiDateClass,
   uiFieldClass,
-  uiInputClass,
+  uiFieldFitClass,
+  uiFilterFieldsClass,
+  uiInputNumClass,
   uiLabelClass,
   uiMutedTextClass,
   uiSearchClass,
   uiSectionTitleClass,
-  uiSelectClass,
+  uiSelectMdClass,
 } from "@/shared/ui/styles";
 
 function toIsoDate(d: Date): string {
@@ -164,7 +167,7 @@ export function DateWeightFilters({
             </label>
             <select
               id={`${pf}tag`}
-              className={uiSelectClass}
+              className={uiSelectMdClass}
               value={tag}
               onChange={(e) => setTag(e.target.value)}
             >
@@ -194,8 +197,8 @@ export function DateWeightFilters({
               Скинути дати
             </button>
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className={uiFieldClass}>
+          <div className={`mt-4 ${uiFilterFieldsClass}`}>
+            <div className={uiFieldFitClass}>
               <label className={uiLabelClass} htmlFor={`${pf}from`}>
                 Від
               </label>
@@ -207,7 +210,7 @@ export function DateWeightFilters({
                 onChange={(e) => setFrom(e.target.value)}
               />
             </div>
-            <div className={uiFieldClass}>
+            <div className={uiFieldFitClass}>
               <label className={uiLabelClass} htmlFor={`${pf}to`}>
                 До
               </label>
@@ -227,8 +230,8 @@ export function DateWeightFilters({
           {weightRangeHint ? (
             <p className={`mt-1 text-xs leading-relaxed ${uiMutedTextClass}`}>{weightRangeHint}</p>
           ) : null}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className={uiFieldClass}>
+          <div className={`mt-4 ${uiFilterFieldsClass}`}>
+            <div className={uiFieldFitClass}>
               <label className={uiLabelClass} htmlFor={`${pf}wmin`}>
                 Мінімум
               </label>
@@ -239,12 +242,12 @@ export function DateWeightFilters({
                 min={0}
                 step="0.5"
                 placeholder="—"
-                className={uiInputClass}
+                className={uiInputNumClass}
                 value={wMin}
                 onChange={(e) => setWMin(e.target.value)}
               />
             </div>
-            <div className={uiFieldClass}>
+            <div className={uiFieldFitClass}>
               <label className={uiLabelClass} htmlFor={`${pf}wmax`}>
                 Максимум
               </label>
@@ -255,7 +258,7 @@ export function DateWeightFilters({
                 min={0}
                 step="0.5"
                 placeholder="—"
-                className={uiInputClass}
+                className={uiInputNumClass}
                 value={wMax}
                 onChange={(e) => setWMax(e.target.value)}
               />
@@ -263,7 +266,7 @@ export function DateWeightFilters({
           </div>
         </div>
 
-        <div className="sbd-divider-soft flex flex-wrap gap-2 border-t pt-5">
+        <div className={`sbd-divider-soft border-t pt-5 ${uiBtnRowClass}`}>
           <button type="button" className={uiButtonPrimaryClass} onClick={apply}>
             Застосувати
           </button>

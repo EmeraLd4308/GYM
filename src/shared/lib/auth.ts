@@ -5,7 +5,6 @@ import type { User } from "@prisma/client";
 import { prisma } from "./prisma";
 
 export const SESSION_COOKIE = "gym_session";
-/** Stay signed in until explicit logout (cookie + DB expiry). */
 const SESSION_SECONDS = 365 * 24 * 60 * 60;
 const SESSION_RENEW_WITHIN_SECONDS = 30 * 24 * 60 * 60;
 
@@ -29,7 +28,7 @@ export function isRequestHttps(req: Request): boolean {
 
 export function getCookieOptionsForRequest(req: Request) {
   return {
-    httpOnly: false,
+    httpOnly: true,
     secure: isRequestHttps(req),
     sameSite: "lax" as const,
     maxAge: SESSION_SECONDS,
@@ -39,7 +38,7 @@ export function getCookieOptionsForRequest(req: Request) {
 
 export function getClearCookieOptionsForRequest(req: Request) {
   return {
-    httpOnly: false,
+    httpOnly: true,
     secure: isRequestHttps(req),
     sameSite: "lax" as const,
     maxAge: 0,
@@ -63,7 +62,6 @@ export async function deleteSessionInDbForCookieToken(token: string | undefined)
   await prisma.session.deleteMany({ where: { tokenHash } });
 }
 
-/** Deduped per RSC request (layout + page share one DB round-trip). */
 export const getSessionUser = cache(async (): Promise<User | null> => {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;

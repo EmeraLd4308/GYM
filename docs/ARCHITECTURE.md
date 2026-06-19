@@ -60,7 +60,8 @@ import { parseStatsFiltersFromSearchParams } from "@/features/stats/lib/stats-fi
 
 ## Auth
 
-- Cookie `gym_session` + таблиця `Session`
+- Cookie `gym_session` (**httpOnly**, secure у production) + таблиця `Session`
+- `getSessionUser()` обгорнуто в `React.cache` для дедуплікації на SSR
 - Захист маршрутів: `(protected)/layout.tsx` → `getSessionUser()` → `redirect("/")`
 - Спільна логіка: `features/auth/server/enter-user.ts`, `session-response.ts`
 - **Канонічний UI-вхід:** `POST /api/auth/enter-form` (find-or-create, form + redirect)
@@ -80,10 +81,42 @@ import { parseStatsFiltersFromSearchParams } from "@/features/stats/lib/stats-fi
 
 Після змін підходів — `schedule-metrics-refresh.ts` відкладає перерахунок тегів і lift records.
 
+## Таймер відпочинку
+
+- UI: `features/workouts/components/WorkoutRestTimer.tsx`
+- Звук: `shared/lib/rest-timer-sound.ts` (окремі сигнали для завершення та «Стоп»)
+- Налаштування в `localStorage`: `sbd-rest-duration-sec`, `sbd-rest-auto-start`
+- Автостарт після позначення підходу «Зроблено» — через callback у `WorkoutSession`
+
+## Офлайн (тижневий кеш)
+
+```text
+Online: OfflineWeekProvider → GET /api/workouts/week-cache → IndexedDB
+Offline: банер + OfflineWorkoutsModal (read-only WorkoutSession)
+```
+
+- Тиждень: понеділок 00:00 — неділя 23:59 (`shared/lib/calendar-week.ts`)
+- Сховище: `shared/lib/offline-workouts-db.ts`
+- Синхронізація при завантаженні тренування: `features/workouts/lib/offline-workout-cache.ts`
+
+## UI-контроли
+
+Спільні класи в `shared/ui/styles.ts` + `globals.css`:
+
+| Клас | Призначення |
+| --- | --- |
+| `uiDateClass` | Дата фіксованої ширини (~12rem) |
+| `uiInputNumClass` | Числове поле (~7rem) |
+| `uiSelectMdClass` | Select до ~20rem |
+| `uiFormRowClass` | Рядок лейбл + поле + кнопки |
+| `uiBtnRowClass` | Кнопки без розтягування |
+| `uiFieldFitClass` | Поле по ширині контролу |
+
 ## Тести
 
 - **Unit:** `**/*.test.ts` поруч із модулем у `shared/lib` або `features/*/lib`
-- **E2E:** `e2e/` (Playwright)
+- **E2E:** `e2e/` — auth, створення тренування, таймер відпочинку, дублювання
+- **CI:** `.github/workflows/ci.yml` — Postgres service, migrate, tsc, vitest, playwright
 
 ## Додавання нової фічі
 
