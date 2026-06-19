@@ -95,7 +95,7 @@ export default async function DashboardPage() {
             >
               <Link
                 href="/workouts/new"
-                className={`inline-flex min-h-[52px] w-full max-w-xs touch-manipulation items-center justify-center rounded-xl px-6 text-base font-bold text-white ${primaryCta} sm:w-auto`}
+                className={`inline-flex min-h-[52px] touch-manipulation items-center justify-center rounded-xl px-6 text-base font-bold text-white ${primaryCta}`}
               >
                 Додати тренування
               </Link>
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                   >
                     <Link
                       href="/workouts/new"
-                      className={`inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-4 text-sm font-bold uppercase tracking-wide text-white ${primaryCta} sm:w-auto sm:min-w-[14rem]`}
+                      className={`inline-flex min-h-[44px] items-center justify-center rounded-xl px-4 text-sm font-bold uppercase tracking-wide text-white ${primaryCta}`}
                     >
                       Додати тренування
                     </Link>
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
                   <EmptyStateCallout align="left" title="Нещодавніх немає">
                     <Link
                       href="/workouts"
-                      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_50%,transparent)] px-4 text-sm font-semibold text-[var(--sbd-text)] transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 sm:w-auto sm:min-w-[12rem]"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_50%,transparent)] px-4 text-sm font-semibold text-[var(--sbd-text)] transition hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10"
                     >
                       Усі тренування
                     </Link>

@@ -113,7 +113,7 @@ export function OfflineWorkoutsModal({ open, onClose }: Props) {
 
       {!viewId && rows.length > 0 ? (
         <footer className="shrink-0 border-t border-[var(--sbd-border)] p-4">
-          <button type="button" className={`${uiButtonPrimarySmClass} w-full`} onClick={() => void refresh()}>
+          <button type="button" className={uiButtonPrimarySmClass} onClick={() => void refresh()}>
             Оновити список
           </button>
         </footer>

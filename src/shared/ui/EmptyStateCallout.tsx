@@ -52,8 +52,8 @@ export function EmptyStateCallout({
         <div
           className={
             align === "center"
-              ? "mt-6 flex w-full flex-col items-center gap-3 sm:mt-7 [&>a]:w-full [&>a]:max-w-sm sm:[&>a]:w-auto"
-              : "mt-6 flex w-full flex-col gap-3 sm:mt-7"
+              ? "mt-6 flex flex-wrap justify-center gap-3 sm:mt-7"
+              : "mt-6 flex flex-wrap gap-3 sm:mt-7"
           }
         >
           {children}

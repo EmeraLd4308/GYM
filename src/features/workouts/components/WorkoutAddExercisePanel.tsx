@@ -37,7 +37,7 @@ export function WorkoutAddExercisePanel({
       <h3 className={`mb-3 font-display text-sm font-semibold uppercase tracking-wide ${uiMutedTextClass}`}>
         Додати вправу
       </h3>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
           <label htmlFor="new-exercise-name" className={`${uiLabelClass} sr-only`}>
             Назва вправи

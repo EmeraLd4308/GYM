@@ -58,7 +58,7 @@ export default async function TemplatesPage({
       {pagePastEnd ? (
         <div className="sbd-card rounded-xl p-6 sm:p-10">
           <EmptyStateCallout title="На цій сторінці нічого немає" description="Повернись на початок списку.">
-            <Link href="/templates" className={`${btnPrimary} inline-flex min-h-[48px] w-full max-w-sm items-center justify-center sm:w-auto`}>
+            <Link href="/templates" className={`${btnPrimary} inline-flex min-h-[48px] items-center justify-center`}>
               До початку списку
             </Link>
           </EmptyStateCallout>
@@ -71,7 +71,7 @@ export default async function TemplatesPage({
           >
             <Link
               href="/templates/new"
-              className={`${btnPrimary} inline-flex min-h-[52px] w-full max-w-sm items-center justify-center text-base sm:w-auto`}
+              className={`${btnPrimary} inline-flex min-h-[52px] items-center justify-center text-base`}
             >
               Створити перший шаблон
             </Link>

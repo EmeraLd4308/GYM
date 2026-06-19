@@ -134,7 +134,7 @@ export function AchievementAnnounceClient() {
         <button
           ref={primaryActionRef}
           type="button"
-          className={`${uiButtonPrimaryClass} mt-6 w-full min-h-[48px] rounded-xl py-3 shadow-lg shadow-red-950/30`}
+          className={`${uiButtonPrimaryClass} mt-6 min-h-[48px] rounded-xl px-6 py-3 shadow-lg shadow-red-950/30`}
           onClick={() => void dismiss()}
         >
           Чудово

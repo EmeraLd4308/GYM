@@ -10,6 +10,7 @@ import { BASE_LIFT_OPTIONS } from "@/features/workouts/lib/base-lift";
 
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import {
+  uiBtnRowClass,
   uiButtonDangerTextClass,
   uiButtonPrimaryClass,
   uiFieldErrorClass,
@@ -332,7 +333,7 @@ export function TemplateEditor({
 
               <button
                 type="button"
-                className={`${uiButtonDangerTextClass} min-h-[44px] w-full sm:min-h-0 sm:w-auto sm:self-end`}
+                className={`${uiButtonDangerTextClass} min-h-[44px] sm:min-h-0 sm:self-end`}
                 onClick={() => setRemoveIndex(i)}
               >
                 Видалити
@@ -347,16 +348,16 @@ export function TemplateEditor({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className={uiBtnRowClass}>
         {saveError ? (
-          <p className={`${uiFieldErrorClass} sm:basis-full`} role="alert">
+          <p className={`${uiFieldErrorClass} basis-full`} role="alert">
             {saveError}
           </p>
         ) : null}
         <button
           type="button"
           disabled={loading}
-          className={`${uiButtonPrimaryClass} w-full min-h-[52px] rounded-xl px-6 py-3 shadow-lg shadow-red-950/30 active:scale-[0.99] sm:w-auto sm:min-h-0 sm:rounded-md`}
+          className={uiButtonPrimaryClass}
           onClick={save}
         >
           Зберегти
@@ -365,7 +366,7 @@ export function TemplateEditor({
           <button
             type="button"
             disabled={loading || deletingTemplate}
-            className={`${uiButtonDangerTextClass} w-full min-h-[48px] sm:w-auto`}
+            className={uiButtonDangerTextClass}
             onClick={() => setDeleteTemplateOpen(true)}
           >
             Видалити шаблон

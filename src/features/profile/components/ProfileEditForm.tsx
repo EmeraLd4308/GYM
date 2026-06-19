@@ -10,7 +10,7 @@ import {
   profilePinBtnClass,
   profileSegBtnClass,
 } from "@/features/profile/lib/profile-styles";
-import { uiButtonPrimaryLgClass } from "@/shared/ui/styles";
+import { uiButtonPrimaryLgClass, uiFormActionsEndClass } from "@/shared/ui/styles";
 
 type Props = ProfileController;
 
@@ -277,14 +277,16 @@ export function ProfileEditForm({
         </ProfileSection>
 
         <div className="mt-10 border-t border-[color:var(--sbd-border)] pt-8">
-          <button
-            type="button"
-            disabled={saving}
-            className={`${uiButtonPrimaryLgClass} w-full sm:w-auto sm:min-w-[12rem]`}
-            onClick={() => void save()}
-          >
-            {saving ? "Збереження…" : "Зберегти зміни"}
-          </button>
+          <div className={uiFormActionsEndClass}>
+            <button
+              type="button"
+              disabled={saving}
+              className={uiButtonPrimaryLgClass}
+              onClick={() => void save()}
+            >
+              {saving ? "Збереження…" : "Зберегти зміни"}
+            </button>
+          </div>
         </div>
       </div>
     </details>

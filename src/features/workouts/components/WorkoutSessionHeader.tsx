@@ -1,7 +1,7 @@
 import { formatDateForInput, todayDateInput } from "@/shared/lib/date-local";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
-  uiBtnRowStackSmClass,
+  uiBtnRowClass,
   uiButtonDangerTextClass,
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
@@ -103,11 +103,11 @@ export function WorkoutSessionHeader({
             </p>
           ) : null}
         </div>
-        <div className={uiBtnRowStackSmClass}>
+        <div className={uiBtnRowClass}>
           <button
             type="button"
             disabled={copyBusy}
-            className={`${uiButtonGhostClass} max-w-full px-3 text-xs font-bold uppercase tracking-wider`}
+            className={`${uiButtonGhostClass} px-3 text-xs font-bold uppercase tracking-wider`}
             onClick={() => void copyWorkoutAsText()}
           >
             {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
@@ -179,17 +179,17 @@ export function WorkoutSessionHeader({
               onChange={(e) => setCopyDate(e.target.value)}
             />
           </label>
-          <div className={uiBtnRowStackSmClass}>
+          <div className={uiBtnRowClass}>
             <button
               type="button"
-              className={`${uiButtonGhostClass} max-w-full px-4 text-xs font-bold uppercase tracking-wider`}
+              className={`${uiButtonGhostClass} px-4 text-xs font-bold uppercase tracking-wider`}
               onClick={() => duplicateWorkout(copyDate)}
             >
               Копіювати
             </button>
             <button
               type="button"
-              className={`${uiButtonPrimarySmClass} max-w-full`}
+              className={uiButtonPrimarySmClass}
               onClick={() => duplicateWorkout(todayDateInput())}
             >
               Копія на сьогодні

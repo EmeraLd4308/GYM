@@ -78,7 +78,7 @@ export function ProfileLeaderboard({ login, achCatalog, refreshToken = 0 }: Prop
         <p className="mt-2 max-w-2xl text-sm text-[var(--sbd-muted)]">
           За офіційним GL. Потрібні вага, стать, екіпірування та максимуми.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="mt-4 flex flex-wrap gap-2">
           {(
             [
               ["total", "Сума SBD"],
@@ -88,7 +88,7 @@ export function ProfileLeaderboard({ login, achCatalog, refreshToken = 0 }: Prop
             <button
               key={key}
               type="button"
-              className={`${profileLbTabClass} w-full sm:w-auto`}
+              className={profileLbTabClass}
               data-active={lbBy === key ? "true" : "false"}
               onClick={() => setLbBy(key)}
             >

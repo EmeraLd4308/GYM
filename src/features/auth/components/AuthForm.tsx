@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useToast } from "@/shared/shell/ToastProvider";
 import {
+  uiButtonBlockClass,
   uiButtonPrimaryClass,
   uiFieldErrorClass,
   uiInputLgClass,
@@ -123,7 +124,7 @@ export function AuthForm() {
         <button
           type="submit"
           disabled={pending}
-          className={`${uiButtonPrimaryClass} min-h-[52px] w-full rounded-xl py-3 text-base active:opacity-[0.92]`}
+          className={`${uiButtonPrimaryClass} ${uiButtonBlockClass} min-h-[52px] rounded-xl py-3 text-base active:opacity-[0.92]`}
         >
           {pending ? "Зачекай…" : "Увійти"}
         </button>

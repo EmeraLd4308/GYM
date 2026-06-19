@@ -1072,6 +1072,23 @@ html[data-theme="light"] .sbd-template-row:hover {
   flex: 0 0 auto;
 }
 
+.sbd-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sbd-form-actions--end {
+  justify-content: flex-start;
+}
+
+@media (min-width: 640px) {
+  .sbd-form-actions--end {
+    justify-content: flex-end;
+  }
+}
+
 .sbd-preset-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1091,12 +1108,14 @@ html[data-theme="light"] .sbd-template-row:hover {
 @media (max-width: 639px) {
   .sbd-form-row {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 0.75rem;
   }
 
-  .sbd-form-row > .sbd-btn-row {
+  .sbd-form-row > .sbd-btn-row,
+  .sbd-form-row > .sbd-form-actions {
     align-self: flex-start;
+    width: 100%;
   }
 
   .sbd-form-row .sbd-field--fit,
@@ -1115,17 +1134,6 @@ html[data-theme="light"] .sbd-template-row:hover {
   .sbd-field .sbd-input--fit-select {
     width: 100%;
     max-width: none;
-  }
-
-  .sbd-btn-row--stack-sm {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .sbd-btn-row--stack-sm > .sbd-btn {
-    max-width: 100%;
-    text-wrap: pretty;
   }
 }
 
@@ -1266,6 +1274,9 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
+  width: auto;
+  flex: 0 0 auto;
+  align-self: flex-start;
   max-width: 100%;
   border-radius: var(--sbd-radius-md);
   font-size: 0.875rem;
@@ -1341,13 +1352,21 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
 
 .sbd-btn--accent {
   min-height: 2.75rem;
-  width: 100%;
   min-width: 0;
   padding: 0.5rem 0.25rem;
   border: 1px solid color-mix(in oklab, var(--sbd-red), transparent 56%);
   background: color-mix(in oklab, var(--sbd-red), transparent 89%);
   color: color-mix(in oklab, var(--sbd-red), white 30%);
   font-weight: 700;
+}
+
+.sbd-accent-grid > .sbd-btn--accent {
+  width: 100%;
+}
+
+.sbd-btn--block {
+  width: 100%;
+  align-self: stretch;
 }
 
 .sbd-btn--accent:not(:disabled):hover {

@@ -7,6 +7,7 @@ import { SbdLoadingPortal } from "@/shared/ui/SbdLoadingPortal";
 import { templateOptionLabel } from "@/features/templates/lib/template-author-label";
 import {
   uiBtnRowClass,
+  uiFormActionsEndClass,
   uiButtonPrimaryLgClass,
   uiChipClass,
   uiDateClass,
@@ -229,12 +230,12 @@ export function NewWorkoutForm({
         </div>
       ) : null}
 
-      <div className={`flex flex-col gap-3 sm:flex-row sm:justify-end ${uiBtnRowClass}`}>
+      <div className={uiFormActionsEndClass}>
         <button
           type="button"
           disabled={loading}
           aria-busy={loading}
-          className={`${uiButtonPrimaryLgClass} w-full sm:w-auto sm:min-w-[12rem]`}
+          className={uiButtonPrimaryLgClass}
           onClick={submit}
         >
           Створити тренування
