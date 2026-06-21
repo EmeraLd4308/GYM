@@ -1,6 +1,8 @@
 import { baseLiftLabel } from "@/features/workouts/lib/base-lift";
+import { SetWorkingNumberBadge } from "@/features/workouts/components/SetWorkingNumberBadge";
 import type { ExerciseRow } from "@/features/workouts/lib/workout-session-types";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
+import { countWorkingSets, workingSetNumber } from "@/features/workouts/lib/working-set-number";
 import {
   uiAccentGridClass,
   uiButtonAccentClass,
@@ -51,6 +53,8 @@ export function WorkoutExerciseCard({
   updateSet,
   addSet,
 }: Props) {
+  const workingCount = countWorkingSets(ex.sets);
+
   return (
     <>
       <div className="mb-4">
@@ -101,6 +105,9 @@ export function WorkoutExerciseCard({
           </div>
           <p className={`mt-1 text-xs uppercase tracking-wider ${uiMutedTextClass}`}>
             {baseLiftLabel(ex.baseLift)}
+            {workingCount > 0 ? (
+              <span className="normal-case tracking-normal"> · {workingCount} робочих</span>
+            ) : null}
           </p>
           {exerciseNameErrors[ex.id] ? (
             <p className={uiFieldErrorClass} role="alert">
@@ -111,10 +118,17 @@ export function WorkoutExerciseCard({
       </div>
 
       <div className="space-y-3 md:hidden">
-        {ex.sets.map((s, setIndex) => (
+        {ex.sets.map((s, setIndex) => {
+          const setNum = workingSetNumber(ex.sets, setIndex);
+          return (
           <div key={s.id} className={uiSetCardClass}>
             <div className="mb-3 flex items-center justify-between gap-2">
-              <span className={uiLabelClass}>Підхід {setIndex + 1}</span>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} />
+                <span className={uiLabelClass}>
+                  {s.isWarmup ? "Розминка" : `Підхід ${setNum}`}
+                </span>
+              </div>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -284,7 +298,8 @@ export function WorkoutExerciseCard({
               </label>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="hidden md:block overflow-x-auto">
@@ -292,7 +307,8 @@ export function WorkoutExerciseCard({
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-[var(--sbd-border)] bg-[color-mix(in_oklab,var(--sbd-card)_75%,var(--sbd-red))] text-left text-xs font-semibold uppercase tracking-wider text-[var(--sbd-muted)]">
-                <th className="w-[2.75rem] py-2.5 pl-3 pr-1 text-center">Пор.</th>
+                <th className="w-10 py-2.5 pl-3 pr-1 text-center">№</th>
+                <th className="w-[2.75rem] py-2.5 pr-1 text-center">Пор.</th>
                 <th className="py-2.5 pr-2">Вага (кг)</th>
                 <th className="py-2.5 pr-2">Повтори</th>
                 <th className="w-[4.5rem] py-2.5 pr-2">Зроблено</th>
@@ -301,12 +317,17 @@ export function WorkoutExerciseCard({
               </tr>
             </thead>
             <tbody>
-              {ex.sets.map((s, setIndex) => (
+              {ex.sets.map((s, setIndex) => {
+                const setNum = workingSetNumber(ex.sets, setIndex);
+                return (
                 <tr
                   key={s.id}
                   className="border-b border-[var(--sbd-border)] transition-colors last:border-b-0 hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_96%)]"
                 >
-                  <td className="py-2 pl-3 pr-1 align-middle">
+                  <td className="py-2 pl-3 pr-1 align-middle text-center">
+                    <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} size="sm" />
+                  </td>
+                  <td className="py-2 pr-1 align-middle">
                     <div className="flex flex-col gap-0.5">
                       <button
                         type="button"
@@ -423,7 +444,11 @@ export function WorkoutExerciseCard({
                       className={uiCheckboxClass}
                       checked={isSetDone(s.id)}
                       onChange={(e) => setSetDone(s.id, e.target.checked)}
-                      aria-label={`Зроблено, підхід ${setIndex + 1}`}
+                      aria-label={
+                        s.isWarmup
+                          ? `Зроблено, розминка`
+                          : `Зроблено, підхід ${setNum}`
+                      }
                     />
                   </td>
                   <td className="py-2 pr-2 align-middle">
@@ -464,7 +489,8 @@ export function WorkoutExerciseCard({
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
