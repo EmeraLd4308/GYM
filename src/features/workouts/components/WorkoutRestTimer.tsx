@@ -13,7 +13,7 @@ import {
 } from "@/shared/lib/rest-timer-duration";
 import { playRestTimerDoneSound, playRestTimerStopSound } from "@/shared/lib/rest-timer-sound";
 import {
-  uiBtnRowClass,
+  uiBtnRowMobileStackClass,
   uiButtonDangerTextClass,
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
@@ -212,7 +212,7 @@ export function WorkoutRestTimer({ onRegisterStart }: Props) {
             }}
           />
         </label>
-        <div className={`${uiBtnRowClass} self-end`}>
+        <div className={uiBtnRowMobileStackClass}>
           {!running ? (
             <button type="button" className={uiButtonPrimarySmClass} onClick={() => startTimer()}>
               Старт

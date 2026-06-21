@@ -93,13 +93,7 @@ npm run dev
 | `npm run format` | Prettier (write) |
 | `npm run format:check` | Prettier check |
 | `npm test` | Vitest |
-| `npm run test:e2e` | Playwright (auth, тренування, таймер, дублювання) |
-
----
-
-## CI
-
-GitHub Actions (`.github/workflows/ci.yml`): PostgreSQL, міграції, `tsc`, Vitest, Playwright e2e.
+| `npm run test:e2e` | Playwright |
 
 ---
 

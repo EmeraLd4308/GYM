@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
-  uiBtnRowClass,
+  uiBtnRowMobileStackClass,
   uiButtonGhostClass,
   uiButtonPrimaryClass,
   uiChipClass,
@@ -266,7 +266,7 @@ export function DateWeightFilters({
           </div>
         </div>
 
-        <div className={`sbd-divider-soft border-t pt-5 ${uiBtnRowClass}`}>
+        <div className={`sbd-divider-soft border-t pt-5 ${uiBtnRowMobileStackClass}`}>
           <button type="button" className={uiButtonPrimaryClass} onClick={apply}>
             Застосувати
           </button>

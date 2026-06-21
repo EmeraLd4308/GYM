@@ -10,7 +10,8 @@ import { BASE_LIFT_OPTIONS } from "@/features/workouts/lib/base-lift";
 
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import {
-  uiBtnRowClass,
+  uiBtnRowMobileStackClass,
+  uiButtonDangerIconClass,
   uiButtonDangerTextClass,
   uiButtonPrimaryClass,
   uiFieldErrorClass,
@@ -276,7 +277,7 @@ export function TemplateEditor({
           {rows.map((row, i) => (
             <li
               key={row.clientKey}
-              className="flex flex-col gap-4 rounded-xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-4 shadow-sm sm:flex-row sm:items-end sm:gap-3 sm:p-5"
+              className="flex gap-3 rounded-xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-4 shadow-sm sm:items-end sm:gap-3 sm:p-5"
             >
               <div className="flex shrink-0 flex-row justify-center gap-2 sm:flex-col sm:justify-start">
                 <button
@@ -300,44 +301,56 @@ export function TemplateEditor({
                 </button>
               </div>
 
-              <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
-                <div className="min-w-0 flex-1">
-                  <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                    <div className="min-w-0 flex-1">
+                      <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
 
-                  <input
-                    className={`mt-1 ${uiInputClass}`}
-                    value={row.name}
-                    onChange={(e) => updateRow(i, { name: e.target.value })}
-                    placeholder="Наприклад, Присід зі штангою"
-                  />
-                </div>
+                      <input
+                        className={`mt-1 ${uiInputClass}`}
+                        value={row.name}
+                        onChange={(e) => updateRow(i, { name: e.target.value })}
+                        placeholder="Наприклад, Присід зі штангою"
+                      />
+                    </div>
 
-                <div className="min-w-0 w-full sm:w-48">
-                  <label className="text-xs font-medium text-[var(--sbd-muted)]">
-                    Базова для статистики
-                  </label>
+                    <div className="min-w-0 w-full sm:w-48">
+                      <label className="text-xs font-medium text-[var(--sbd-muted)]">
+                        Базова для статистики
+                      </label>
 
-                  <select
-                    className={`mt-1 ${uiSelectClass}`}
-                    value={row.baseLift}
-                    onChange={(e) => updateRow(i, { baseLift: e.target.value })}
+                      <select
+                        className={`mt-1 ${uiSelectClass}`}
+                        value={row.baseLift}
+                        onChange={(e) => updateRow(i, { baseLift: e.target.value })}
+                      >
+                        {BASE_LIFT_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`${uiButtonDangerIconClass} mt-0.5 shrink-0 sm:hidden`}
+                    aria-label="Видалити вправу"
+                    onClick={() => setRemoveIndex(i)}
                   >
-                    {BASE_LIFT_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    ×
+                  </button>
+                  <button
+                    type="button"
+                    className={`${uiButtonDangerTextClass} hidden shrink-0 sm:inline-flex`}
+                    onClick={() => setRemoveIndex(i)}
+                  >
+                    Видалити
+                  </button>
                 </div>
               </div>
-
-              <button
-                type="button"
-                className={`${uiButtonDangerTextClass} min-h-[44px] sm:min-h-0 sm:self-end`}
-                onClick={() => setRemoveIndex(i)}
-              >
-                Видалити
-              </button>
             </li>
           ))}
         </ul>
@@ -348,7 +361,7 @@ export function TemplateEditor({
         ) : null}
       </div>
 
-      <div className={uiBtnRowClass}>
+      <div className={uiBtnRowMobileStackClass}>
         {saveError ? (
           <p className={`${uiFieldErrorClass} basis-full`} role="alert">
             {saveError}

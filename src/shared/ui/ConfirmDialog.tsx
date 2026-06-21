@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { uiBtnRowClass, uiButtonPrimaryClass, uiButtonSecondaryClass } from "@/shared/ui/styles";
+import { uiBtnRowMobileStackClass, uiButtonPrimaryClass, uiButtonSecondaryClass } from "@/shared/ui/styles";
 
 export function ConfirmDialog({
   open,
@@ -105,7 +105,7 @@ export function ConfirmDialog({
           </div>
         ) : null}
         {children}
-        <div className={`mt-6 ${uiBtnRowClass} w-full justify-end`}>
+        <div className={`mt-6 ${uiBtnRowMobileStackClass} sm:justify-end`}>
           <button
             ref={cancelButtonRef}
             type="button"

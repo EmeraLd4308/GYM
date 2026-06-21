@@ -1072,6 +1072,19 @@ html[data-theme="light"] .sbd-template-row:hover {
   flex: 0 0 auto;
 }
 
+@media (max-width: 639px) {
+  .sbd-btn-row--mobile-stack {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .sbd-btn-row--mobile-stack > .sbd-btn {
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
 .sbd-form-actions {
   display: flex;
   flex-wrap: wrap;

@@ -54,7 +54,7 @@ export function WorkoutExerciseCard({
 }: Props) {
   return (
     <>
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
+      <div className="mb-4 flex items-start gap-2">
         <div className="min-w-0 w-full flex-1 sm:max-w-xl">
           <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
             Назва вправи {exerciseIndex + 1}
@@ -111,7 +111,15 @@ export function WorkoutExerciseCard({
         </div>
         <button
           type="button"
-          className={`${uiButtonDangerTextClass} shrink-0 self-start sm:min-h-0`}
+          className={`${uiButtonDangerIconClass} mt-0.5 shrink-0 sm:hidden`}
+          aria-label="Видалити вправу"
+          onClick={() => setConfirm({ kind: "ex", id: ex.id })}
+        >
+          ×
+        </button>
+        <button
+          type="button"
+          className={`${uiButtonDangerTextClass} hidden shrink-0 sm:inline-flex`}
           onClick={() => setConfirm({ kind: "ex", id: ex.id })}
         >
           Видалити

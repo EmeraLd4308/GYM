@@ -9,9 +9,9 @@ export function playRestTimerDoneSound(): void {
   const t0 = ctx.currentTime;
 
   const hits = [
-    { freq: 148, duration: 0.22, gapAfter: 0.1, gain: 0.55 },
-    { freq: 148, duration: 0.22, gapAfter: 0.1, gain: 0.62 },
-    { freq: 185, duration: 0.55, gapAfter: 0, gain: 0.7 },
+    { freq: 148, duration: 0.28, gapAfter: 0.12, gain: 0.68 },
+    { freq: 148, duration: 0.28, gapAfter: 0.12, gain: 0.76 },
+    { freq: 185, duration: 0.78, gapAfter: 0, gain: 0.9 },
   ] as const;
 
   let cursor = t0;
@@ -56,7 +56,7 @@ export function playRestTimerDoneSound(): void {
     cursor = end + hit.gapAfter;
   }
 
-  window.setTimeout(() => void ctx.close(), 2800);
+  window.setTimeout(() => void ctx.close(), 3600);
 }
 
 export function playRestTimerStopSound(): void {

@@ -21,6 +21,8 @@ export const uiFormRowClass = "sbd-form-row";
 
 export const uiBtnRowClass = "sbd-btn-row";
 
+export const uiBtnRowMobileStackClass = "sbd-btn-row sbd-btn-row--mobile-stack";
+
 export const uiFormActionsClass = "sbd-form-actions";
 
 export const uiFormActionsEndClass = "sbd-form-actions sbd-form-actions--end";

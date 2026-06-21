@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { todayDateInput } from "@/shared/lib/date-local";
 import { useToast } from "@/shared/shell/ToastProvider";
-import { uiButtonPrimaryClass, uiBtnRowClass, uiDateClass, uiFieldFitClass, uiFormRowClass, uiLabelClass } from "@/shared/ui/styles";
+import { uiButtonPrimaryClass, uiBtnRowMobileStackClass, uiDateClass, uiFieldFitClass, uiFormRowClass, uiLabelClass } from "@/shared/ui/styles";
 
 export function DashboardDuplicateActions({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
@@ -84,7 +84,7 @@ export function DashboardDuplicateActions({ embedded = false }: { embedded?: boo
               onChange={(e) => setTargetDay(e.target.value)}
             />
           </label>
-          <div className={uiBtnRowClass}>
+          <div className={uiBtnRowMobileStackClass}>
             <button type="button" className={uiButtonPrimaryClass} onClick={duplicateFromDayToDay}>
               Копіювати
             </button>

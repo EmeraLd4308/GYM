@@ -1,7 +1,7 @@
 import { formatDateForInput, todayDateInput } from "@/shared/lib/date-local";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
-  uiBtnRowClass,
+  uiBtnRowMobileStackClass,
   uiButtonDangerTextClass,
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
@@ -103,7 +103,7 @@ export function WorkoutSessionHeader({
             </p>
           ) : null}
         </div>
-        <div className={uiBtnRowClass}>
+        <div className={`w-full md:w-auto ${uiBtnRowMobileStackClass}`}>
           <button
             type="button"
             disabled={copyBusy}
@@ -179,7 +179,7 @@ export function WorkoutSessionHeader({
               onChange={(e) => setCopyDate(e.target.value)}
             />
           </label>
-          <div className={uiBtnRowClass}>
+          <div className={uiBtnRowMobileStackClass}>
             <button
               type="button"
               className={`${uiButtonGhostClass} px-4 text-xs font-bold uppercase tracking-wider`}
