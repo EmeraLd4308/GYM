@@ -1,8 +1,8 @@
-import { uiInputClass, uiInputNumClass } from "@/shared/ui/styles";
+import { uiInputClass } from "@/shared/ui/styles";
 
-export const profileFieldClass = `${uiInputClass} mt-1.5 w-full max-w-md`;
+export const profileFieldClass = `${uiInputClass} mt-1.5 w-full`;
 
-export const profileNumFieldClass = `${uiInputNumClass} mt-1.5`;
+export const profileNumFieldClass = `${uiInputClass} mt-1.5 w-full`;
 
 export const profileSegBtnClass =
   "sbd-profile-seg__btn min-h-[44px] flex-1 touch-manipulation rounded-lg px-3 text-xs font-semibold uppercase tracking-wide transition sm:text-sm";

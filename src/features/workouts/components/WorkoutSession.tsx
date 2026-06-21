@@ -80,6 +80,7 @@ export function WorkoutSession({
             canMoveDown={!readOnly && exerciseIndex < workout.exercises.length - 1}
             onMoveUp={() => session.moveExerciseRelative(ex.id, -1)}
             onMoveDown={() => session.moveExerciseRelative(ex.id, 1)}
+            onDelete={!readOnly ? () => setConfirm({ kind: "ex", id: ex.id }) : undefined}
           >
             <WorkoutExerciseCard ex={ex} exerciseIndex={exerciseIndex} {...session} />
           </SortableExerciseSection>

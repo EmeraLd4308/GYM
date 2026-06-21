@@ -3,7 +3,6 @@ import type { BaseLift } from "@prisma/client";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
   uiButtonPrimaryClass,
-  uiFieldClass,
   uiFieldErrorClass,
   uiInputClass,
   uiLabelClass,
@@ -37,15 +36,15 @@ export function WorkoutAddExercisePanel({
       <h3 className={`mb-3 font-display text-sm font-semibold uppercase tracking-wide ${uiMutedTextClass}`}>
         Додати вправу
       </h3>
-      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
-        <div className="min-w-0 flex-1">
-          <label htmlFor="new-exercise-name" className={`${uiLabelClass} sr-only`}>
-            Назва вправи
+      <div className="flex flex-col gap-3">
+        <div className="w-full min-w-0">
+          <label htmlFor="new-exercise-name" className={`${uiLabelClass} mb-1 block`}>
+            Назва
           </label>
           <input
             id="new-exercise-name"
-            className={uiInputClass}
-            placeholder="Назва вправи"
+            className={`${uiInputClass} w-full`}
+            placeholder="Наприклад, Жим лежачи"
             value={newExName}
             onChange={(e) => {
               setNewExName(e.target.value);
@@ -61,14 +60,13 @@ export function WorkoutAddExercisePanel({
             aria-describedby={newExerciseError ? "new-exercise-error" : undefined}
           />
         </div>
-        <div className={`${uiFieldClass} sm:w-48`}>
-          <label htmlFor="new-exercise-base" className={`${uiLabelClass} sr-only`}>
-            Тип вправи
+        <div className="w-full min-w-0">
+          <label htmlFor="new-exercise-base" className={`${uiLabelClass} mb-1 block`}>
+            Базова для статистики
           </label>
           <select
             id="new-exercise-base"
-            className={uiSelectClass}
-            aria-label="Тип вправи для статистики"
+            className={`${uiSelectClass} w-full`}
             value={newExBase}
             onChange={(e) => setNewExBase(e.target.value as BaseLift)}
           >
@@ -79,7 +77,11 @@ export function WorkoutAddExercisePanel({
             ))}
           </select>
         </div>
-        <button type="button" className={`${uiButtonPrimaryClass} px-5`} onClick={addExercise}>
+        <button
+          type="button"
+          className={`${uiButtonPrimaryClass} w-full sm:w-auto sm:self-start`}
+          onClick={() => void addExercise()}
+        >
           Додати
         </button>
       </div>

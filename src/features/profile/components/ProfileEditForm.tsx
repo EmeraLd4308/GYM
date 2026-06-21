@@ -10,7 +10,7 @@ import {
   profilePinBtnClass,
   profileSegBtnClass,
 } from "@/features/profile/lib/profile-styles";
-import { uiButtonPrimaryLgClass, uiFormActionsEndClass } from "@/shared/ui/styles";
+import { uiBtnRowMobileStackClass, uiButtonPrimaryLgClass } from "@/shared/ui/styles";
 
 type Props = ProfileController;
 
@@ -131,7 +131,7 @@ export function ProfileEditForm({
               </label>
               <input
                 id="profile-login"
-                className={`${profileFieldClass} max-w-full`}
+                className={profileFieldClass}
                 value={loginEdit}
                 onChange={(e) => setLoginEdit(e.target.value.slice(0, 40))}
                 autoComplete="username"
@@ -201,7 +201,7 @@ export function ProfileEditForm({
           <div className="space-y-6">
             <div className="space-y-2">
               <p className="text-xs font-medium text-[var(--sbd-text)]">Стать</p>
-              <div className="sbd-profile-seg inline-flex w-full rounded-xl p-1" role="group" aria-label="Стать">
+              <div className="sbd-profile-seg flex w-full rounded-xl p-1" role="group" aria-label="Стать">
                 <button
                   type="button"
                   className={profileSegBtnClass}
@@ -223,7 +223,7 @@ export function ProfileEditForm({
             <div className="space-y-2">
               <p className="text-xs font-medium text-[var(--sbd-text)]">Екіпіровка</p>
               <div
-                className="sbd-profile-seg inline-flex w-full rounded-xl p-1"
+                className="sbd-profile-seg flex w-full rounded-xl p-1"
                 role="group"
                 aria-label="Екіпіровка"
               >
@@ -277,7 +277,7 @@ export function ProfileEditForm({
         </ProfileSection>
 
         <div className="mt-10 border-t border-[color:var(--sbd-border)] pt-8">
-          <div className={uiFormActionsEndClass}>
+          <div className={uiBtnRowMobileStackClass}>
             <button
               type="button"
               disabled={saving}

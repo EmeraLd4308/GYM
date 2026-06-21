@@ -336,18 +336,11 @@ export function TemplateEditor({
 
                   <button
                     type="button"
-                    className={`${uiButtonDangerIconClass} mt-0.5 shrink-0 sm:hidden`}
+                    className={`${uiButtonDangerIconClass} mt-5 shrink-0 sm:mt-0`}
                     aria-label="Видалити вправу"
                     onClick={() => setRemoveIndex(i)}
                   >
                     ×
-                  </button>
-                  <button
-                    type="button"
-                    className={`${uiButtonDangerTextClass} hidden shrink-0 sm:inline-flex`}
-                    onClick={() => setRemoveIndex(i)}
-                  >
-                    Видалити
                   </button>
                 </div>
               </div>
@@ -361,7 +354,7 @@ export function TemplateEditor({
         ) : null}
       </div>
 
-      <div className={uiBtnRowMobileStackClass}>
+      <div className={`${uiBtnRowMobileStackClass} sm:flex-nowrap`}>
         {saveError ? (
           <p className={`${uiFieldErrorClass} basis-full`} role="alert">
             {saveError}

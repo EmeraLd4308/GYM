@@ -5,7 +5,6 @@ import {
   uiAccentGridClass,
   uiButtonAccentClass,
   uiButtonDangerIconClass,
-  uiButtonDangerTextClass,
   uiButtonIconSmClass,
   uiCheckboxClass,
   uiCheckboxLgClass,
@@ -54,8 +53,8 @@ export function WorkoutExerciseCard({
 }: Props) {
   return (
     <>
-      <div className="mb-4 flex items-start gap-2">
-        <div className="min-w-0 w-full flex-1 sm:max-w-xl">
+      <div className="mb-4">
+        <div className="min-w-0 w-full sm:max-w-xl">
           <label className="sr-only" htmlFor={`ex-name-${ex.id}`}>
             Назва вправи {exerciseIndex + 1}
           </label>
@@ -109,21 +108,6 @@ export function WorkoutExerciseCard({
             </p>
           ) : null}
         </div>
-        <button
-          type="button"
-          className={`${uiButtonDangerIconClass} mt-0.5 shrink-0 sm:hidden`}
-          aria-label="Видалити вправу"
-          onClick={() => setConfirm({ kind: "ex", id: ex.id })}
-        >
-          ×
-        </button>
-        <button
-          type="button"
-          className={`${uiButtonDangerTextClass} hidden shrink-0 sm:inline-flex`}
-          onClick={() => setConfirm({ kind: "ex", id: ex.id })}
-        >
-          Видалити
-        </button>
       </div>
 
       <div className="space-y-3 md:hidden">
