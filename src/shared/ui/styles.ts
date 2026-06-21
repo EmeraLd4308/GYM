@@ -11,6 +11,8 @@ export const uiSelectClass = "sbd-input sbd-input--sm sbd-select";
 
 export const uiDateClass = "sbd-input sbd-input--sm sbd-date sbd-input--fit-date";
 
+export const uiDateFullClass = `${uiDateClass} w-full max-w-none`;
+
 export const uiInputNumClass = "sbd-input sbd-input--sm sbd-input--fit-num";
 
 export const uiSelectMdClass = "sbd-input sbd-input--sm sbd-select sbd-input--fit-select";

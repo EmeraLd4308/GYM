@@ -1,12 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  uiButtonDangerIconClass,
-  uiButtonDangerTextClass,
-  uiButtonIconClass,
-  uiLabelClass,
-} from "@/shared/ui/styles";
+import { uiButtonDangerTextClass, uiButtonIconClass, uiLabelClass } from "@/shared/ui/styles";
 
 export function SortableExerciseSection({
   children,
@@ -30,9 +25,9 @@ export function SortableExerciseSection({
   return (
     <section className="sbd-card sbd-card-interactive rounded-xl p-4 sm:p-5">
       {showToolbar ? (
-        <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--sbd-border)] pb-3 md:hidden">
+        <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--sbd-border)] pb-3">
           {showStepButtons ? (
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex items-center gap-2">
               <p className={`${uiLabelClass} text-[10px]`}>Порядок</p>
               <div className="flex flex-row gap-1">
                 <button
@@ -56,54 +51,16 @@ export function SortableExerciseSection({
               </div>
             </div>
           ) : (
-            <span className="md:hidden" />
+            <span />
           )}
           {onDelete ? (
-            <button
-              type="button"
-              className={`${uiButtonDangerIconClass} md:hidden`}
-              aria-label="Видалити вправу"
-              onClick={onDelete}
-            >
-              ×
+            <button type="button" className={uiButtonDangerTextClass} onClick={onDelete}>
+              Видалити
             </button>
           ) : null}
         </div>
       ) : null}
-      <div className="flex w-full min-w-0 flex-col gap-3 md:flex-row md:items-start md:gap-3">
-        {showStepButtons ? (
-          <div className="hidden shrink-0 flex-col items-stretch gap-1 md:flex">
-            <button
-              type="button"
-              className={uiButtonIconClass}
-              aria-label="Вправу вгору"
-              disabled={!canMoveUp}
-              onClick={() => onMoveUp()}
-            >
-              ↑
-            </button>
-            <button
-              type="button"
-              className={uiButtonIconClass}
-              aria-label="Вправу вниз"
-              disabled={!canMoveDown}
-              onClick={() => onMoveDown()}
-            >
-              ↓
-            </button>
-          </div>
-        ) : null}
-        <div className="min-w-0 w-full flex-1">{children}</div>
-        {onDelete ? (
-          <button
-            type="button"
-            className={`${uiButtonDangerTextClass} hidden shrink-0 md:inline-flex`}
-            onClick={onDelete}
-          >
-            Видалити
-          </button>
-        ) : null}
-      </div>
+      <div className="min-w-0 w-full">{children}</div>
     </section>
   );
 }

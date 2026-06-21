@@ -13,6 +13,7 @@ import {
   uiBtnRowMobileStackClass,
   uiButtonDangerIconClass,
   uiButtonDangerTextClass,
+  uiButtonIconClass,
   uiButtonPrimaryClass,
   uiFieldErrorClass,
   uiInputClass,
@@ -31,9 +32,6 @@ type Row = {
 
   baseLift: string;
 };
-
-const rowMoveBtn =
-  "flex min-h-[40px] min-w-[40px] touch-manipulation items-center justify-center rounded border border-[var(--sbd-border)] bg-[var(--sbd-elevated)] text-base leading-none text-[var(--sbd-muted)] transition enabled:hover:border-[#e31e24]/35 enabled:hover:bg-[#e31e24]/10 enabled:hover:text-[var(--sbd-text)] disabled:cursor-not-allowed disabled:opacity-35";
 
 export function TemplateEditor({
   templateId,
@@ -277,71 +275,68 @@ export function TemplateEditor({
           {rows.map((row, i) => (
             <li
               key={row.clientKey}
-              className="flex gap-3 rounded-xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-4 shadow-sm sm:items-end sm:gap-3 sm:p-5"
+              className="rounded-xl border border-[var(--sbd-border)] bg-[var(--sbd-card)] p-4 shadow-sm sm:p-5"
             >
-              <div className="flex shrink-0 flex-row justify-center gap-2 sm:flex-col sm:justify-start">
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--sbd-border)] pb-3">
+                <div className="flex items-center gap-2">
+                  <p className={`${uiLabelClass} text-[10px]`}>Порядок</p>
+                  <div className="flex flex-row gap-1">
+                    <button
+                      type="button"
+                      className={uiButtonIconClass}
+                      aria-label="Вправу вгору"
+                      disabled={i === 0}
+                      onClick={() => moveRow(i, -1)}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className={uiButtonIconClass}
+                      aria-label="Вправу вниз"
+                      disabled={i >= rows.length - 1}
+                      onClick={() => moveRow(i, 1)}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  className={rowMoveBtn}
-                  aria-label="Вправу вгору"
-                  disabled={i === 0}
-                  onClick={() => moveRow(i, -1)}
+                  className={uiButtonDangerIconClass}
+                  aria-label="Видалити вправу"
+                  onClick={() => setRemoveIndex(i)}
                 >
-                  ↑
-                </button>
-
-                <button
-                  type="button"
-                  className={rowMoveBtn}
-                  aria-label="Вправу вниз"
-                  disabled={i >= rows.length - 1}
-                  onClick={() => moveRow(i, 1)}
-                >
-                  ↓
+                  ×
                 </button>
               </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-2">
-                  <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
-                    <div className="min-w-0 flex-1">
-                      <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
+              <div className="flex flex-col gap-3">
+                <div className="min-w-0 w-full">
+                  <label className="text-xs font-medium text-[var(--sbd-muted)]">Назва</label>
+                  <input
+                    className={`mt-1 ${uiInputClass} w-full`}
+                    value={row.name}
+                    onChange={(e) => updateRow(i, { name: e.target.value })}
+                    placeholder="Наприклад, Присід зі штангою"
+                  />
+                </div>
 
-                      <input
-                        className={`mt-1 ${uiInputClass}`}
-                        value={row.name}
-                        onChange={(e) => updateRow(i, { name: e.target.value })}
-                        placeholder="Наприклад, Присід зі штангою"
-                      />
-                    </div>
-
-                    <div className="min-w-0 w-full sm:w-48">
-                      <label className="text-xs font-medium text-[var(--sbd-muted)]">
-                        Базова для статистики
-                      </label>
-
-                      <select
-                        className={`mt-1 ${uiSelectClass}`}
-                        value={row.baseLift}
-                        onChange={(e) => updateRow(i, { baseLift: e.target.value })}
-                      >
-                        {BASE_LIFT_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={`${uiButtonDangerIconClass} mt-5 shrink-0 sm:mt-0`}
-                    aria-label="Видалити вправу"
-                    onClick={() => setRemoveIndex(i)}
+                <div className="min-w-0 w-full">
+                  <label className="text-xs font-medium text-[var(--sbd-muted)]">
+                    Базова для статистики
+                  </label>
+                  <select
+                    className={`mt-1 ${uiSelectClass} w-full`}
+                    value={row.baseLift}
+                    onChange={(e) => updateRow(i, { baseLift: e.target.value })}
                   >
-                    ×
-                  </button>
+                    {BASE_LIFT_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </li>

@@ -170,11 +170,11 @@ export function WorkoutSessionHeader({
         <label className={`${uiLabelClass} block`} htmlFor="copydate">
           Копіювати це тренування на дату
         </label>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
           <input
             id="copydate"
             type="date"
-            className={uiDateClass}
+            className={`${uiDateClass} w-full max-w-none sm:w-auto`}
             value={copyDate}
             onChange={(e) => setCopyDate(e.target.value)}
           />
