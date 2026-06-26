@@ -145,15 +145,15 @@ export function IconNavChart({ className }: IconProps) {
 export function IconNavProfile({ className }: IconProps) {
   return (
     <IconBase className={className}>
-      <circle cx="12" cy="8.5" r="2.15" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="8.25" r="2.75" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M5.75 13.75h12.5"
+        d="M4 14.25h16"
         stroke="currentColor"
-        strokeWidth="1.65"
+        strokeWidth="1.75"
         strokeLinecap="round"
       />
       <path
-        d="M8.25 17.25h7.5"
+        d="M7 18.5h10"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
