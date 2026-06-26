@@ -95,15 +95,20 @@ export function IconNavHome({ className }: IconProps) {
 export function IconNavWorkouts({ className }: IconProps) {
   return (
     <IconBase className={className}>
+      <rect x="4" y="7.5" width="4" height="9" rx="1.25" stroke="currentColor" strokeWidth="1.75" />
+      <rect x="16" y="7.5" width="4" height="9" rx="1.25" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M6.5 8.5h11M6.5 12h11M6.5 15.5H14"
+        d="M8 12h8"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
       />
-      <circle cx="5" cy="8.5" r="1" fill="currentColor" />
-      <circle cx="5" cy="12" r="1" fill="currentColor" />
-      <circle cx="5" cy="15.5" r="1" fill="currentColor" />
+      <path
+        d="M7.25 10v4M16.75 10v4"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+      />
     </IconBase>
   );
 }
@@ -111,8 +116,19 @@ export function IconNavWorkouts({ className }: IconProps) {
 export function IconNavCalendar({ className }: IconProps) {
   return (
     <IconBase className={className}>
-      <rect x="4" y="5.5" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M4 10h16M8 3.5v3M16 3.5v3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M3 10.5h18" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M8 3.5v3.5M16 3.5v3.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="8" cy="14.5" r="0.9" fill="currentColor" />
+      <circle cx="12" cy="14.5" r="0.9" fill="currentColor" />
+      <circle cx="16" cy="14.5" r="0.9" fill="currentColor" />
+      <circle cx="8" cy="17.5" r="0.9" fill="currentColor" />
+      <circle cx="12" cy="17.5" r="0.9" fill="currentColor" />
     </IconBase>
   );
 }
@@ -134,9 +150,10 @@ export function IconNavChart({ className }: IconProps) {
 export function IconNavProfile({ className }: IconProps) {
   return (
     <IconBase className={className}>
-      <circle cx="12" cy="9" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="12" cy="12" r="8.75" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="10" r="2.75" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M6.5 19.5c.9-2.8 3.1-4.5 5.5-4.5s4.6 1.7 5.5 4.5"
+        d="M7.25 17.25c1.15-2.35 2.85-3.5 4.75-3.5s3.6 1.15 4.75 3.5"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"

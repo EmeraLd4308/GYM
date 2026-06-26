@@ -10,8 +10,10 @@ export function PageToolbar() {
   const back = getBackInfo(pathname);
   const context = getPageContext(pathname);
 
+  if (!back && !context) return null;
+
   return (
-    <div className={context ? "mb-5 space-y-2.5" : "mb-2"}>
+    <div className={context ? "mb-5 space-y-2.5" : "mb-1.5"}>
       {back ? (
         <Link
           href={back.href}
