@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { baseLiftLabel } from "@/features/workouts/lib/base-lift";
 import { SetWorkingNumberBadge } from "@/features/workouts/components/SetWorkingNumberBadge";
 import type { ExerciseRow } from "@/features/workouts/lib/workout-session-types";
@@ -23,11 +24,12 @@ const inpMobile = `${uiInputClass} min-h-[48px] w-full px-3 text-base`;
 type Props = {
   ex: ExerciseRow;
   exerciseIndex: number;
+  exerciseNameError: string | null;
+  isAddingSets: boolean;
+  doneMap: Record<string, boolean>;
 } & Pick<
   WorkoutSessionController,
-  | "exerciseNameErrors"
   | "setExerciseNameErrors"
-  | "addingSetsFor"
   | "isSetDone"
   | "setSetDone"
   | "setWorkout"
@@ -38,12 +40,24 @@ type Props = {
   | "addSet"
 >;
 
-export function WorkoutExerciseCard({
+function setsDoneEqual(
+  sets: ExerciseRow["sets"],
+  prevDone: Record<string, boolean>,
+  nextDone: Record<string, boolean>,
+): boolean {
+  for (const s of sets) {
+    if ((prevDone[s.id] ?? false) !== (nextDone[s.id] ?? false)) return false;
+  }
+  return true;
+}
+
+function WorkoutExerciseCardInner({
   ex,
   exerciseIndex,
-  exerciseNameErrors,
+  exerciseNameError,
+  isAddingSets,
+  doneMap,
   setExerciseNameErrors,
-  addingSetsFor,
   isSetDone,
   setSetDone,
   setWorkout,
@@ -109,9 +123,9 @@ export function WorkoutExerciseCard({
               <span className="normal-case tracking-normal"> · {workingCount} робочих</span>
             ) : null}
           </p>
-          {exerciseNameErrors[ex.id] ? (
+          {exerciseNameError ? (
             <p className={uiFieldErrorClass} role="alert">
-              {exerciseNameErrors[ex.id]}
+              {exerciseNameError}
             </p>
           ) : null}
         </div>
@@ -121,14 +135,12 @@ export function WorkoutExerciseCard({
         {ex.sets.map((s, setIndex) => {
           const setNum = workingSetNumber(ex.sets, setIndex);
           return (
-          <div key={s.id} className={uiSetCardClass}>
+          <div
+            key={s.id}
+            className={`${uiSetCardClass}${doneMap[s.id] ? " sbd-set-card--done" : ""}`}
+          >
             <div className="mb-3 flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} />
-                <span className={uiLabelClass}>
-                  {s.isWarmup ? "Розминка" : `Підхід ${setNum}`}
-                </span>
-              </div>
+              <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} />
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -501,13 +513,32 @@ export function WorkoutExerciseCard({
             key={count}
             type="button"
             className={uiButtonAccentClass}
-            disabled={addingSetsFor === ex.id}
+            disabled={isAddingSets}
             onClick={() => void addSet(ex.id, count)}
           >
-            {addingSetsFor === ex.id ? "…" : `+${count}`}
+            {isAddingSets ? "…" : `+${count}`}
           </button>
         ))}
       </div>
     </>
   );
 }
+
+export const WorkoutExerciseCard = memo(WorkoutExerciseCardInner, (prev, next) => {
+  return (
+    prev.ex === next.ex &&
+    prev.exerciseIndex === next.exerciseIndex &&
+    prev.exerciseNameError === next.exerciseNameError &&
+    prev.isAddingSets === next.isAddingSets &&
+    setsDoneEqual(prev.ex.sets, prev.doneMap, next.doneMap) &&
+    prev.setExerciseNameErrors === next.setExerciseNameErrors &&
+    prev.isSetDone === next.isSetDone &&
+    prev.setSetDone === next.setSetDone &&
+    prev.setWorkout === next.setWorkout &&
+    prev.setConfirm === next.setConfirm &&
+    prev.moveSetRelative === next.moveSetRelative &&
+    prev.patchExerciseName === next.patchExerciseName &&
+    prev.updateSet === next.updateSet &&
+    prev.addSet === next.addSet
+  );
+});

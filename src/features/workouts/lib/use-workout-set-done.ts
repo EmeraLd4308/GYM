@@ -75,5 +75,5 @@ export function useWorkoutSetDone(workoutId: string) {
     [workoutId],
   );
 
-  return { isSetDone, setSetDone };
+  return { isSetDone, setSetDone, doneMap };
 }

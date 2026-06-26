@@ -57,7 +57,7 @@ export function useWorkoutSession(
   const skipInitialLoadRef = useRef(initialWorkout != null);
   titleDraftRef.current = titleDraft;
 
-  const { isSetDone, setSetDone: persistSetDone } = useWorkoutSetDone(workoutId);
+  const { isSetDone, setSetDone: persistSetDone, doneMap } = useWorkoutSetDone(workoutId);
 
   const setSetDone = useCallback(
     (setId: string, done: boolean) => {
@@ -636,6 +636,7 @@ export function useWorkoutSession(
     addingSetsFor,
     isSetDone,
     setSetDone,
+    doneMap,
     setWorkout,
     patchTitle,
     patchDate,

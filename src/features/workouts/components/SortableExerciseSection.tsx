@@ -23,7 +23,7 @@ export function SortableExerciseSection({
   const showToolbar = showStepButtons || onDelete != null;
 
   return (
-    <section className="sbd-card sbd-card-interactive rounded-xl p-4 sm:p-5">
+    <section className="sbd-card sbd-card-interactive sbd-exercise-section rounded-xl p-4 sm:p-5">
       {showToolbar ? (
         <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--sbd-border)] pb-3">
           {showStepButtons ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { SortableExerciseSection } from "@/features/workouts/components/SortableExerciseSection";
 import { WorkoutSessionSkeleton } from "@/features/workouts/components/WorkoutSessionSkeleton";
@@ -26,7 +26,28 @@ export function WorkoutSession({
     readOnly,
     onSetMarkedDone: () => startRestRef.current?.(),
   });
-  const { workout, loadError, confirm, setConfirm, handleConfirm } = session;
+  const {
+    workout,
+    loadError,
+    confirm,
+    setConfirm,
+    handleConfirm,
+    exerciseNameErrors,
+    addingSetsFor,
+    doneMap,
+    setExerciseNameErrors,
+    isSetDone,
+    setSetDone,
+    setWorkout,
+    moveSetRelative,
+    patchExerciseName,
+    updateSet,
+    addSet,
+  } = session;
+
+  const registerRestStart = useCallback((start: () => void) => {
+    startRestRef.current = start;
+  }, []);
 
   if (loadError && !workout) {
     return <p className={uiFieldErrorClass}>{loadError}</p>;
@@ -64,13 +85,7 @@ export function WorkoutSession({
 
       {!readOnly ? <WorkoutSessionHeader {...session} /> : null}
 
-      {!readOnly ? (
-        <WorkoutRestTimer
-          onRegisterStart={(start) => {
-            startRestRef.current = start;
-          }}
-        />
-      ) : null}
+      {!readOnly ? <WorkoutRestTimer onRegisterStart={registerRestStart} /> : null}
 
       <div className={`space-y-8 ${readOnly ? "pointer-events-none opacity-95" : ""}`}>
         {workout.exercises.map((ex, exerciseIndex) => (
@@ -82,7 +97,22 @@ export function WorkoutSession({
             onMoveDown={() => session.moveExerciseRelative(ex.id, 1)}
             onDelete={!readOnly ? () => setConfirm({ kind: "ex", id: ex.id }) : undefined}
           >
-            <WorkoutExerciseCard ex={ex} exerciseIndex={exerciseIndex} {...session} />
+            <WorkoutExerciseCard
+              ex={ex}
+              exerciseIndex={exerciseIndex}
+              exerciseNameError={exerciseNameErrors[ex.id] ?? null}
+              isAddingSets={addingSetsFor === ex.id}
+              doneMap={doneMap}
+              setExerciseNameErrors={setExerciseNameErrors}
+              isSetDone={isSetDone}
+              setSetDone={setSetDone}
+              setWorkout={setWorkout}
+              setConfirm={setConfirm}
+              moveSetRelative={moveSetRelative}
+              patchExerciseName={patchExerciseName}
+              updateSet={updateSet}
+              addSet={addSet}
+            />
           </SortableExerciseSection>
         ))}
       </div>

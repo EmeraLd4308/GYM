@@ -1452,6 +1452,22 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   border: 1px solid var(--sbd-border);
   background: color-mix(in oklab, var(--sbd-card) 70%, transparent);
   padding: 0.75rem;
+  scroll-margin-top: 5.5rem;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.sbd-set-card--done {
+  border-color: color-mix(in oklab, var(--sbd-red), transparent 42%);
+  background: color-mix(in oklab, var(--sbd-red), transparent 93%);
+}
+
+@media (max-width: 767px) {
+  .sbd-exercise-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 280px;
+  }
 }
 
 .sbd-panel-dashed {
