@@ -20,6 +20,7 @@ import {
   uiLabelClass,
   uiSelectClass,
 } from "@/shared/ui/styles";
+import { IconArrowDown, IconArrowUp, IconClose } from "@/shared/ui/icons";
 
 import { useToast } from "@/shared/shell/ToastProvider";
 
@@ -288,7 +289,7 @@ export function TemplateEditor({
                       disabled={i === 0}
                       onClick={() => moveRow(i, -1)}
                     >
-                      ↑
+                      <IconArrowUp />
                     </button>
                     <button
                       type="button"
@@ -297,7 +298,7 @@ export function TemplateEditor({
                       disabled={i >= rows.length - 1}
                       onClick={() => moveRow(i, 1)}
                     >
-                      ↓
+                      <IconArrowDown />
                     </button>
                   </div>
                 </div>
@@ -307,7 +308,7 @@ export function TemplateEditor({
                   aria-label="Видалити вправу"
                   onClick={() => setRemoveIndex(i)}
                 >
-                  ×
+                  <IconClose />
                 </button>
               </div>
 

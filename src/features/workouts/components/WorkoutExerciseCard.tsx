@@ -4,6 +4,7 @@ import { SetWorkingNumberBadge } from "@/features/workouts/components/SetWorking
 import type { ExerciseRow } from "@/features/workouts/lib/workout-session-types";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import { countWorkingSets, workingSetNumber } from "@/features/workouts/lib/working-set-number";
+import { IconArrowDown, IconArrowUp, IconClose } from "@/shared/ui/icons";
 import {
   uiAccentGridClass,
   uiButtonAccentClass,
@@ -149,7 +150,7 @@ function WorkoutExerciseCardInner({
                   disabled={setIndex === 0}
                   onClick={() => moveSetRelative(ex.id, s.id, -1)}
                 >
-                  ↑
+                  <IconArrowUp />
                 </button>
                 <button
                   type="button"
@@ -158,7 +159,7 @@ function WorkoutExerciseCardInner({
                   disabled={setIndex >= ex.sets.length - 1}
                   onClick={() => moveSetRelative(ex.id, s.id, 1)}
                 >
-                  ↓
+                  <IconArrowDown />
                 </button>
                 <button
                   type="button"
@@ -166,7 +167,7 @@ function WorkoutExerciseCardInner({
                   aria-label="Видалити підхід"
                   onClick={() => setConfirm({ kind: "set", id: s.id })}
                 >
-                  ×
+                  <IconClose />
                 </button>
               </div>
             </div>
@@ -348,7 +349,7 @@ function WorkoutExerciseCardInner({
                         disabled={setIndex === 0}
                         onClick={() => moveSetRelative(ex.id, s.id, -1)}
                       >
-                        ↑
+                        <IconArrowUp />
                       </button>
                       <button
                         type="button"
@@ -357,7 +358,7 @@ function WorkoutExerciseCardInner({
                         disabled={setIndex >= ex.sets.length - 1}
                         onClick={() => moveSetRelative(ex.id, s.id, 1)}
                       >
-                        ↓
+                        <IconArrowDown />
                       </button>
                     </div>
                   </td>
@@ -494,10 +495,11 @@ function WorkoutExerciseCardInner({
                   <td className="py-2 pr-3 text-right">
                     <button
                       type="button"
-                      className="text-[var(--sbd-red)]/90 transition hover:text-[var(--sbd-red)]"
+                      className="inline-flex min-h-[2rem] min-w-[2rem] items-center justify-center rounded-md text-[var(--sbd-red)]/90 transition hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_90%)] hover:text-[var(--sbd-red)]"
+                      aria-label="Видалити підхід"
                       onClick={() => setConfirm({ kind: "set", id: s.id })}
                     >
-                      ×
+                      <IconClose className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>

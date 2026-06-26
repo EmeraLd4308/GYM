@@ -1404,6 +1404,12 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   line-height: 1;
 }
 
+.sbd-btn--icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: block;
+}
+
 .sbd-btn--icon:not(:disabled):hover {
   border-color: color-mix(in oklab, var(--sbd-red), transparent 62%);
   background: color-mix(in oklab, var(--sbd-red), transparent 91%);
@@ -1414,6 +1420,12 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   min-height: 2.25rem;
   min-width: 2.25rem;
   font-size: 1rem;
+}
+
+.sbd-btn--icon-sm svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
 }
 
 .sbd-btn--danger-text {
@@ -1441,6 +1453,12 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   color: color-mix(in oklab, var(--sbd-red), white 15%);
   font-size: 1.125rem;
   line-height: 1;
+}
+
+.sbd-btn--danger-icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: block;
 }
 
 .sbd-btn--danger-icon:not(:disabled):hover {

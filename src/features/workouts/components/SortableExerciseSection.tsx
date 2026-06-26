@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { uiButtonDangerTextClass, uiButtonIconClass, uiLabelClass } from "@/shared/ui/styles";
+import { IconArrowDown, IconArrowUp } from "@/shared/ui/icons";
 
 export function SortableExerciseSection({
   children,
@@ -37,7 +38,7 @@ export function SortableExerciseSection({
                   disabled={!canMoveUp}
                   onClick={() => onMoveUp()}
                 >
-                  ↑
+                  <IconArrowUp />
                 </button>
                 <button
                   type="button"
@@ -46,7 +47,7 @@ export function SortableExerciseSection({
                   disabled={!canMoveDown}
                   onClick={() => onMoveDown()}
                 >
-                  ↓
+                  <IconArrowDown />
                 </button>
               </div>
             </div>
