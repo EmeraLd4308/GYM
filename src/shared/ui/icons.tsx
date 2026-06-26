@@ -116,19 +116,14 @@ export function IconNavWorkouts({ className }: IconProps) {
 export function IconNavCalendar({ className }: IconProps) {
   return (
     <IconBase className={className}>
-      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M3 10.5h18" stroke="currentColor" strokeWidth="1.75" />
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 10h16" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M8 3.5v3.5M16 3.5v3.5"
+        d="M8.5 3.5v2M15.5 3.5v2"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
       />
-      <circle cx="8" cy="14.5" r="0.9" fill="currentColor" />
-      <circle cx="12" cy="14.5" r="0.9" fill="currentColor" />
-      <circle cx="16" cy="14.5" r="0.9" fill="currentColor" />
-      <circle cx="8" cy="17.5" r="0.9" fill="currentColor" />
-      <circle cx="12" cy="17.5" r="0.9" fill="currentColor" />
     </IconBase>
   );
 }
@@ -150,12 +145,11 @@ export function IconNavChart({ className }: IconProps) {
 export function IconNavProfile({ className }: IconProps) {
   return (
     <IconBase className={className}>
-      <circle cx="12" cy="12" r="8.75" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="10" r="2.75" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="12" cy="9.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path
-        d="M7.25 17.25c1.15-2.35 2.85-3.5 4.75-3.5s3.6 1.15 4.75 3.5"
+        d="M7 18c.8-2.5 2.7-4 5-4s4.2 1.5 5 4"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth="1.5"
         strokeLinecap="round"
       />
     </IconBase>

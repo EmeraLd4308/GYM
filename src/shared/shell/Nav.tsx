@@ -110,11 +110,8 @@ export function Nav({
           <ThemeToggle variant="nav" />
           <Link
             href="/templates"
-            className={`${templatesBtn} sbd-header-icon-btn md:hidden ${
-              isActive("/templates")
-                ? "border-[#e31e24]/45 bg-[#e31e24]/12 text-[#e31e24]"
-                : "border-[var(--sbd-border)] text-zinc-400"
-            }`}
+            className={`${templatesBtn} sbd-header-icon-btn md:hidden`}
+            data-active={isActive("/templates") ? "true" : "false"}
             aria-current={isActive("/templates") ? "page" : undefined}
           >
             Шаблони
