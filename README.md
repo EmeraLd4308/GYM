@@ -109,8 +109,6 @@ prisma/
   migrations/
 ```
 
-Детальний опис, правила імпортів і залежностей: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
-
 Ключове:
 - Авторизація: **httpOnly** cookie-сесія (`gym_session`) + таблиця `Session`
 - Дані тренувань: `Workout` / `WorkoutExercise` / `ExerciseSet`

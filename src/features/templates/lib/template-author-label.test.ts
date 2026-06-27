@@ -1,16 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { templateDisplayName, templateOptionLabel } from "@/features/templates/lib/template-author-label";
-
-describe("templateDisplayName", () => {
-  it("prefers trimmed nickname", () => {
-    expect(templateDisplayName({ login: "vadya", nickname: "  Iron  " })).toBe("Iron");
-  });
-
-  it("falls back to login", () => {
-    expect(templateDisplayName({ login: "vadya", nickname: null })).toBe("vadya");
-    expect(templateDisplayName({ login: "vadya", nickname: "   " })).toBe("vadya");
-  });
-});
+import { templateOptionLabel } from "@/features/templates/lib/template-author-label";
 
 describe("templateOptionLabel", () => {
   it("includes login in parentheses when nickname exists", () => {

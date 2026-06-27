@@ -59,22 +59,12 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
   }));
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <p className="font-display text-lg font-semibold uppercase tracking-wide text-white">
-          {template.name}
-        </p>
-        <span className="rounded-full border border-[#e31e24]/40 bg-[#e31e24]/[0.14] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#ffc9c9]">
-          Мій
-        </span>
-      </div>
-      <div className="sbd-card rounded-xl p-5 sm:p-6">
-        <TemplateEditor
-          templateId={template.id}
-          initialName={template.name}
-          initialRows={initialRows}
-        />
-      </div>
+    <div className="sbd-card rounded-xl p-5 sm:p-6">
+      <TemplateEditor
+        templateId={template.id}
+        initialName={template.name}
+        initialRows={initialRows}
+      />
     </div>
   );
 }

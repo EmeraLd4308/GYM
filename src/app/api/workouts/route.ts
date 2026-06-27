@@ -8,16 +8,29 @@ import { parseStatsFiltersFromSearchParams } from "@/features/stats/lib/stats-fi
 import { workoutListWhere } from "@/features/workouts/lib/workout-list-where";
 import { parseWorkoutListPageSize } from "@/features/workouts/lib/workout-list-page-size";
 import { rateLimitJson } from "@/shared/lib/rate-limit";
+import { findLastExerciseSets, setsCreateFromSnapshot } from "@/features/workouts/lib/exercise-last-sets";
 
 export const dynamic = "force-dynamic";
 const noStoreHeaders = { "Cache-Control": "private, no-store" };
 
-const createSchema = z.object({
-  templateId: z.string().cuid().optional(),
-  title: z.string().trim().max(200).optional(),
-
-  date: z.string().optional(),
-});
+const createSchema = z
+  .object({
+    templateId: z.string().cuid().optional(),
+    templateExerciseIds: z.array(z.string().cuid()).optional(),
+    title: z.string().trim().max(200).optional(),
+    date: z.string().optional(),
+    exercises: z
+      .array(
+        z.object({
+          name: z.string().trim().min(1).max(200),
+          baseLift: z.enum(["NONE", "BENCH", "SQUAT", "DEADLIFT"]),
+        }),
+      )
+      .optional(),
+  })
+  .refine((data) => !(data.templateId && data.exercises?.length), {
+    message: "Не можна одночасно передати шаблон і список вправ.",
+  });
 
 export async function GET(req: Request) {
   const user = await getSessionUser();
@@ -66,7 +79,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400, headers: noStoreHeaders });
     }
-    const { templateId, title, date: dateRaw } = parsed.data;
+    const { templateId, templateExerciseIds, title, date: dateRaw, exercises } = parsed.data;
 
     let workoutDate = new Date();
     if (dateRaw?.trim()) {
@@ -85,35 +98,93 @@ export async function POST(req: Request) {
       if (!template) {
         return NextResponse.json({ error: "Шаблон не знайдено." }, { status: 404, headers: noStoreHeaders });
       }
+
+      const templateExerciseIdSet = new Set(template.exercises.map((e) => e.id));
+      if (templateExerciseIds) {
+        const unknown = templateExerciseIds.filter((id) => !templateExerciseIdSet.has(id));
+        if (unknown.length > 0) {
+          return NextResponse.json(
+            { error: "Обрано вправи, яких немає в шаблоні." },
+            { status: 400, headers: noStoreHeaders },
+          );
+        }
+        if (templateExerciseIds.length === 0) {
+          return NextResponse.json(
+            { error: "Оберіть хоча б одну вправу з шаблону." },
+            { status: 400, headers: noStoreHeaders },
+          );
+        }
+      }
+
+      const selectedIds = templateExerciseIds
+        ? new Set(templateExerciseIds)
+        : templateExerciseIdSet;
+      const selectedExercises = template.exercises.filter((e) => selectedIds.has(e.id));
+
+      const exerciseCreates = await Promise.all(
+        selectedExercises.map(async (e, index) => {
+          const lastSets =
+            e.baseLift === "NONE" ? await findLastExerciseSets(user.id, e.name) : null;
+          return {
+            sortOrder: index,
+            name: e.name,
+            baseLift: e.baseLift as BaseLift,
+            ...(lastSets?.length
+              ? { sets: { create: setsCreateFromSnapshot(lastSets) } }
+              : {}),
+          };
+        }),
+      );
+
       const workout = await prisma.workout.create({
         data: {
           userId: user.id,
           date: workoutDate,
           title: title ?? template.name,
           templateId: template.id,
-          exercises: {
-            create: template.exercises.map((e) => ({
-              sortOrder: e.sortOrder,
-              name: e.name,
-              baseLift: e.baseLift as BaseLift,
-            })),
-          },
+          exercises: { create: exerciseCreates },
         },
         include: {
-          exercises: { orderBy: { sortOrder: "asc" }, include: { sets: true } },
+          exercises: {
+            orderBy: { sortOrder: "asc" },
+            include: { sets: { orderBy: { sortOrder: "asc" } } },
+          },
         },
       });
       return NextResponse.json({ workout }, { headers: noStoreHeaders });
     }
+
+    const exerciseCreatesFromInput = exercises?.length
+      ? await Promise.all(
+          exercises.map(async (e, index) => {
+            const lastSets =
+              e.baseLift === "NONE" ? await findLastExerciseSets(user.id, e.name) : null;
+            return {
+              sortOrder: index,
+              name: e.name,
+              baseLift: e.baseLift as BaseLift,
+              ...(lastSets?.length
+                ? { sets: { create: setsCreateFromSnapshot(lastSets) } }
+                : {}),
+            };
+          }),
+        )
+      : null;
 
     const workout = await prisma.workout.create({
       data: {
         userId: user.id,
         date: workoutDate,
         title: title ?? null,
+        ...(exerciseCreatesFromInput?.length
+          ? { exercises: { create: exerciseCreatesFromInput } }
+          : {}),
       },
       include: {
-        exercises: { orderBy: { sortOrder: "asc" }, include: { sets: true } },
+        exercises: {
+          orderBy: { sortOrder: "asc" },
+          include: { sets: { orderBy: { sortOrder: "asc" } } },
+        },
       },
     });
     return NextResponse.json({ workout }, { headers: noStoreHeaders });

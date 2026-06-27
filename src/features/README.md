@@ -11,5 +11,3 @@
 | `calendar/` | Календар тренувань |
 | `profile/` | Профіль, GL, досягнення, аватар |
 | `dashboard/` | Головна, онбординг, дублювання дня |
-
-Детальніше: [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)

@@ -1,14 +1,15 @@
 export function getBackInfo(pathname: string): { href: string; label: string } | null {
   if (pathname === "/dashboard") return null;
-  if (pathname === "/templates") return { href: "/dashboard", label: "На головну" };
+  if (pathname === "/templates") return null;
   if (pathname === "/templates/new") return { href: "/templates", label: "До шаблонів" };
   if (pathname.startsWith("/templates/")) return { href: "/templates", label: "До шаблонів" };
-  if (pathname === "/workouts") return { href: "/dashboard", label: "На головну" };
+  if (pathname === "/workouts") return null;
   if (pathname === "/workouts/new") return { href: "/workouts", label: "До списку" };
   if (pathname.startsWith("/workouts/")) return { href: "/workouts", label: "До списку" };
-  if (pathname === "/stats") return { href: "/dashboard", label: "На головну" };
-  if (pathname === "/calendar") return { href: "/dashboard", label: "На головну" };
-  return { href: "/dashboard", label: "На головну" };
+  if (pathname === "/stats") return null;
+  if (pathname === "/calendar") return null;
+  if (pathname === "/profile") return null;
+  return null;
 }
 
 export function getPageContext(pathname: string): string {

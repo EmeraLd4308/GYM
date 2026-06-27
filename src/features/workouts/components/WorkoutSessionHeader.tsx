@@ -6,7 +6,6 @@ import {
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
   uiDateClass,
-  uiFormRowClass,
   uiInputClass,
   uiInputInlineTitleClass,
   uiLabelClass,
@@ -120,25 +119,27 @@ export function WorkoutSessionHeader({
           </button>
         </div>
       </div>
-      <div className={`mt-4 ${uiFormRowClass}`}>
-        <label className={uiLabelClass} htmlFor="wdate">
+      <div className="mt-4">
+        <label className={`mb-2 block ${uiLabelClass}`} htmlFor="wdate">
           Дата тренування
         </label>
-        <input
-          id="wdate"
-          type="date"
-          className={uiDateClass}
-          value={formatDateForInput(workout.date)}
-          onChange={(e) => patchDate(e.target.value)}
-        />
+        <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1">
+          <input
+            id="wdate"
+            type="date"
+            className={`${uiDateClass} shrink-0`}
+            value={formatDateForInput(workout.date)}
+            onChange={(e) => patchDate(e.target.value)}
+          />
+          <p className={`${uiMutedTextClass} min-w-0 capitalize leading-none`}>
+            {new Date(workout.date).toLocaleDateString("uk-UA", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
+        </div>
       </div>
-      <p className={`mt-2 ${uiMutedTextClass}`}>
-        {new Date(workout.date).toLocaleDateString("uk-UA", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })}
-      </p>
       <div className="mt-4 flex flex-col gap-2">
         <label className={uiLabelClass} htmlFor="wnotes">
           Нотатки{" "}

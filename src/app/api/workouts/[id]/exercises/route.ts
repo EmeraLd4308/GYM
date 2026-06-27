@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { BaseLift } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 import { getSessionUser } from "@/shared/lib/auth";
+import { findLastExerciseSets, setsCreateFromSnapshot } from "@/features/workouts/lib/exercise-last-sets";
 
 const bodySchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -25,14 +26,20 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
     }
     const maxOrder = workout.exercises.reduce((m, e) => Math.max(m, e.sortOrder), -1);
+    const baseLift = parsed.data.baseLift as BaseLift;
+    const lastSets =
+      baseLift === "NONE"
+        ? await findLastExerciseSets(user.id, parsed.data.name, { excludeWorkoutId: workoutId })
+        : null;
     const exercise = await prisma.workoutExercise.create({
       data: {
         workoutId,
         sortOrder: maxOrder + 1,
         name: parsed.data.name,
-        baseLift: parsed.data.baseLift as BaseLift,
+        baseLift,
+        ...(lastSets?.length ? { sets: { create: setsCreateFromSnapshot(lastSets) } } : {}),
       },
-      include: { sets: true },
+      include: { sets: { orderBy: { sortOrder: "asc" } } },
     });
     return NextResponse.json({ exercise });
   } catch {

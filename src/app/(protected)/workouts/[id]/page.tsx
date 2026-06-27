@@ -11,7 +11,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
   if (!initialWorkout) notFound();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <p className="text-sm leading-relaxed text-[var(--sbd-muted)]">
         Дату можна змінити в будь-який момент — статистика йде за обраним днем. Вага довільна;
         розминка не входить у базові графіки.
