@@ -11,7 +11,6 @@ export function ProfileClient() {
   if (profile.loading) {
     return (
       <div className="space-y-6 animate-pulse" aria-busy="true" aria-label="Завантаження профілю">
-        <div className="h-10 w-2/3 max-w-md rounded-lg bg-[color-mix(in_oklab,var(--sbd-card)_60%,transparent)]" />
         <div className="sbd-card h-32 rounded-2xl p-6" />
         <div className="sbd-card h-80 rounded-2xl p-6" />
       </div>
@@ -19,13 +18,7 @@ export function ProfileClient() {
   }
 
   return (
-    <div className="sbd-stagger-children space-y-10 pb-6 md:space-y-12 md:pb-8">
-      <header className="max-w-3xl space-y-3">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
-          Силові максимуми та GL
-        </h1>
-      </header>
-
+    <div className="sbd-stagger-children space-y-8 pb-6 md:space-y-10 md:pb-8">
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-12 lg:items-start lg:gap-10">
         <ProfilePreviewAside {...profile} />
 
