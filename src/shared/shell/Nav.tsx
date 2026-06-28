@@ -6,6 +6,7 @@ import { useState } from "react";
 import { PresetAvatar } from "@/features/profile/components/PresetAvatar";
 import { SbdLoadingPortal } from "@/shared/ui/SbdLoadingPortal";
 import { ThemeToggle } from "@/shared/shell/ThemeToggle";
+import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { IconLogout } from "@/shared/ui/icons";
 
 const base =
@@ -31,6 +32,22 @@ export function Nav({
 }) {
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  async function performLogout() {
+    setLogoutConfirmOpen(false);
+    setLoggingOut(true);
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        redirect: "follow",
+      });
+      window.location.assign(res.url);
+    } catch {
+      setLoggingOut(false);
+    }
+  }
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -116,35 +133,37 @@ export function Nav({
           >
             Шаблони
           </Link>
-          <form
-            action="/api/auth/logout"
-            method="post"
-            className="inline md:hidden"
-            onSubmit={() => setLoggingOut(true)}
+          <button
+            type="button"
+            className={`${iconBtn} md:hidden ${loggingOut ? "pointer-events-none border-[#e31e24]/45 bg-[#e31e24]/12 text-[#e31e24] opacity-80" : ""}`}
+            aria-label="Вийти з облікового запису"
+            title="Вийти"
+            disabled={loggingOut}
+            onClick={() => setLogoutConfirmOpen(true)}
           >
-            <button
-              type="submit"
-              className={`${iconBtn} ${loggingOut ? "pointer-events-none border-[#e31e24]/45 bg-[#e31e24]/12 text-[#e31e24] opacity-80" : ""}`}
-              aria-label="Вийти з облікового запису"
-              title="Вийти"
-              disabled={loggingOut}
-            >
-              <IconLogout className="h-[22px] w-[22px]" />
-            </button>
-          </form>
-          <form
-            action="/api/auth/logout"
-            method="post"
-            className="hidden md:inline"
-            onSubmit={() => setLoggingOut(true)}
+            <IconLogout className="h-[22px] w-[22px]" />
+          </button>
+          <button
+            type="button"
+            className={`${logoutTextBtn} hidden md:inline-flex`}
+            disabled={loggingOut}
+            onClick={() => setLogoutConfirmOpen(true)}
           >
-            <button type="submit" className={logoutTextBtn} disabled={loggingOut}>
-              {loggingOut ? "Вихід…" : "Вийти"}
-            </button>
-          </form>
+            {loggingOut ? "Вихід…" : "Вийти"}
+          </button>
         </div>
         </div>
       </header>
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        title="Вийти з облікового запису?"
+        description="Потрібно буде знову ввести нік на екрані входу."
+        confirmLabel="Вийти"
+        cancelLabel="Залишитись"
+        danger
+        onConfirm={() => void performLogout()}
+      />
       <SbdLoadingPortal
         open={loggingOut}
         message="Вихід з профілю"

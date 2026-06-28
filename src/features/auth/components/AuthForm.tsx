@@ -83,7 +83,9 @@ export function AuthForm() {
         <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--sbd-text)] sm:text-3xl">
           Тренування SBD
         </h1>
-        <p className="text-sm text-[var(--sbd-muted)]">Новий акаунт створиться автоматично.</p>
+        <p className="text-sm leading-relaxed text-[var(--sbd-muted)]">
+          Введи нік щоб увійти в наявний акаунт або створити новий
+        </p>
       </div>
       <div className="space-y-2">
         <label className="sr-only" htmlFor="login">
@@ -99,7 +101,7 @@ export function AuthForm() {
           autoCorrect="off"
           spellCheck="false"
           className={uiInputLgClass}
-          placeholder="Твій нік"
+          placeholder="Наприклад: anatolich"
           autoComplete="username"
           disabled={pending}
           aria-invalid={loginError ? "true" : "false"}

@@ -1,7 +1,6 @@
 import { formatDateForInput, todayDateInput } from "@/shared/lib/date-local";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
-  uiBtnRowMobileStackClass,
   uiButtonDangerTextClass,
   uiButtonGhostClass,
   uiButtonPrimarySmClass,
@@ -36,6 +35,11 @@ type Props = Pick<
   | "setConfirm"
 >;
 
+const actionBtnClass =
+  "sbd-btn sbd-btn--ghost sbd-btn--lift min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider";
+
+const dangerBtnClass = "sbd-btn sbd-btn--danger-text min-h-11 w-full px-3 text-xs font-bold uppercase";
+
 export function WorkoutSessionHeader({
   workout,
   titleDraft,
@@ -59,10 +63,16 @@ export function WorkoutSessionHeader({
 }: Props) {
   if (!workout) return null;
 
+  const weekdayLabel = new Date(workout.date).toLocaleDateString("uk-UA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return (
-    <div className="sbd-card rounded-xl p-4 sm:p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-        <div className="min-w-0 flex-1 sm:max-w-xl">
+    <div className="sbd-card rounded-xl p-3.5 sm:p-5">
+      <div className="space-y-3">
+        <div className="min-w-0">
           <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wtitle">
             Назва тренування{" "}
             <span className="normal-case text-[11px] font-normal">
@@ -79,7 +89,7 @@ export function WorkoutSessionHeader({
             id="wtitle"
             type="text"
             maxLength={200}
-            className={`${uiInputInlineTitleClass} box-border w-full min-w-0 cursor-text`}
+            className={`${uiInputInlineTitleClass} box-border w-full min-w-0 cursor-text text-xl sm:text-lg`}
             placeholder="Наприклад День 3"
             value={titleDraft}
             onChange={(e) => {
@@ -101,24 +111,29 @@ export function WorkoutSessionHeader({
             </p>
           ) : null}
         </div>
-        <div className={`shrink-0 ${uiBtnRowMobileStackClass} sm:flex-nowrap sm:justify-end`}>
+
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end sm:gap-2">
           <button
             type="button"
             disabled={copyBusy}
-            className={`${uiButtonGhostClass} whitespace-normal px-3 text-xs font-bold uppercase tracking-wider sm:whitespace-nowrap`}
+            className={`${actionBtnClass} sm:w-auto`}
             onClick={() => void copyWorkoutAsText()}
           >
-            {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
+            <span className="sm:hidden">{copyBusy ? "…" : "Текстом"}</span>
+            <span className="hidden sm:inline">
+              {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
+            </span>
           </button>
           <button
             type="button"
-            className={`${uiButtonDangerTextClass} shrink-0`}
+            className={`${dangerBtnClass} sm:w-auto`}
             onClick={() => setConfirm({ kind: "wo" })}
           >
             Видалити
           </button>
         </div>
       </div>
+
       <div className="mt-4">
         <label className={`mb-2 block ${uiLabelClass}`} htmlFor="wdate">
           Дата тренування
@@ -131,15 +146,10 @@ export function WorkoutSessionHeader({
             value={formatDateForInput(workout.date)}
             onChange={(e) => patchDate(e.target.value)}
           />
-          <p className={`${uiMutedTextClass} min-w-0 capitalize leading-none`}>
-            {new Date(workout.date).toLocaleDateString("uk-UA", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            })}
-          </p>
+          <p className={`${uiMutedTextClass} min-w-0 capitalize leading-none`}>{weekdayLabel}</p>
         </div>
       </div>
+
       <div className="mt-4 flex flex-col gap-2">
         <label className={uiLabelClass} htmlFor="wnotes">
           Нотатки{" "}
@@ -155,8 +165,8 @@ export function WorkoutSessionHeader({
         </label>
         <textarea
           id="wnotes"
-          rows={3}
-          className={uiInputClass}
+          rows={2}
+          className={`${uiInputClass} min-h-[4.5rem] sm:min-h-[5.5rem]`}
           placeholder="Сон, самопочуття, загальний RPE…"
           value={workout.notes ?? ""}
           onChange={(e) => {
@@ -167,11 +177,12 @@ export function WorkoutSessionHeader({
           }}
         />
       </div>
+
       <div className="sbd-divider mt-4 border-t pt-4">
         <label className={`${uiLabelClass} block`} htmlFor="copydate">
-          Копіювати це тренування на дату
+          Копіювати на дату
         </label>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+        <div className="mt-2 space-y-2 sm:flex sm:items-center sm:gap-3 sm:space-y-0">
           <input
             id="copydate"
             type="date"
@@ -179,20 +190,21 @@ export function WorkoutSessionHeader({
             value={copyDate}
             onChange={(e) => setCopyDate(e.target.value)}
           />
-          <div className={`${uiBtnRowMobileStackClass} sm:w-auto sm:flex-nowrap`}>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap sm:gap-2">
             <button
               type="button"
-              className={`${uiButtonGhostClass} px-4 text-xs font-bold uppercase tracking-wider`}
+              className={`${uiButtonGhostClass} min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider sm:w-auto`}
               onClick={() => duplicateWorkout(copyDate)}
             >
               Копіювати
             </button>
             <button
               type="button"
-              className={`${uiButtonPrimarySmClass} shrink-0`}
+              className={`${uiButtonPrimarySmClass} min-h-11 w-full sm:w-auto`}
               onClick={() => duplicateWorkout(todayDateInput())}
             >
-              Копія на сьогодні
+              <span className="sm:hidden">Сьогодні</span>
+              <span className="hidden sm:inline">Копія на сьогодні</span>
             </button>
           </div>
         </div>
