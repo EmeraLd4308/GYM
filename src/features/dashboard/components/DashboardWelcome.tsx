@@ -30,8 +30,7 @@ export function DashboardWelcome({
             id="dashboard-greeting"
             className="mt-1 font-display text-[1.625rem] font-bold leading-[1.15] tracking-tight text-[var(--sbd-text)] sm:text-[1.75rem]"
           >
-            Привіт,{" "}
-            <span className="text-[color-mix(in_oklab,var(--sbd-red),white_8%)]">{login}</span>
+            Привіт, {login}
           </h1>
           <p className="mt-1.5 text-sm leading-snug text-[var(--sbd-muted)]">{todayLabel}</p>
         </div>

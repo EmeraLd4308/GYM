@@ -35,11 +35,6 @@ type Props = Pick<
   | "setConfirm"
 >;
 
-const actionBtnClass =
-  "sbd-btn sbd-btn--ghost sbd-btn--lift min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider";
-
-const dangerBtnClass = "sbd-btn sbd-btn--danger-text min-h-11 w-full px-3 text-xs font-bold uppercase";
-
 export function WorkoutSessionHeader({
   workout,
   titleDraft,
@@ -71,8 +66,8 @@ export function WorkoutSessionHeader({
 
   return (
     <div className="sbd-card rounded-xl p-3.5 sm:p-5">
-      <div className="space-y-3">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div className="min-w-0 flex-1 sm:max-w-xl">
           <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wtitle">
             Назва тренування{" "}
             <span className="normal-case text-[11px] font-normal">
@@ -112,21 +107,21 @@ export function WorkoutSessionHeader({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end sm:gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:flex-nowrap sm:items-center sm:gap-2">
           <button
             type="button"
             disabled={copyBusy}
-            className={`${actionBtnClass} sm:w-auto`}
+            className={`${uiButtonGhostClass} min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider sm:w-auto sm:whitespace-nowrap`}
             onClick={() => void copyWorkoutAsText()}
           >
-            <span className="sm:hidden">{copyBusy ? "…" : "Текстом"}</span>
+            <span className="sm:hidden">{copyBusy ? "…" : "Копія текстом"}</span>
             <span className="hidden sm:inline">
               {copyBusy ? "Копіювання…" : "Копіювати тренування текстом"}
             </span>
           </button>
           <button
             type="button"
-            className={`${dangerBtnClass} sm:w-auto`}
+            className={`${uiButtonDangerTextClass} min-h-11 w-full shrink-0 sm:w-auto`}
             onClick={() => setConfirm({ kind: "wo" })}
           >
             Видалити
@@ -182,7 +177,7 @@ export function WorkoutSessionHeader({
         <label className={`${uiLabelClass} block`} htmlFor="copydate">
           Копіювати на дату
         </label>
-        <div className="mt-2 space-y-2 sm:flex sm:items-center sm:gap-3 sm:space-y-0">
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <input
             id="copydate"
             type="date"
@@ -190,20 +185,20 @@ export function WorkoutSessionHeader({
             value={copyDate}
             onChange={(e) => setCopyDate(e.target.value)}
           />
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap sm:gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:contents">
             <button
               type="button"
-              className={`${uiButtonGhostClass} min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider sm:w-auto`}
+              className={`${uiButtonGhostClass} min-h-11 w-full px-4 text-xs font-bold uppercase tracking-wider sm:w-auto`}
               onClick={() => duplicateWorkout(copyDate)}
             >
               Копіювати
             </button>
             <button
               type="button"
-              className={`${uiButtonPrimarySmClass} min-h-11 w-full sm:w-auto`}
+              className={`${uiButtonPrimarySmClass} min-h-11 w-full shrink-0 sm:w-auto`}
               onClick={() => duplicateWorkout(todayDateInput())}
             >
-              <span className="sm:hidden">Сьогодні</span>
+              <span className="sm:hidden">На сьогодні</span>
               <span className="hidden sm:inline">Копія на сьогодні</span>
             </button>
           </div>

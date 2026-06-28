@@ -7,7 +7,7 @@ import { PresetAvatar } from "@/features/profile/components/PresetAvatar";
 import { SbdLoadingPortal } from "@/shared/ui/SbdLoadingPortal";
 import { ThemeToggle } from "@/shared/shell/ThemeToggle";
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
-import { IconLogout } from "@/shared/ui/icons";
+import { IconLogout, IconTemplates } from "@/shared/ui/icons";
 
 const base =
   "relative inline-flex min-h-[40px] items-center rounded-md px-2 py-2 text-sm font-medium uppercase tracking-wide text-zinc-400 transition-[color,transform] duration-200 hover:scale-[1.03] hover:text-[var(--sbd-text)] motion-reduce:hover:scale-100";
@@ -16,10 +16,10 @@ const iconBtn =
   "sbd-header-icon-btn flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-xl border transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
 
 const templatesBtn =
-  "inline-flex min-h-[44px] shrink-0 touch-manipulation items-center justify-center rounded-xl border px-2.5 text-[10px] font-bold uppercase tracking-wide transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
+  "inline-flex min-h-[44px] shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-xl border px-2.5 text-[10px] font-bold uppercase tracking-wide transition active:scale-[0.96] hover:border-[#e31e24]/35 hover:bg-[#e31e24]/10 hover:text-[var(--sbd-text)]";
 
 const logoutTextBtn =
-  "inline-flex min-h-[44px] touch-manipulation items-center justify-center rounded-lg px-3 text-sm font-medium uppercase tracking-wide text-zinc-500 transition-colors hover:text-[var(--sbd-text)] md:px-4";
+  "min-h-[44px] touch-manipulation items-center justify-center rounded-lg px-3 text-sm font-medium uppercase tracking-wide text-zinc-500 transition-colors hover:text-[var(--sbd-text)] md:px-4";
 
 export function Nav({
   login,
@@ -131,13 +131,13 @@ export function Nav({
             data-active={isActive("/templates") ? "true" : "false"}
             aria-current={isActive("/templates") ? "page" : undefined}
           >
+            <IconTemplates className="h-[19px] w-[19px] shrink-0 opacity-90" aria-hidden />
             Шаблони
           </Link>
           <button
             type="button"
             className={`${iconBtn} md:hidden ${loggingOut ? "pointer-events-none border-[#e31e24]/45 bg-[#e31e24]/12 text-[#e31e24] opacity-80" : ""}`}
             aria-label="Вийти з облікового запису"
-            title="Вийти"
             disabled={loggingOut}
             onClick={() => setLogoutConfirmOpen(true)}
           >
