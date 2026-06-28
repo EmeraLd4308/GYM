@@ -21,3 +21,9 @@ export function dateKeyInWeek(dateIso: string, weekStart: string, weekEnd: strin
   const key = formatDateForInput(dateIso);
   return key >= weekStart && key <= weekEnd;
 }
+
+export function shiftCalendarWeek(anchor: Date, weeks: number): Date {
+  const d = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), 12, 0, 0, 0);
+  d.setDate(d.getDate() + weeks * 7);
+  return d;
+}

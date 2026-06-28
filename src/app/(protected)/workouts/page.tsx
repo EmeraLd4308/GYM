@@ -7,6 +7,7 @@ import { parseWorkoutListPageSize } from "@/features/workouts/lib/workout-list-p
 import { EmptyStateCallout } from "@/shared/ui/EmptyStateCallout";
 import { WorkoutListFilters } from "@/features/workouts/components/WorkoutListFilters";
 import { WorkoutListPagination } from "@/features/workouts/components/WorkoutListPagination";
+import { WeekProgramCopyPanel } from "@/features/workouts/components/WeekProgramCopyPanel";
 import { workoutTagBadgeClass, workoutTagLabelUk } from "@/features/workouts/lib/workout-tags";
 import { uiButtonPrimaryClass, uiButtonPrimaryLgClass } from "@/shared/ui/styles";
 import {
@@ -61,26 +62,30 @@ export default async function WorkoutsListPage({
             Усі тренування
           </h1>
         </div>
-        <Link href="/workouts/new" className={uiButtonPrimaryClass}>
+        <Link href="/workouts/new" className={`${uiButtonPrimaryClass} min-h-11 justify-center`}>
           Нове тренування
         </Link>
       </div>
 
-      <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/90 shadow-lg shadow-black/30 transition-[box-shadow,transform] duration-300 open:scale-[1.002] open:shadow-xl open:shadow-black/40 motion-reduce:open:scale-100">
-        <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
-          <span className="flex items-center justify-between gap-3">
-            <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
-              Фільтри тренувань
+      <div className="grid gap-4">
+        <WeekProgramCopyPanel />
+
+        <details className="group sbd-card overflow-hidden rounded-2xl border border-white/[0.08] bg-zinc-950/90 shadow-lg shadow-black/30 transition-[box-shadow,transform] duration-300 open:scale-[1.002] open:shadow-xl open:shadow-black/40 motion-reduce:open:scale-100">
+          <summary className="cursor-pointer list-none px-4 py-3.5 marker:content-none sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-display text-xs font-bold uppercase tracking-[0.15em] text-[#e31e24]/90">
+                Фільтри тренувань
+              </span>
+              <span className="shrink-0 text-zinc-500 transition group-open:rotate-180" aria-hidden>
+                ▼
+              </span>
             </span>
-            <span className="shrink-0 text-zinc-500 transition group-open:rotate-180" aria-hidden>
-              ▼
-            </span>
-          </span>
-        </summary>
-        <div className="border-t border-white/[0.06] p-2 sm:p-3">
-          <WorkoutListFilters />
-        </div>
-      </details>
+          </summary>
+          <div className="border-t border-white/[0.06] p-2 sm:p-3">
+            <WorkoutListFilters />
+          </div>
+        </details>
+      </div>
 
       {workoutsWithTag.length === 0 ? (
         <div className="sbd-card rounded-2xl border border-white/[0.08] bg-zinc-950/50 p-6 sm:p-10">
