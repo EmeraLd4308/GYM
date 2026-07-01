@@ -8,7 +8,6 @@ export function StatsFilterForm() {
       idPrefix="sf"
       actionBasePath="/stats"
       clearPath="/stats"
-      title="Фільтри"
       description="Дати — для відвідуваності та RPE. Вага — лише для RPE."
     />
   );

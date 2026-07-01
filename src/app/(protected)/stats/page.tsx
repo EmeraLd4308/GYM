@@ -23,6 +23,9 @@ export default async function StatsPage({
     rpeSeries,
     monthCmp,
     rpeHints,
+    approachMapPoints,
+    approachMapHints,
+    approachMapProfileMaxKg,
   } = await getStatsPageData(user.id, sp);
 
   return (
@@ -100,6 +103,9 @@ export default async function StatsPage({
         profileMaxHistory={profileMaxHistory}
         rpeSeries={rpeSeries}
         rpeHints={rpeHints}
+        approachMapPoints={approachMapPoints}
+        approachMapHints={approachMapHints}
+        approachMapProfileMaxKg={approachMapProfileMaxKg}
       />
     </div>
   );

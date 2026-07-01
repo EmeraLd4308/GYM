@@ -11,7 +11,6 @@ export function WorkoutListFilters() {
       idPrefix="wl"
       actionBasePath="/workouts"
       clearPath="/workouts"
-      title="Фільтри"
       applyExtraParams={{ pageSize: PAGE_SIZE }}
       titleSearch={{
         param: "q",

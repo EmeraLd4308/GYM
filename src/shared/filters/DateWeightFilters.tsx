@@ -27,7 +27,7 @@ export type DateWeightFiltersProps = {
   idPrefix: string;
   actionBasePath: string;
   clearPath: string;
-  title: string;
+  title?: string;
   description?: ReactNode;
 
   weightRangeHint?: ReactNode;
@@ -132,14 +132,22 @@ export function DateWeightFilters({
 
   return (
     <div className="sbd-filter-panel space-y-5">
-      <div>
-        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-[var(--sbd-text)]">
-          {title}
-        </h3>
-        {description ? (
-          <div className={`mt-2 text-xs leading-relaxed ${uiMutedTextClass}`}>{description}</div>
-        ) : null}
-      </div>
+      {title || description ? (
+        <div>
+          {title ? (
+            <h3 className="font-display text-sm font-bold uppercase tracking-wide text-[var(--sbd-text)]">
+              {title}
+            </h3>
+          ) : null}
+          {description ? (
+            <div
+              className={`${title ? "mt-2" : ""} text-xs leading-relaxed ${uiMutedTextClass}`}
+            >
+              {description}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="space-y-6">
         {titleSearch ? (

@@ -9,6 +9,7 @@ import { buildWeeklyAttendanceSeries } from "@/features/stats/lib/weekly-attenda
 import { getProfileMaxHistoryPoints } from "@/features/stats/lib/profile-max-history";
 import { streakWeeksWithThreePlus } from "@/features/stats/lib/streak";
 import { compareMonthVsPrevious } from "@/features/stats/lib/period-compare";
+import { buildApproachMapPoints } from "@/features/stats/lib/approach-map";
 import type { WeeklyRpeChartHints } from "@/features/stats/components/WeeklyCharts";
 
 function positiveKg(v: unknown): boolean {
@@ -65,6 +66,7 @@ export async function getStatsPageData(
   );
   const rpeSeries = buildWeeklySbdRpeSeries(rpeWorkouts, profileMaxKg);
   const monthCmp = compareMonthVsPrevious(rpeSeries);
+  const approachMap = buildApproachMapPoints(rpeWorkouts, profileMaxKg);
 
   const rpeHints: WeeklyRpeChartHints = {
     bench: {
@@ -94,5 +96,8 @@ export async function getStatsPageData(
     rpeSeries,
     monthCmp,
     rpeHints,
+    approachMapPoints: approachMap.points,
+    approachMapHints: approachMap.hints,
+    approachMapProfileMaxKg: profileMaxKg,
   };
 }
