@@ -9,8 +9,11 @@ const exerciseSchema = z.object({
   baseLift: z.enum(["NONE", "BENCH", "SQUAT", "DEADLIFT"]),
 });
 
+const authorNoteSchema = z.union([z.string().trim().max(2000), z.null()]).optional();
+
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
+  authorNote: authorNoteSchema,
   exercises: z.array(exerciseSchema).min(1).optional(),
 });
 
@@ -43,14 +46,21 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     if (!parsed.success) {
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400 });
     }
-    const { name, exercises } = parsed.data;
+    const { name, authorNote, exercises } = parsed.data;
+    const scalarUpdate: { name?: string; authorNote?: string | null } = {};
+    if (name !== undefined) scalarUpdate.name = name;
+    if (authorNote !== undefined) {
+      const trimmed = typeof authorNote === "string" ? authorNote.trim() : "";
+      scalarUpdate.authorNote = trimmed.length > 0 ? trimmed : null;
+    }
+
     if (exercises) {
       await prisma.$transaction(async (tx) => {
         await tx.templateExercise.deleteMany({ where: { templateId: id } });
         await tx.workoutTemplate.update({
           where: { id },
           data: {
-            ...(name !== undefined ? { name } : {}),
+            ...scalarUpdate,
             exercises: {
               create: exercises.map((e, i) => ({
                 sortOrder: i,
@@ -61,8 +71,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           },
         });
       });
-    } else if (name !== undefined) {
-      await prisma.workoutTemplate.update({ where: { id }, data: { name } });
+    } else if (Object.keys(scalarUpdate).length > 0) {
+      await prisma.workoutTemplate.update({ where: { id }, data: scalarUpdate });
     }
     const template = await prisma.workoutTemplate.findFirst({
       where: { id, userId: user.id },

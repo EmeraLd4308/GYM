@@ -39,11 +39,15 @@ export function TemplateEditor({
 
   initialName,
 
+  initialAuthorNote = "",
+
   initialRows,
 }: {
   templateId?: string;
 
   initialName: string;
+
+  initialAuthorNote?: string;
 
   initialRows: Array<{ id?: string; name: string; baseLift: string }>;
 }) {
@@ -52,6 +56,8 @@ export function TemplateEditor({
   const { error: toastError, success: toastSuccess } = useToast();
 
   const [name, setName] = useState(initialName);
+
+  const [authorNote, setAuthorNote] = useState(initialAuthorNote);
 
   const [rows, setRows] = useState<Row[]>(() => {
     if (initialRows.length) {
@@ -141,7 +147,7 @@ export function TemplateEditor({
 
           headers: { "Content-Type": "application/json" },
 
-          body: JSON.stringify({ name: name.trim(), exercises }),
+          body: JSON.stringify({ name: name.trim(), authorNote: authorNote.trim(), exercises }),
         });
 
         const data = await res.json();
@@ -159,7 +165,7 @@ export function TemplateEditor({
 
           headers: { "Content-Type": "application/json" },
 
-          body: JSON.stringify({ name: name.trim(), exercises }),
+          body: JSON.stringify({ name: name.trim(), authorNote: authorNote.trim(), exercises }),
         });
 
         const data = await res.json();
@@ -255,6 +261,21 @@ export function TemplateEditor({
             {nameError}
           </p>
         ) : null}
+      </div>
+
+      <div>
+        <label className={uiLabelClass} htmlFor="tauthor-note">
+          Уточнення від автора
+        </label>
+        <textarea
+          id="tauthor-note"
+          rows={4}
+          className={`mt-2 ${uiInputClass} min-h-[6rem] w-full resize-y`}
+          value={authorNote}
+          onChange={(e) => setAuthorNote(e.target.value)}
+          placeholder="Необовʼязково. Цей текст побачать усі, хто відкриє шаблон або обере його при тренуванні."
+          maxLength={2000}
+        />
       </div>
 
       <div className="space-y-3">

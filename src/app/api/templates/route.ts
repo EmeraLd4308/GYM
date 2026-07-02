@@ -9,8 +9,16 @@ const exerciseSchema = z.object({
   baseLift: z.enum(["NONE", "BENCH", "SQUAT", "DEADLIFT"]),
 });
 
+const authorNoteSchema = z
+  .string()
+  .trim()
+  .max(2000)
+  .optional()
+  .transform((s) => (s && s.length > 0 ? s : null));
+
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),
+  authorNote: authorNoteSchema,
   exercises: z.array(exerciseSchema).min(1),
 });
 
@@ -46,11 +54,12 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Некоректні дані шаблону." }, { status: 400 });
     }
-    const { name, exercises } = parsed.data;
+    const { name, authorNote, exercises } = parsed.data;
     const created = await prisma.workoutTemplate.create({
       data: {
         userId: user.id,
         name,
+        authorNote: authorNote ?? null,
         exercises: {
           create: exercises.map((e, i) => ({
             sortOrder: i,

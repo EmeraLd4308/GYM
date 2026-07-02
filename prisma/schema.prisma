@@ -99,12 +99,13 @@ model Session {
 }
 
 model WorkoutTemplate {
-  id        String             @id @default(cuid())
-  userId    String
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  exercises TemplateExercise[]
-  createdAt DateTime           @default(now())
+  id         String             @id @default(cuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  authorNote String?            @db.Text
+  exercises  TemplateExercise[]
+  createdAt  DateTime           @default(now())
 
   @@index([userId])
 }

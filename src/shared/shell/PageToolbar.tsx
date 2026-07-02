@@ -2,13 +2,49 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { getBackInfo, getPageContext } from "@/shared/lib/route-meta";
 import { IconChevronLeft } from "@/shared/ui/icons";
+
+function templateDetailId(pathname: string): string | null {
+  if (!pathname.startsWith("/templates/") || pathname === "/templates/new") return null;
+  const id = pathname.slice("/templates/".length).split("/")[0];
+  return id || null;
+}
 
 export function PageToolbar() {
   const pathname = usePathname();
   const back = getBackInfo(pathname);
-  const context = getPageContext(pathname);
+  const staticContext = getPageContext(pathname);
+  const [context, setContext] = useState(staticContext);
+
+  useEffect(() => {
+    const templateId = templateDetailId(pathname);
+    if (!templateId) {
+      setContext(staticContext);
+      return;
+    }
+
+    let cancelled = false;
+    setContext("");
+
+    void fetch(`/api/templates/${templateId}`, { credentials: "same-origin" })
+      .then(async (res) => {
+        if (!res.ok) return "";
+        const data = (await res.json()) as { isOwner?: boolean };
+        return data.isOwner ? "Редагування шаблону" : "";
+      })
+      .then((title) => {
+        if (!cancelled) setContext(title);
+      })
+      .catch(() => {
+        if (!cancelled) setContext("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, staticContext]);
 
   if (!back && !context) return null;
 

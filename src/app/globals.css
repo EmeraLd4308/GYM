@@ -957,7 +957,39 @@ html[data-theme="light"] .sbd-mine-badge {
 }
 
 html[data-theme="light"] .sbd-template-row:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
+  background-color: transparent !important;
+}
+
+.sbd-template-list-row {
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.sbd-template-list-row:not(.sbd-template-list-row--own):hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.sbd-template-list-row--own {
+  border-left-color: #e31e24;
+  background-color: color-mix(in oklab, #e31e24 6%, transparent);
+}
+
+.sbd-template-list-row--own:hover {
+  background-color: color-mix(in oklab, #e31e24 11%, transparent);
+}
+
+html[data-theme="light"] .sbd-template-list-row:not(.sbd-template-list-row--own):hover {
+  background-color: rgba(0, 0, 0, 0.045) !important;
+}
+
+html[data-theme="light"] .sbd-template-list-row--own {
+  background-color: color-mix(in oklab, var(--sbd-red) 7%, var(--sbd-card)) !important;
+}
+
+html[data-theme="light"] .sbd-template-list-row--own:hover {
+  background-color: color-mix(in oklab, var(--sbd-red) 12%, var(--sbd-card)) !important;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -967,7 +999,7 @@ html[data-theme="light"] .sbd-template-row:hover {
       background-color 0.2s ease;
   }
 
-  .sbd-template-row:hover {
+  .sbd-template-list-row:hover .sbd-template-row {
     transform: translateY(-1px);
   }
 

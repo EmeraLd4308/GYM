@@ -20,7 +20,7 @@ export function getPageContext(pathname: string): string {
   if (pathname === "/stats") return "";
   if (pathname === "/profile") return "";
   if (pathname === "/templates/new") return "Новий шаблон";
-  if (pathname.startsWith("/templates/")) return "Редагування шаблону";
+  if (pathname.startsWith("/templates/")) return "";
   if (pathname === "/workouts/new") return "Нове тренування";
   if (/^\/workouts\/[^/]+$/.test(pathname)) return "";
   return "";
