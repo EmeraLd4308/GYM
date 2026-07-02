@@ -143,7 +143,7 @@ function LiftScatterPanel({
 
   return (
     <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 p-3 sm:p-4">
-      <div className="mb-1 flex items-baseline justify-between gap-2">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
         <h4 className="font-display text-xs font-bold uppercase tracking-wide" style={{ color }}>
           {approachMapLiftLabelUk(lift)}
         </h4>
@@ -152,11 +152,6 @@ function LiftScatterPanel({
           {points.length === 1 ? "підхід" : points.length < 5 ? "підходи" : "підходів"}
         </span>
       </div>
-      {profileMaxKg != null && profileMaxKg > 0 ? (
-        <p className="mb-3 text-[11px] text-zinc-500">Макс. у профілі: {formatKg(profileMaxKg)} кг</p>
-      ) : (
-        <p className="mb-3 text-[11px] text-zinc-500">Макс. у профілі не вказано</p>
-      )}
       <div className="h-52 w-full min-w-0 sm:h-56">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ScatterChart margin={{ top: 4, right: 8, left: 2, bottom: 4 }}>
