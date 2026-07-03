@@ -81,7 +81,7 @@ export default async function StatsPage({
         </details>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+      <div className="grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
         <StreakCard weeks={streak} />
         <WeekVolumeCompare
           data={
