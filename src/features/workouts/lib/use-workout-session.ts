@@ -10,18 +10,20 @@ import { useToast } from "@/shared/shell/ToastProvider";
 import {
   formatRpeForInput,
   formatWeightForInput,
+  mapApiExercise,
   mapApiSet,
   type ExerciseRow,
   type SetRow,
   type WorkoutConfirmState,
   type WorkoutPayload,
 } from "@/features/workouts/lib/workout-session-types";
-import { cacheWorkoutForOffline } from "@/features/workouts/lib/offline-workout-cache";
-import { getCachedWorkout } from "@/shared/lib/offline-workouts-db";
+import {
+  canHaveChild,
+  childrenOf,
+} from "@/features/workouts/lib/exercise-relations";
 
 type SessionOptions = {
   readOnly?: boolean;
-  onSetMarkedDone?: () => void;
 };
 
 export function useWorkoutSession(
@@ -29,7 +31,7 @@ export function useWorkoutSession(
   initialWorkout?: WorkoutPayload | null,
   options: SessionOptions = {},
 ) {
-  const { readOnly = false, onSetMarkedDone } = options;
+  const { readOnly = false } = options;
   const router = useRouter();
   const { error: toastError, success: toastSuccess } = useToast();
   const [workout, setWorkout] = useState<WorkoutPayload | null>(initialWorkout ?? null);
@@ -63,9 +65,8 @@ export function useWorkoutSession(
     (setId: string, done: boolean) => {
       if (readOnly) return;
       persistSetDone(setId, done);
-      if (done) onSetMarkedDone?.();
     },
-    [onSetMarkedDone, persistSetDone, readOnly],
+    [persistSetDone, readOnly],
   );
 
   const applyWorkoutPayload = useCallback((w: WorkoutPayload) => {
@@ -73,7 +74,6 @@ export function useWorkoutSession(
     savedTitleRef.current = w.title ?? null;
     setWorkout(w);
     setLoadError(null);
-    void cacheWorkoutForOffline(w);
   }, []);
 
   const load = useCallback(async () => {
@@ -81,13 +81,6 @@ export function useWorkoutSession(
       const res = await fetch(`/api/workouts/${workoutId}`);
       const data = await res.json();
       if (!res.ok) {
-        if (typeof navigator !== "undefined" && !navigator.onLine) {
-          const cached = await getCachedWorkout(workoutId);
-          if (cached) {
-            applyWorkoutPayload(cached);
-            return;
-          }
-        }
         setLoadError(data.error ?? "Не вдалося завантажити.");
         return;
       }
@@ -97,34 +90,9 @@ export function useWorkoutSession(
         date: w.date,
         title: w.title,
         notes: w.notes ?? null,
-        exercises: w.exercises.map(
-          (ex: {
-            id: string;
-            sortOrder: number;
-            name: string;
-            baseLift: BaseLift;
-            sets: Array<{
-              id: string;
-              sortOrder: number;
-              weightKg: unknown;
-              reps: number;
-              isWarmup: boolean;
-              rpe?: unknown;
-            }>;
-          }) => ({
-            ...ex,
-            sets: ex.sets.map(mapApiSet),
-          }),
-        ),
+        exercises: w.exercises.map(mapApiExercise),
       });
     } catch {
-      if (typeof navigator !== "undefined" && !navigator.onLine) {
-        const cached = await getCachedWorkout(workoutId);
-        if (cached) {
-          applyWorkoutPayload(cached);
-          return;
-        }
-      }
       setLoadError("Не вдалося завантажити.");
     }
   }, [applyWorkoutPayload, workoutId]);
@@ -136,10 +104,6 @@ export function useWorkoutSession(
     }
     load();
   }, [load]);
-
-  useEffect(() => {
-    if (initialWorkout) void cacheWorkoutForOffline(initialWorkout);
-  }, [initialWorkout]);
 
   useEffect(() => {
     return () => {
@@ -217,7 +181,9 @@ export function useWorkoutSession(
       const res = await fetch(`/api/workouts/${workoutId}/exercises/reorder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderedIds: nextEx.map((e) => e.id) }),
+        body: JSON.stringify({
+          orderedIds: nextEx.map((e) => e.id),
+        }),
       });
       if (!res.ok) {
         toastError("Не вдалося зберегти порядок.");
@@ -231,11 +197,23 @@ export function useWorkoutSession(
   function moveExerciseRelative(exerciseId: string, delta: -1 | 1) {
     setWorkout((w) => {
       if (!w) return w;
-      const idx = w.exercises.findIndex((e) => e.id === exerciseId);
-      if (idx < 0) return w;
-      const newIndex = idx + delta;
-      if (newIndex < 0 || newIndex >= w.exercises.length) return w;
-      const nextEx = arrayMove(w.exercises, idx, newIndex);
+      const sorted = [...w.exercises].sort((a, b) => a.sortOrder - b.sortOrder);
+      const target = sorted.find((e) => e.id === exerciseId);
+      if (!target || target.parentId) return w;
+
+      const top = sorted.filter((e) => !e.parentId);
+      const units = top.map((ex) => ({
+        ids: [ex.id, ...childrenOf(sorted, ex.id).map((c) => c.id)],
+      }));
+
+      const unitIdx = units.findIndex((u) => u.ids.includes(exerciseId));
+      if (unitIdx < 0) return w;
+      const newIdx = unitIdx + delta;
+      if (newIdx < 0 || newIdx >= units.length) return w;
+      const nextUnits = arrayMove(units, unitIdx, newIdx);
+      const flatIds = nextUnits.flatMap((u) => u.ids);
+      const byId = new Map(sorted.map((e) => [e.id, e]));
+      const nextEx = flatIds.map((id, i) => ({ ...byId.get(id)!, sortOrder: i }));
       void persistExerciseOrder(nextEx);
       return { ...w, exercises: nextEx };
     });
@@ -362,60 +340,88 @@ export function useWorkoutSession(
     await load();
   }
 
-  async function addExercise() {
+  async function addExercise(opts?: { parentId?: string }) {
+    const parentId = opts?.parentId;
     const trimmed = newExName.trim();
-    if (!trimmed) {
+    if (!trimmed && !parentId) {
       const message = "Введіть назву вправи.";
       setNewExerciseError(message);
       toastError(message);
       return;
     }
+    if (!trimmed) {
+      const message = "Введіть назву вправи.";
+      toastError(message);
+      return;
+    }
+    if (parentId) {
+      const parent = workout?.exercises.find((e) => e.id === parentId);
+      if (!parent || !canHaveChild(parent)) {
+        toastError("Дочірню вправу можна додати лише до базової.");
+        return;
+      }
+    }
     const res = await fetch(`/api/workouts/${workoutId}/exercises`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: trimmed, baseLift: newExBase }),
+      body: JSON.stringify({
+        name: trimmed,
+        baseLift: parentId ? "NONE" : newExBase,
+        ...(parentId ? { parentId } : {}),
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
       const message = data.error ?? "Помилка.";
-      setNewExerciseError(message);
+      if (!parentId) setNewExerciseError(message);
       toastError(message);
       return;
     }
-    setNewExerciseError(null);
-    setNewExName("");
-    setNewExBase("NONE");
-    const created = data.exercise as {
-      id: string;
-      sortOrder: number;
-      name: string;
-      baseLift: BaseLift;
-      sets: Array<{
-        id: string;
-        sortOrder: number;
-        weightKg: unknown;
-        reps: number;
-        isWarmup: boolean;
-        rpe?: unknown;
-      }>;
-    };
+    if (!parentId) {
+      setNewExerciseError(null);
+      setNewExName("");
+      setNewExBase("NONE");
+    }
+    const created = mapApiExercise(data.exercise);
+    if (parentId) {
+      await load();
+      toastSuccess("Дочірню вправу додано.");
+      return;
+    }
     setWorkout((w) =>
       w
         ? {
             ...w,
-            exercises: [
-              ...w.exercises,
-              {
-                id: created.id,
-                sortOrder: created.sortOrder,
-                name: created.name,
-                baseLift: created.baseLift,
-                sets: created.sets.map(mapApiSet),
-              },
-            ],
+            exercises: [...w.exercises, created],
           }
         : w,
     );
+  }
+
+  async function addChildExercise(parentId: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      toastError("Введіть назву вправи.");
+      return false;
+    }
+    const parent = workout?.exercises.find((e) => e.id === parentId);
+    if (!parent || !canHaveChild(parent)) {
+      toastError("Дочірню вправу можна додати лише до базової.");
+      return false;
+    }
+    const res = await fetch(`/api/workouts/${workoutId}/exercises`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed, baseLift: "NONE", parentId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toastError(data.error ?? "Помилка.");
+      return false;
+    }
+    await load();
+    toastSuccess("Дочірню вправу додано.");
+    return true;
   }
 
   async function addSet(exerciseId: string, count = 1) {
@@ -482,7 +488,12 @@ export function useWorkoutSession(
 
   async function updateSet(
     setId: string,
-    patch: Partial<{ weightKg: number; reps: number; isWarmup: boolean }>,
+    patch: Partial<{
+      weightKg: number;
+      reps: number;
+      isWarmup: boolean;
+      supersetGroup: string | null;
+    }>,
   ) {
     const res = await fetch(`/api/sets/${setId}`, {
       method: "PATCH",
@@ -497,6 +508,7 @@ export function useWorkoutSession(
         weightKg: unknown;
         reps: number;
         isWarmup: boolean;
+        supersetGroup?: string | null;
         rpe?: unknown;
       };
     };
@@ -523,6 +535,7 @@ export function useWorkoutSession(
                   weightKg: formatWeightForInput(raw.weightKg),
                   reps: raw.reps,
                   isWarmup: raw.isWarmup,
+                  supersetGroup: raw.supersetGroup ?? null,
                   sortOrder: raw.sortOrder,
                   rpe: formatRpeForInput(raw.rpe),
                 }
@@ -531,6 +544,41 @@ export function useWorkoutSession(
         })),
       };
     });
+  }
+
+  async function setSupersetGroups(exerciseId: string, changes: Record<string, string | null>) {
+    const entries = Object.entries(changes);
+    if (entries.length === 0) return;
+    setWorkout((w) =>
+      w
+        ? {
+            ...w,
+            exercises: w.exercises.map((ex) =>
+              ex.id === exerciseId
+                ? {
+                    ...ex,
+                    sets: ex.sets.map((s) =>
+                      s.id in changes ? { ...s, supersetGroup: changes[s.id] } : s,
+                    ),
+                  }
+                : ex,
+            ),
+          }
+        : w,
+    );
+    const results = await Promise.all(
+      entries.map(([setId, group]) =>
+        fetch(`/api/sets/${setId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ supersetGroup: group }),
+        }),
+      ),
+    );
+    if (results.some((r) => !r.ok)) {
+      toastError("Не вдалося оновити суперсет.");
+      await load();
+    }
   }
 
   async function deleteSet(setId: string) {
@@ -559,9 +607,14 @@ export function useWorkoutSession(
       return;
     }
     toastSuccess("Вправу видалено.");
-    setWorkout((w) =>
-      w ? { ...w, exercises: w.exercises.filter((ex) => ex.id !== exerciseId) } : w,
-    );
+    setWorkout((w) => {
+      if (!w) return w;
+      const removing = new Set<string>([exerciseId]);
+      for (const e of w.exercises) {
+        if (e.parentId === exerciseId) removing.add(e.id);
+      }
+      return { ...w, exercises: w.exercises.filter((ex) => !removing.has(ex.id)) };
+    });
   }
 
   async function deleteWorkout() {
@@ -646,8 +699,10 @@ export function useWorkoutSession(
     moveSetRelative,
     patchExerciseName,
     addExercise,
+    addChildExercise,
     addSet,
     updateSet,
+    setSupersetGroups,
     copyWorkoutAsText,
     handleConfirm,
   };

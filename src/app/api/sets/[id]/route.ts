@@ -13,6 +13,7 @@ const patchSchema = z.object({
   weightKg: z.number().optional(),
   reps: z.number().int().min(1).max(999).optional(),
   isWarmup: z.boolean().optional(),
+  supersetGroup: z.string().min(1).max(40).nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),
 });
 
@@ -56,6 +57,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(d.weightKg !== undefined ? { weightKg: new Prisma.Decimal(d.weightKg) } : {}),
         ...(d.reps !== undefined ? { reps: d.reps } : {}),
         ...(d.isWarmup !== undefined ? { isWarmup: d.isWarmup } : {}),
+        ...(d.supersetGroup !== undefined ? { supersetGroup: d.supersetGroup } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
         rpe: rpeVal != null ? new Prisma.Decimal(rpeVal) : null,
       },

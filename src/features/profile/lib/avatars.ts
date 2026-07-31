@@ -18,7 +18,7 @@ export const AVATAR_IDS = [
 
 export type AvatarId = (typeof AVATAR_IDS)[number];
 
-export const DEFAULT_AVATAR_ID: AvatarId = "barbell";
+const DEFAULT_AVATAR_ID: AvatarId = "barbell";
 
 export const AVATAR_LABELS: Record<AvatarId, string> = {
   barbell: "Штанга",

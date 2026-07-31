@@ -58,9 +58,7 @@ export function WeekProgramCopyPanel() {
         try {
           const j = (await res.json()) as { error?: string };
           if (typeof j.error === "string") msg = j.error;
-        } catch {
-          /* plain text */
-        }
+        } catch {}
         error(msg);
         return;
       }

@@ -6,6 +6,7 @@ function snap(partial: Partial<ExerciseSetSnapshot> & Pick<ExerciseSetSnapshot, 
   return {
     weightKg: new Prisma.Decimal(100),
     isWarmup: false,
+    supersetGroup: null,
     rpe: null,
     ...partial,
   };
@@ -14,7 +15,13 @@ function snap(partial: Partial<ExerciseSetSnapshot> & Pick<ExerciseSetSnapshot, 
 describe("setsCreateFromSnapshot", () => {
   it("maps sets without rpe when null", () => {
     expect(setsCreateFromSnapshot([snap({ sortOrder: 0, reps: 5 })])).toEqual([
-      { sortOrder: 0, weightKg: new Prisma.Decimal(100), reps: 5, isWarmup: false },
+      {
+        sortOrder: 0,
+        weightKg: new Prisma.Decimal(100),
+        reps: 5,
+        isWarmup: false,
+        supersetGroup: null,
+      },
     ]);
   });
 
@@ -26,6 +33,7 @@ describe("setsCreateFromSnapshot", () => {
         weightKg: new Prisma.Decimal(100),
         reps: 3,
         isWarmup: false,
+        supersetGroup: null,
         rpe,
       },
     ]);

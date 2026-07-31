@@ -1,6 +1,6 @@
 import type { WeeklySbdRpeRow } from "@/features/stats/lib/weekly-rpe";
 
-export type LiftTriplet = {
+type LiftTriplet = {
   bench: number | null;
   squat: number | null;
   deadlift: number | null;
@@ -55,22 +55,6 @@ export function compareMonthVsPrevious(series: WeeklySbdRpeRow[]): PeriodCompare
       ...summarize(currRows),
       label: monthStart.toLocaleDateString("uk-UA", { month: "long", year: "numeric" }),
     },
-  };
-}
-
-export function compareCustomBlocks(
-  series: WeeklySbdRpeRow[],
-  aFrom: string,
-  aTo: string,
-  bFrom: string,
-  bTo: string,
-): PeriodCompare | null {
-  const aRows = byRange(series, aFrom, aTo);
-  const bRows = byRange(series, bFrom, bTo);
-  if (aRows.length === 0 || bRows.length === 0) return null;
-  return {
-    prev: { ...summarize(aRows), label: `Блок A (${aFrom}..${aTo})` },
-    curr: { ...summarize(bRows), label: `Блок B (${bFrom}..${bTo})` },
   };
 }
 

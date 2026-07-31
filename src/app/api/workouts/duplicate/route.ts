@@ -61,36 +61,66 @@ export async function POST(req: Request) {
 
   const title = source.title ? `${source.title} (копія)` : "Копія тренування";
 
-  const workout = await prisma.workout.create({
-    data: {
-      userId: user.id,
-      date: workoutDate,
-      title,
-      notes: null,
-      templateId: null,
-      exercises: {
-        create: source.exercises.map((ex) => ({
-          sortOrder: ex.sortOrder,
-          name: ex.name,
-          baseLift: ex.baseLift as BaseLift,
-          sets: {
-            create: ex.sets.map((s) => ({
-              sortOrder: s.sortOrder,
-              weightKg: s.weightKg,
-              reps: s.reps,
-              isWarmup: s.isWarmup,
-              ...(s.rpe != null ? { rpe: s.rpe } : {}),
-            })),
-          },
-        })),
+  const workout = await prisma.$transaction(async (tx) => {
+    const created = await tx.workout.create({
+      data: {
+        userId: user.id,
+        date: workoutDate,
+        title,
+        notes: null,
+        templateId: null,
+        exercises: {
+          create: source.exercises.map((ex) => ({
+            sortOrder: ex.sortOrder,
+            name: ex.name,
+            baseLift: ex.baseLift as BaseLift,
+            parentId: null,
+            sets: {
+              create: ex.sets.map((s) => ({
+                sortOrder: s.sortOrder,
+                weightKg: s.weightKg,
+                reps: s.reps,
+                isWarmup: s.isWarmup,
+                supersetGroup: s.supersetGroup,
+                ...(s.rpe != null ? { rpe: s.rpe } : {}),
+              })),
+            },
+          })),
+        },
       },
-    },
-    include: {
-      exercises: {
-        orderBy: { sortOrder: "asc" },
-        include: { sets: { orderBy: { sortOrder: "asc" } } },
+      include: {
+        exercises: {
+          orderBy: { sortOrder: "asc" },
+        },
       },
-    },
+    });
+
+    const oldToNew = new Map<string, string>();
+    for (let i = 0; i < source.exercises.length; i++) {
+      oldToNew.set(source.exercises[i]!.id, created.exercises[i]!.id);
+    }
+
+    for (let i = 0; i < source.exercises.length; i++) {
+      const src = source.exercises[i]!;
+      if (!src.parentId) continue;
+      const newParentId = oldToNew.get(src.parentId);
+      const newId = oldToNew.get(src.id);
+      if (!newParentId || !newId) continue;
+      await tx.workoutExercise.update({
+        where: { id: newId },
+        data: { parentId: newParentId },
+      });
+    }
+
+    return tx.workout.findUniqueOrThrow({
+      where: { id: created.id },
+      include: {
+        exercises: {
+          orderBy: { sortOrder: "asc" },
+          include: { sets: { orderBy: { sortOrder: "asc" } } },
+        },
+      },
+    });
   });
 
   await Promise.all([recalculateWorkoutAutoTag(workout.id), recalculateUserLiftRecords(user.id)]);

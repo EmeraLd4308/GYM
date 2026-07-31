@@ -6,6 +6,7 @@ export type ExerciseSetSnapshot = {
   weightKg: Prisma.Decimal;
   reps: number;
   isWarmup: boolean;
+  supersetGroup: string | null;
   rpe: Prisma.Decimal | null;
 };
 
@@ -15,6 +16,7 @@ export function setsCreateFromSnapshot(sets: ExerciseSetSnapshot[]): Prisma.Exer
     weightKg: s.weightKg,
     reps: s.reps,
     isWarmup: s.isWarmup,
+    supersetGroup: s.supersetGroup,
     ...(s.rpe != null ? { rpe: s.rpe } : {}),
   }));
 }
@@ -49,6 +51,7 @@ export async function findLastExerciseSets(
     weightKg: s.weightKg,
     reps: s.reps,
     isWarmup: s.isWarmup,
+    supersetGroup: s.supersetGroup,
     rpe: s.rpe,
   }));
 }

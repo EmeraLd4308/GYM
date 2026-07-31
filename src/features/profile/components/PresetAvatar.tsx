@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AVATAR_IDS, AVATAR_LABELS, type AvatarId, normalizeAvatarId } from "@/features/profile/lib/avatars";
+import { AVATAR_LABELS, type AvatarId, normalizeAvatarId } from "@/features/profile/lib/avatars";
 
 const stroke = "stroke-[#e31e24]";
 const fillBg = "fill-zinc-900/90";
@@ -153,8 +153,4 @@ export function PresetAvatar({
       {glyphs(id)}
     </svg>
   );
-}
-
-export function isValidAvatarId(id: string): id is AvatarId {
-  return (AVATAR_IDS as readonly string[]).includes(id);
 }

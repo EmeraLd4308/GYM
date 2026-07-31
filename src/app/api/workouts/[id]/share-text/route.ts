@@ -24,8 +24,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     date: workout.date,
     notes: workout.notes,
     exercises: workout.exercises.map((e) => ({
+      id: e.id,
       name: e.name,
       baseLift: e.baseLift,
+      parentId: e.parentId,
       sets: e.sets.map((s) => ({
         weightKg: s.weightKg,
         reps: s.reps,

@@ -35,6 +35,14 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       return NextResponse.json({ error: "Некоректні дані." }, { status: 400, headers: noStoreHeaders });
     }
     const data = parsed.data;
+
+    if (data.baseLift !== undefined && data.baseLift !== "NONE" && exercise.parentId) {
+      return NextResponse.json(
+        { error: "Дочірня вправа не може бути базовою." },
+        { status: 400, headers: noStoreHeaders },
+      );
+    }
+
     const updated = await prisma.workoutExercise.update({
       where: { id },
       data: {
@@ -98,6 +106,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Не знайдено." }, { status: 404, headers: noStoreHeaders });
   }
   await prisma.workoutExercise.delete({ where: { id } });
+
   scheduleWorkoutMetricsRefresh(user.id, exercise.workout.id, exercise.baseLift);
   return NextResponse.json({ ok: true }, { headers: noStoreHeaders });
 }

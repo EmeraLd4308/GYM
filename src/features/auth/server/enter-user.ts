@@ -4,7 +4,7 @@ import { withDbRetry } from "@/shared/lib/db-errors";
 
 export type EnterMode = "find-or-create" | "login-only" | "register-only";
 
-export type EnterUserSuccess = { ok: true; userId: string; login: string };
+type EnterUserSuccess = { ok: true; userId: string; login: string };
 export type EnterUserFailure = { ok: false; error: string; httpStatus?: number };
 export type EnterUserResult = EnterUserSuccess | EnterUserFailure;
 

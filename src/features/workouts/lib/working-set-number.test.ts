@@ -33,3 +33,23 @@ describe("countWorkingSets", () => {
     ).toBe(2);
   });
 });
+
+describe("superset blocks", () => {
+  const sets = [
+    { isWarmup: false, supersetGroup: null },
+    { isWarmup: false, supersetGroup: "g1" },
+    { isWarmup: false, supersetGroup: "g1" },
+    { isWarmup: false, supersetGroup: null },
+  ];
+
+  it("grouped sets share one number", () => {
+    expect(workingSetNumber(sets, 0)).toBe(1);
+    expect(workingSetNumber(sets, 1)).toBe(2);
+    expect(workingSetNumber(sets, 2)).toBe(2);
+    expect(workingSetNumber(sets, 3)).toBe(3);
+  });
+
+  it("a block counts as one working set", () => {
+    expect(countWorkingSets(sets)).toBe(3);
+  });
+});

@@ -1,4 +1,4 @@
-export type WeekLiftMetric = {
+type WeekLiftMetric = {
   bench: number | null;
   squat: number | null;
   deadlift: number | null;

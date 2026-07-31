@@ -6,6 +6,7 @@ export type SetRow = {
   weightKg: string;
   reps: number;
   isWarmup: boolean;
+  supersetGroup: string | null;
   rpe: string;
 };
 
@@ -14,6 +15,7 @@ export type ExerciseRow = {
   sortOrder: number;
   name: string;
   baseLift: BaseLift;
+  parentId: string | null;
   sets: SetRow[];
 };
 
@@ -51,6 +53,7 @@ export function mapApiSet(raw: {
   weightKg: unknown;
   reps: number;
   isWarmup: boolean;
+  supersetGroup?: string | null;
   rpe?: unknown;
 }): SetRow {
   return {
@@ -59,6 +62,33 @@ export function mapApiSet(raw: {
     weightKg: formatWeightForInput(raw.weightKg),
     reps: raw.reps,
     isWarmup: raw.isWarmup,
+    supersetGroup: raw.supersetGroup ?? null,
     rpe: formatRpeForInput(raw.rpe),
+  };
+}
+
+export function mapApiExercise(raw: {
+  id: string;
+  sortOrder: number;
+  name: string;
+  baseLift: BaseLift;
+  parentId?: string | null;
+  sets: Array<{
+    id: string;
+    sortOrder: number;
+    weightKg: unknown;
+    reps: number;
+    isWarmup: boolean;
+    supersetGroup?: string | null;
+    rpe?: unknown;
+  }>;
+}): ExerciseRow {
+  return {
+    id: raw.id,
+    sortOrder: raw.sortOrder,
+    name: raw.name,
+    baseLift: raw.baseLift,
+    parentId: raw.parentId ?? null,
+    sets: raw.sets.map(mapApiSet),
   };
 }

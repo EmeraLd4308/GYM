@@ -12,11 +12,11 @@ function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function newSessionToken(): string {
+function newSessionToken(): string {
   return randomBytes(32).toString("hex");
 }
 
-export function isRequestHttps(req: Request): boolean {
+function isRequestHttps(req: Request): boolean {
   const forwarded = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   if (forwarded) return forwarded === "https";
   try {

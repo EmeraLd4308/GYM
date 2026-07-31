@@ -38,10 +38,27 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const { orderedIds } = parsed.data;
-  const existing = new Set(workout.exercises.map((e) => e.id));
+  const byId = new Map(workout.exercises.map((e) => [e.id, e]));
+  const existing = new Set(byId.keys());
 
   if (orderedIds.length !== existing.size || !orderedIds.every((id) => existing.has(id))) {
     return NextResponse.json({ error: "Список вправ має збігатися з поточним." }, { status: 400 });
+  }
+
+  const parentOf = new Map(
+    workout.exercises.filter((e) => e.parentId).map((e) => [e.id, e.parentId!]),
+  );
+  for (let i = 0; i < orderedIds.length; i++) {
+    const childParent = parentOf.get(orderedIds[i]!);
+    if (!childParent) continue;
+    const parentIdx = orderedIds.indexOf(childParent);
+    if (parentIdx < 0) continue;
+    if (i < parentIdx) {
+      return NextResponse.json(
+        { error: "Дочірня вправа має йти після батьківської." },
+        { status: 400 },
+      );
+    }
   }
 
   await applyOrderedSortOrderUpdates(orderedIds, (exerciseId, sortOrder) =>

@@ -11,8 +11,6 @@ export const uiSelectClass = "sbd-input sbd-input--sm sbd-select";
 
 export const uiDateClass = "sbd-input sbd-input--sm sbd-date sbd-input--fit-date";
 
-export const uiDateFullClass = `${uiDateClass} w-full max-w-none`;
-
 export const uiInputNumClass = "sbd-input sbd-input--sm sbd-input--fit-num";
 
 export const uiSelectMdClass = "sbd-input sbd-input--sm sbd-select sbd-input--fit-select";
@@ -25,13 +23,9 @@ export const uiBtnRowClass = "sbd-btn-row";
 
 export const uiBtnRowMobileStackClass = "sbd-btn-row sbd-btn-row--mobile-stack";
 
-export const uiFormActionsClass = "sbd-form-actions";
-
 export const uiFormActionsEndClass = "sbd-form-actions sbd-form-actions--end";
 
 export const uiButtonBlockClass = "sbd-btn--block";
-
-export const uiPresetGridClass = "sbd-preset-grid";
 
 export const uiFilterFieldsClass = "sbd-filter-fields";
 
@@ -61,9 +55,6 @@ export const uiButtonGhostSmClass =
 
 export const uiButtonAccentClass = "sbd-btn sbd-btn--accent";
 
-export const uiButtonAccentSmClass =
-  "sbd-btn sbd-btn--accent sbd-btn--accent-inline min-h-11 px-4 text-xs font-bold";
-
 export const uiButtonIconClass = "sbd-btn sbd-btn--icon";
 
 export const uiButtonIconSmClass = "sbd-btn sbd-btn--icon sbd-btn--icon-sm";
@@ -82,8 +73,6 @@ export const uiSetCardClass = "sbd-set-card";
 export const uiPanelDashedClass = "sbd-panel-dashed";
 
 export const uiAccentGridClass = "sbd-accent-grid";
-
-export const uiDividerClass = "sbd-divider";
 
 export const uiMutedTextClass = "text-sm text-[var(--sbd-muted)]";
 

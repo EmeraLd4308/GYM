@@ -22,7 +22,7 @@ function coeffsBenchPress(sex: GlSex, equipment: GlEquipment): IpfGlCoefficients
   return equipment === "EQUIPPED" ? F_EQ_BP : F_CL_BP;
 }
 
-export function ipfGlPointsForLift(
+function ipfGlPointsForLift(
   liftKg: number,
   bodyweightKg: number,
   coeff: IpfGlCoefficients,
@@ -57,16 +57,6 @@ export function ipfGlPointsBenchPress(
 ) {
   return ipfGlPointsForLift(benchKg, bodyweightKg, coeffsBenchPress(sex, equipment));
 }
-
-export function ipfGlPointsSingleLiftApprox(
-  liftKg: number,
-  bodyweightKg: number,
-  sex: GlSex,
-  equipment: GlEquipment,
-): number | null {
-  return ipfGlPointsForLift(liftKg, bodyweightKg, coeffsPowerlifting(sex, equipment));
-}
-
 export type IpfGlProfilePreview =
   | { kind: "total"; points: number }
   | { kind: "bench"; points: number }

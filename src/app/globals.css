@@ -1253,17 +1253,6 @@ html[data-theme="light"] .sbd-template-list-row--own:hover {
   }
 }
 
-.sbd-preset-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.sbd-preset-grid > .sbd-btn {
-  width: 100%;
-  min-width: 0;
-}
-
 .sbd-filter-fields {
   display: grid;
   gap: 1rem;
@@ -1302,16 +1291,6 @@ html[data-theme="light"] .sbd-template-list-row--own:hover {
 }
 
 @media (min-width: 640px) {
-  .sbd-preset-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .sbd-preset-grid > .sbd-btn {
-    width: auto;
-  }
-
   .sbd-filter-fields {
     display: flex;
     flex-wrap: wrap;
@@ -1526,6 +1505,8 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
 
 .sbd-accent-grid > .sbd-btn--accent {
   width: 100%;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.25rem;
 }
 
 .sbd-btn--block {
@@ -1536,12 +1517,6 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
 .sbd-btn--accent:not(:disabled):hover {
   border-color: color-mix(in oklab, var(--sbd-red), transparent 36%);
   background: color-mix(in oklab, var(--sbd-red), transparent 80%);
-}
-
-.sbd-btn--accent-inline {
-  width: auto;
-  flex: 0 0 auto;
-  padding: 0.625rem 1rem;
 }
 
 .sbd-btn--icon {
@@ -1637,6 +1612,51 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
     content-visibility: auto;
     contain-intrinsic-size: auto 280px;
   }
+}
+
+.sbd-exercise-combo {
+  border-radius: var(--sbd-radius-lg);
+  padding: 0.5rem;
+}
+
+.sbd-exercise-combo .sbd-exercise-section {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.sbd-exercise-child {
+  margin-left: 0.75rem;
+  margin-top: 0.5rem;
+  border-left: 2px solid color-mix(in oklab, var(--sbd-muted), transparent 55%);
+  padding-left: 1.1rem;
+}
+
+@media (min-width: 640px) {
+  .sbd-exercise-child {
+    margin-left: 1.25rem;
+    padding-left: 1.35rem;
+  }
+}
+
+.sbd-exercise-child > .sbd-exercise-section {
+  border: 1px dashed color-mix(in oklab, var(--sbd-muted), transparent 55%);
+  border-radius: var(--sbd-radius-md);
+  background: color-mix(in oklab, var(--sbd-card) 60%, transparent);
+}
+
+.sbd-superset-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-radius: var(--sbd-radius-md);
+  border: 1.5px solid color-mix(in oklab, var(--sbd-red), transparent 50%);
+  background: color-mix(in oklab, var(--sbd-red), transparent 95%);
+  padding: 0.6rem;
+}
+
+.sbd-superset-block .sbd-set-card {
+  background: color-mix(in oklab, var(--sbd-card) 85%, transparent);
 }
 
 .sbd-panel-dashed {

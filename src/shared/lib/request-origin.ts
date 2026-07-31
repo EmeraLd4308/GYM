@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export function getRequestOrigin(req: Request): string {
+function getRequestOrigin(req: Request): string {
   try {
     const url = new URL(req.url);
     const fromHeader =

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-export function isTransientDbError(error: unknown): boolean {
+function isTransientDbError(error: unknown): boolean {
   if (error instanceof Prisma.PrismaClientInitializationError) return true;
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     return error.code === "P1001" || error.code === "P1002" || error.code === "P1017";

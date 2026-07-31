@@ -44,7 +44,7 @@ function addLiftBwTiers(
   if (r >= 4) out.add(`${prefix}_bw_x4`);
 }
 
-export function achievementIdsFromProfile(p: ProfileForAchievements): string[] {
+function achievementIdsFromProfile(p: ProfileForAchievements): string[] {
   const sex = p.glSex ?? "MALE";
   const isF = sex === "FEMALE";
   const bw = n(p.glBodyweightKg);

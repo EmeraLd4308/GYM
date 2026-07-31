@@ -146,9 +146,13 @@ model WorkoutExercise {
   sortOrder Int
   name      String
   baseLift  BaseLift       @default(NONE)
+  parentId  String?
+  parent    WorkoutExercise?  @relation("ExerciseChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  WorkoutExercise[] @relation("ExerciseChildren")
   sets      ExerciseSet[]
 
   @@index([workoutId])
+  @@index([parentId])
   @@unique([workoutId, sortOrder])
 }
 
@@ -160,6 +164,7 @@ model ExerciseSet {
   weightKg            Decimal         @db.Decimal(12, 4)
   reps                Int
   isWarmup            Boolean         @default(false)
+  supersetGroup       String?
   rpe                 Decimal?        @db.Decimal(6, 4)
 
   @@index([workoutExerciseId])

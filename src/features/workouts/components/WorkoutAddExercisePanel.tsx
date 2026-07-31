@@ -36,8 +36,8 @@ export function WorkoutAddExercisePanel({
       <h3 className={`mb-3 font-display text-sm font-semibold uppercase tracking-wide ${uiMutedTextClass}`}>
         Додати вправу
       </h3>
-      <div className="flex flex-col gap-3">
-        <div className="w-full min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1">
           <label htmlFor="new-exercise-name" className={`${uiLabelClass} mb-1 block`}>
             Назва
           </label>
@@ -60,7 +60,7 @@ export function WorkoutAddExercisePanel({
             aria-describedby={newExerciseError ? "new-exercise-error" : undefined}
           />
         </div>
-        <div className="w-full min-w-0">
+        <div className="w-full min-w-0 sm:w-56">
           <label htmlFor="new-exercise-base" className={`${uiLabelClass} mb-1 block`}>
             Базова для статистики
           </label>
@@ -79,7 +79,7 @@ export function WorkoutAddExercisePanel({
         </div>
         <button
           type="button"
-          className={`${uiButtonPrimaryClass} w-full sm:w-auto sm:self-start`}
+          className={`${uiButtonPrimaryClass} w-full shrink-0 sm:w-auto`}
           onClick={() => void addExercise()}
         >
           Додати

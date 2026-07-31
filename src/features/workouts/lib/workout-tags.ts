@@ -15,7 +15,7 @@ export function workoutTagLabelUk(tag: WorkoutTag | null | undefined): string {
   return "—";
 }
 
-export function inferWorkoutTagFromRpe(
+function inferWorkoutTagFromRpe(
   avgRpe: number | null,
   hasHeavySet: boolean,
 ): WorkoutTag | null {

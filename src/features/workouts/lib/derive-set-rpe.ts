@@ -21,7 +21,7 @@ export function sbdMaxKgFromUserRow(row: {
   };
 }
 
-export function maxKgForBaseLift(bl: BaseLift, m: SbdMaxKg): number | null {
+function maxKgForBaseLift(bl: BaseLift, m: SbdMaxKg): number | null {
   if (bl === "SQUAT") return m.squat;
   if (bl === "BENCH") return m.bench;
   if (bl === "DEADLIFT") return m.deadlift;

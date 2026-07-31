@@ -21,7 +21,7 @@ export type StreakWeekChip = {
   isCurrentWeek: boolean;
 };
 
-export function formatStreakWeekShortLabel(weekStartIso: string): string {
+function formatStreakWeekShortLabel(weekStartIso: string): string {
   const d = new Date(`${weekStartIso}T12:00:00`);
   return d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
 }

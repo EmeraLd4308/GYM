@@ -1,6 +1,5 @@
 import { prisma } from "@/shared/lib/prisma";
-import { mapApiSet, type WorkoutPayload } from "@/features/workouts/lib/workout-session-types";
-import type { BaseLift } from "@prisma/client";
+import { mapApiExercise, type WorkoutPayload } from "@/features/workouts/lib/workout-session-types";
 
 const workoutSessionInclude = {
   exercises: {
@@ -24,21 +23,6 @@ export async function getWorkoutSessionPayload(
     date: workout.date.toISOString(),
     title: workout.title,
     notes: workout.notes ?? null,
-    exercises: workout.exercises.map((ex) => ({
-      id: ex.id,
-      sortOrder: ex.sortOrder,
-      name: ex.name,
-      baseLift: ex.baseLift as BaseLift,
-      sets: ex.sets.map((s) =>
-        mapApiSet({
-          id: s.id,
-          sortOrder: s.sortOrder,
-          weightKg: s.weightKg,
-          reps: s.reps,
-          isWarmup: s.isWarmup,
-          rpe: s.rpe,
-        }),
-      ),
-    })),
+    exercises: workout.exercises.map((ex) => mapApiExercise(ex)),
   };
 }
