@@ -1,4 +1,4 @@
-import { formatDateForInput, todayDateInput } from "@/shared/lib/date-local";
+import { formatDateForInput } from "@/shared/lib/date-local";
 import type { WorkoutSessionController } from "@/features/workouts/lib/use-workout-session";
 import {
   uiButtonDangerTextClass,
@@ -41,8 +41,7 @@ function saveHint(state: "idle" | "saving" | "saved" | "error"): string {
   return "";
 }
 
-const actionBtn =
-  `${uiButtonGhostClass} min-h-11 flex-1 px-3 text-xs font-bold uppercase tracking-wider sm:flex-none sm:min-w-[9.5rem]`;
+const actionBtn = `${uiButtonGhostClass} min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider sm:w-auto sm:min-w-[9.5rem]`;
 
 export function WorkoutSessionHeader({
   workout,
@@ -110,7 +109,7 @@ export function WorkoutSessionHeader({
           ) : null}
         </div>
 
-        <div className="flex gap-2 sm:shrink-0">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
           <button
             type="button"
             disabled={copyBusy}
@@ -121,7 +120,7 @@ export function WorkoutSessionHeader({
           </button>
           <button
             type="button"
-            className={`${uiButtonDangerTextClass} min-h-11 flex-1 sm:flex-none sm:min-w-[9.5rem]`}
+            className={`${uiButtonDangerTextClass} min-h-11 w-full sm:w-auto sm:min-w-[9.5rem]`}
             onClick={() => setConfirm({ kind: "wo" })}
           >
             Видалити
@@ -129,45 +128,47 @@ export function WorkoutSessionHeader({
         </div>
       </div>
 
-      <div className="mt-5">
-        <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wdate">
-          Дата тренування
-        </label>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <input
-            id="wdate"
-            type="date"
-            className={uiDateClass}
-            value={formatDateForInput(workout.date)}
-            onChange={(e) => patchDate(e.target.value)}
+      <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
+        <div>
+          <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wdate">
+            Дата тренування
+          </label>
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
+            <input
+              id="wdate"
+              type="date"
+              className={`${uiDateClass} w-full max-w-none sm:w-auto`}
+              value={formatDateForInput(workout.date)}
+              onChange={(e) => patchDate(e.target.value)}
+            />
+            <p className={`capitalize ${uiMutedTextClass}`}>{weekdayLabel}</p>
+          </div>
+        </div>
+
+        <div>
+          <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wnotes">
+            Нотатки{" "}
+            <span className="normal-case text-[11px] font-normal text-[var(--sbd-muted)]">
+              {saveHint(notesSaveState)}
+            </span>
+          </label>
+          <textarea
+            id="wnotes"
+            rows={2}
+            className={`${uiInputClass} min-h-[4.5rem] w-full resize-y sm:max-w-3xl`}
+            placeholder="Сон, самопочуття, загальний RPE…"
+            value={workout.notes ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setWorkout((w) => (w ? { ...w, notes: v } : w));
+              if (notesSaveState !== "idle") setNotesSaveState("idle");
+              scheduleNotesSave(v);
+            }}
           />
-          <p className={`${uiMutedTextClass} capitalize`}>{weekdayLabel}</p>
         </div>
       </div>
 
-      <div className="mt-5">
-        <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="wnotes">
-          Нотатки{" "}
-          <span className="normal-case text-[11px] font-normal text-[var(--sbd-muted)]">
-            {saveHint(notesSaveState)}
-          </span>
-        </label>
-        <textarea
-          id="wnotes"
-          rows={2}
-          className={`${uiInputClass} min-h-[4.5rem] max-w-3xl resize-y`}
-          placeholder="Сон, самопочуття, загальний RPE…"
-          value={workout.notes ?? ""}
-          onChange={(e) => {
-            const v = e.target.value;
-            setWorkout((w) => (w ? { ...w, notes: v } : w));
-            if (notesSaveState !== "idle") setNotesSaveState("idle");
-            scheduleNotesSave(v);
-          }}
-        />
-      </div>
-
-      <div className="mt-5 border-t border-[var(--sbd-border)] pt-5">
+      <div className="mt-4 border-t border-[var(--sbd-border)] pt-4 sm:mt-5 sm:pt-5">
         <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="copydate">
           Копіювати на дату
         </label>
@@ -175,26 +176,17 @@ export function WorkoutSessionHeader({
           <input
             id="copydate"
             type="date"
-            className={uiDateClass}
+            className={`${uiDateClass} w-full max-w-none sm:w-auto`}
             value={copyDate}
             onChange={(e) => setCopyDate(e.target.value)}
           />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={actionBtn}
-              onClick={() => duplicateWorkout(copyDate)}
-            >
-              Копіювати
-            </button>
-            <button
-              type="button"
-              className={actionBtn}
-              onClick={() => duplicateWorkout(todayDateInput())}
-            >
-              На сьогодні
-            </button>
-          </div>
+          <button
+            type="button"
+            className={actionBtn}
+            onClick={() => duplicateWorkout(copyDate)}
+          >
+            Копіювати
+          </button>
         </div>
       </div>
     </div>
