@@ -142,7 +142,7 @@ function LiftScatterPanel({
       : [];
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 p-4 sm:p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 px-3 py-4 sm:px-4 sm:py-5">
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <h4 className="font-display text-sm font-bold uppercase tracking-wide" style={{ color }}>
           {approachMapLiftLabelUk(lift)}
@@ -154,7 +154,7 @@ function LiftScatterPanel({
       </div>
       <div className="h-72 w-full min-w-0 sm:h-80 lg:h-[28rem]">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <ScatterChart margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
+          <ScatterChart margin={{ top: 4, right: 4, left: -4, bottom: 4 }}>
             {zones.map((z, i) => (
               <ReferenceArea
                 key={i}
@@ -176,6 +176,7 @@ function LiftScatterPanel({
               tick={{ fontSize: 11, fill: "#71717a" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+              padding={{ left: 4, right: 4 }}
             />
             <YAxis
               type="number"
@@ -184,7 +185,7 @@ function LiftScatterPanel({
               tick={{ fontSize: 11, fill: "#71717a" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-              width={44}
+              width={36}
               tickFormatter={(v: number) => formatKg(v)}
             />
             <ZAxis range={[72, 72]} />

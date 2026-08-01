@@ -76,7 +76,7 @@ function LiftRpePanel({
   const hasAny = chartData.length > 0;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 p-4 sm:p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 px-3 py-4 sm:px-4 sm:py-5">
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <h4 className="font-display text-sm font-bold uppercase tracking-wide" style={{ color }}>
           {title}
@@ -110,9 +110,9 @@ function LiftRpePanel({
           ) : null}
         </div>
       ) : (
-        <div className="h-48 w-full min-w-0">
-          <ResponsiveContainer width="100%" height={192} minWidth={0}>
-            <AreaChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
+        <div className="h-60 w-full min-w-0">
+          <ResponsiveContainer width="100%" height={240} minWidth={0}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
               <defs>
                 <linearGradient id={`rpe-grad-${lift}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={color} stopOpacity={0.4} />
@@ -129,13 +129,13 @@ function LiftRpePanel({
                 tick={{ fontSize: 10, fill: "#71717a" }}
                 interval={0}
                 minTickGap={64}
-                padding={{ left: 12, right: 12 }}
+                padding={{ left: 4, right: 4 }}
               />
               <YAxis
                 domain={[5, 10]}
                 ticks={[5, 6, 7, 8, 9, 10]}
                 tick={{ fontSize: 10, fill: "#71717a" }}
-                width={36}
+                width={28}
               />
               <Tooltip
                 contentStyle={{

@@ -1645,20 +1645,6 @@ html[data-theme="light"] .sbd-date::-webkit-calendar-picker-indicator {
   background: color-mix(in oklab, var(--sbd-card) 60%, transparent);
 }
 
-.sbd-superset-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  border-radius: var(--sbd-radius-md);
-  border: 1.5px solid color-mix(in oklab, var(--sbd-red), transparent 50%);
-  background: color-mix(in oklab, var(--sbd-red), transparent 95%);
-  padding: 0.6rem;
-}
-
-.sbd-superset-block .sbd-set-card {
-  background: color-mix(in oklab, var(--sbd-card) 85%, transparent);
-}
-
 .sbd-panel-dashed {
   border-radius: var(--sbd-radius-lg);
   border: 1px dashed color-mix(in oklab, var(--sbd-border), white 10%);

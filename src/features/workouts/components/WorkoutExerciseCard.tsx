@@ -25,8 +25,6 @@ import {
 
 const inpMobile = `${uiInputClass} min-h-[48px] w-full px-3 text-base`;
 
-const SUPERSET_LETTERS = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "З"];
-
 type SetRowT = ExerciseRow["sets"][number];
 
 type Props = {
@@ -63,22 +61,6 @@ function setsDoneEqual(
 
 function newSupersetGroupId(): string {
   return `ss-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-type SetChunk = { group: string | null; items: Array<{ s: SetRowT; idx: number }> };
-
-function chunkSets(sets: SetRowT[]): SetChunk[] {
-  const chunks: SetChunk[] = [];
-  sets.forEach((s, idx) => {
-    const last = chunks[chunks.length - 1];
-    const g = s.supersetGroup ?? null;
-    if (last && last.group != null && g === last.group) {
-      last.items.push({ s, idx });
-      return;
-    }
-    chunks.push({ group: g, items: [{ s, idx }] });
-  });
-  return chunks;
 }
 
 function IconLink({ className = "h-4 w-4" }: { className?: string }) {
@@ -129,7 +111,6 @@ function WorkoutExerciseCardInner({
 }: Props) {
   const workingCount = countWorkingSets(ex.sets);
   const setNumbers = computeWorkingSetNumbers(ex.sets);
-  const chunks = chunkSets(ex.sets);
 
   function mergeWithNext(setIndex: number) {
     const cur = ex.sets[setIndex];
@@ -156,25 +137,56 @@ function WorkoutExerciseCardInner({
     void setSupersetGroups(ex.id, changes);
   }
 
-  function renderMobileSetCard(s: SetRowT, setIndex: number, blockLetter?: string) {
+  function renderMobileSetCard(
+    s: SetRowT,
+    setIndex: number,
+    opts: { inGroup: boolean; prevSameGroup: boolean; canMergeNext: boolean },
+  ) {
     const setNum = setNumbers[setIndex];
+    const { inGroup, prevSameGroup, canMergeNext } = opts;
     return (
       <div
         key={s.id}
-        className={`${uiSetCardClass}${doneMap[s.id] ? " sbd-set-card--done" : ""}`}
+        className={`${uiSetCardClass}${doneMap[s.id] ? " sbd-set-card--done" : ""}${
+          inGroup
+            ? " bg-[color-mix(in_oklab,var(--sbd-red),transparent_94%)] shadow-[inset_3px_0_0_0_var(--sbd-red)]"
+            : ""
+        }`}
       >
         <div className="mb-3 flex items-center justify-between gap-2">
-          {blockLetter ? (
-            <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_oklab,var(--sbd-red),transparent_65%)] bg-[color-mix(in_oklab,var(--sbd-red),transparent_92%)] font-display text-sm font-bold text-[color-mix(in_oklab,var(--sbd-red),white_25%)]"
-              aria-label={`Суперсет, частина ${blockLetter}`}
-            >
-              {blockLetter}
-            </span>
-          ) : (
-            <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} />
-          )}
           <div className="flex items-center gap-1">
+            {prevSameGroup ? (
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center font-display text-sm font-bold text-[var(--sbd-red)]"
+                aria-label="Продовження суперсету"
+              >
+                ↳
+              </span>
+            ) : (
+              <SetWorkingNumberBadge number={setNum} isWarmup={s.isWarmup} />
+            )}
+            {canMergeNext ? (
+              <button
+                type="button"
+                className="inline-flex min-h-[2.25rem] min-w-[2.25rem] items-center justify-center rounded-md text-[var(--sbd-muted)] transition hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_90%)] hover:text-[var(--sbd-red)]"
+                aria-label="Об'єднати з наступним підходом у суперсет"
+                onClick={() => mergeWithNext(setIndex)}
+              >
+                <IconLink />
+              </button>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-1">
+            {inGroup ? (
+              <button
+                type="button"
+                className="inline-flex min-h-[2.25rem] min-w-[2.25rem] items-center justify-center rounded-md text-[var(--sbd-muted)] transition hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_90%)] hover:text-[var(--sbd-red)]"
+                aria-label="Роз'єднати суперсет"
+                onClick={() => dissolveGroup(s.supersetGroup!)}
+              >
+                <IconUnlink />
+              </button>
+            ) : null}
             <button
               type="button"
               className={uiButtonIconSmClass}
@@ -409,61 +421,14 @@ function WorkoutExerciseCardInner({
       </div>
 
       <div className={`space-y-3 md:hidden${ex.sets.length === 0 ? " hidden" : ""}`}>
-        {chunks.map((chunk, chunkIdx) => {
-          const isBlock = chunk.group != null && chunk.items.length > 1;
-          const lastIdx = chunk.items[chunk.items.length - 1].idx;
-          const connector =
-            chunkIdx < chunks.length - 1 ? (
-              <div key={`conn-${chunk.items[0].s.id}`} className="flex items-center gap-2">
-                <span className="h-px flex-1 bg-[var(--sbd-border)]" />
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[color-mix(in_oklab,var(--sbd-red),transparent_55%)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--sbd-red)] transition hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_92%)]"
-                  onClick={() => mergeWithNext(lastIdx)}
-                >
-                  <IconLink className="h-3.5 w-3.5" />
-                  Суперсет
-                </button>
-                <span className="h-px flex-1 bg-[var(--sbd-border)]" />
-              </div>
-            ) : null;
-
-          if (!isBlock) {
-            return (
-              <div key={`chunk-${chunk.items[0].s.id}`} className="space-y-3">
-                {chunk.items.map(({ s, idx }) => renderMobileSetCard(s, idx))}
-                {connector}
-              </div>
-            );
-          }
-
-          const blockNumber = setNumbers[chunk.items[0].idx];
-          return (
-            <div key={`chunk-${chunk.items[0].s.id}`} className="space-y-3">
-              <div className="sbd-superset-block">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <SetWorkingNumberBadge number={blockNumber} isWarmup={false} />
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--sbd-red)]">
-                      Суперсет · {chunk.items.length} підходи як один
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-[var(--sbd-muted)] transition hover:bg-[color-mix(in_oklab,var(--sbd-red),transparent_92%)] hover:text-[var(--sbd-red)]"
-                    onClick={() => dissolveGroup(chunk.group!)}
-                  >
-                    <IconUnlink className="h-3.5 w-3.5" />
-                    Роз&apos;єднати
-                  </button>
-                </div>
-                {chunk.items.map(({ s, idx }, i) =>
-                  renderMobileSetCard(s, idx, SUPERSET_LETTERS[i] ?? String(i + 1)),
-                )}
-              </div>
-              {connector}
-            </div>
-          );
+        {ex.sets.map((s, setIndex) => {
+          const next = ex.sets[setIndex + 1];
+          const inGroup = s.supersetGroup != null;
+          const prevSameGroup =
+            inGroup && setIndex > 0 && ex.sets[setIndex - 1].supersetGroup === s.supersetGroup;
+          const canMergeNext =
+            next != null && !(inGroup && next.supersetGroup === s.supersetGroup);
+          return renderMobileSetCard(s, setIndex, { inGroup, prevSameGroup, canMergeNext });
         })}
       </div>
 

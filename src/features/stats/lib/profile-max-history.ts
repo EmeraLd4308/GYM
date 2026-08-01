@@ -21,17 +21,42 @@ function sameCalendarDay(a: Date, b: Date): boolean {
   );
 }
 
-function labelForPoint(rows: { recordedAt: Date }[], index: number): string {
-  const d = new Date(rows[index].recordedAt);
-  const base = d.toLocaleDateString("uk-UA", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).replace(/\s*р\.?\s*$/u, "");
-  if (index > 0 && sameCalendarDay(new Date(rows[index - 1].recordedAt), d)) {
-    return d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+function startOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function endOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+}
+
+function labelForDate(d: Date): string {
+  return d
+    .toLocaleDateString("uk-UA", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    .replace(/\s*р\.?\s*$/u, "");
+}
+
+type SnapshotRow = {
+  recordedAt: Date;
+  squatKg: unknown;
+  benchKg: unknown;
+  deadliftKg: unknown;
+};
+
+function collapseSameDaySnapshots(rows: SnapshotRow[]): SnapshotRow[] {
+  const out: SnapshotRow[] = [];
+  for (const row of rows) {
+    const prev = out[out.length - 1];
+    if (prev && sameCalendarDay(prev.recordedAt, row.recordedAt)) {
+      out[out.length - 1] = row;
+    } else {
+      out.push(row);
+    }
   }
-  return base;
+  return out;
 }
 
 type MaxTriple = Pick<User, "glMaxSquatKg" | "glMaxBenchKg" | "glMaxDeadliftKg">;
@@ -45,6 +70,36 @@ export function maxTripleChanged(before: MaxTriple, after: MaxTriple): boolean {
 }
 
 export async function recordProfileSbdMaxSnapshot(userId: string, max: MaxTriple): Promise<void> {
+  const now = new Date();
+  const existing = await prisma.profileSbdMaxSnapshot.findFirst({
+    where: {
+      userId,
+      recordedAt: { gte: startOfLocalDay(now), lte: endOfLocalDay(now) },
+    },
+    orderBy: { recordedAt: "desc" },
+    select: { id: true },
+  });
+
+  if (existing) {
+    await prisma.profileSbdMaxSnapshot.update({
+      where: { id: existing.id },
+      data: {
+        squatKg: max.glMaxSquatKg,
+        benchKg: max.glMaxBenchKg,
+        deadliftKg: max.glMaxDeadliftKg,
+        recordedAt: now,
+      },
+    });
+    await prisma.profileSbdMaxSnapshot.deleteMany({
+      where: {
+        userId,
+        id: { not: existing.id },
+        recordedAt: { gte: startOfLocalDay(now), lte: endOfLocalDay(now) },
+      },
+    });
+    return;
+  }
+
   await prisma.profileSbdMaxSnapshot.create({
     data: {
       userId,
@@ -83,7 +138,6 @@ export async function getProfileMaxHistoryPoints(
         deadliftKg: user.glMaxDeadliftKg,
       },
     });
-    count = 1;
   }
 
   const rows = await prisma.profileSbdMaxSnapshot.findMany({
@@ -97,14 +151,14 @@ export async function getProfileMaxHistoryPoints(
     },
   });
 
-  return rows.map((r, i) => {
+  return collapseSameDaySnapshots(rows).map((r) => {
     const sq = num(r.squatKg);
     const bp = num(r.benchKg);
     const dl = num(r.deadliftKg);
     const totalKg = Math.round((sq + bp + dl) * 10) / 10;
     return {
       recordedAtIso: r.recordedAt.toISOString(),
-      pointLabel: labelForPoint(rows, i),
+      pointLabel: labelForDate(r.recordedAt),
       totalKg,
     };
   });
