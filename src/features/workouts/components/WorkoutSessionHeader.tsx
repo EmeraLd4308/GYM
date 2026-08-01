@@ -41,7 +41,11 @@ function saveHint(state: "idle" | "saving" | "saved" | "error"): string {
   return "";
 }
 
-const actionBtn = `${uiButtonGhostClass} min-h-11 w-full px-3 text-xs font-bold uppercase tracking-wider sm:w-auto sm:min-w-[9.5rem]`;
+const btnSize =
+  "h-9 px-3 text-[11px] font-bold uppercase tracking-wider sm:h-auto sm:min-h-11 sm:min-w-[9.5rem] sm:text-xs";
+const btnGhost = `${uiButtonGhostClass} ${btnSize} w-full sm:w-auto`;
+const btnDanger = `${uiButtonDangerTextClass} ${btnSize} w-full sm:w-auto`;
+const btnCopyDate = `${uiButtonGhostClass} ${btnSize} w-auto shrink-0`;
 
 export function WorkoutSessionHeader({
   workout,
@@ -113,14 +117,14 @@ export function WorkoutSessionHeader({
           <button
             type="button"
             disabled={copyBusy}
-            className={actionBtn}
+            className={btnGhost}
             onClick={() => void copyWorkoutAsText()}
           >
             {copyBusy ? "…" : "Копія текстом"}
           </button>
           <button
             type="button"
-            className={`${uiButtonDangerTextClass} min-h-11 w-full sm:w-auto sm:min-w-[9.5rem]`}
+            className={btnDanger}
             onClick={() => setConfirm({ kind: "wo" })}
           >
             Видалити
@@ -141,7 +145,7 @@ export function WorkoutSessionHeader({
               value={formatDateForInput(workout.date)}
               onChange={(e) => patchDate(e.target.value)}
             />
-            <p className={`capitalize ${uiMutedTextClass}`}>{weekdayLabel}</p>
+            <p className={`hidden capitalize sm:inline ${uiMutedTextClass}`}>{weekdayLabel}</p>
           </div>
         </div>
 
@@ -172,17 +176,17 @@ export function WorkoutSessionHeader({
         <label className={`mb-1.5 block ${uiLabelClass}`} htmlFor="copydate">
           Копіювати на дату
         </label>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex items-center gap-2 sm:flex-wrap">
           <input
             id="copydate"
             type="date"
-            className={`${uiDateClass} w-full max-w-none sm:w-auto`}
+            className={`${uiDateClass} min-w-0 flex-1 max-w-none sm:w-auto sm:flex-none`}
             value={copyDate}
             onChange={(e) => setCopyDate(e.target.value)}
           />
           <button
             type="button"
-            className={actionBtn}
+            className={btnCopyDate}
             onClick={() => duplicateWorkout(copyDate)}
           >
             Копіювати
