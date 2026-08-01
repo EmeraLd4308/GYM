@@ -13,19 +13,23 @@ export type PeriodCompare = {
 
 function avg(nums: number[]): number | null {
   if (nums.length === 0) return null;
-  return nums.reduce((a, b) => a + b, 0) / nums.length;
+  return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 1000) / 1000;
 }
 
-function byRange(rows: WeeklySbdRpeRow[], fromIso: string, toIso: string) {
-  return rows.filter((r) => r.weekStartIso >= fromIso && r.weekStartIso <= toIso);
+function trained(values: Array<number | null>): number[] {
+  return values.filter((v): v is number => v != null && v > 0);
 }
 
 function summarize(rows: WeeklySbdRpeRow[]): LiftTriplet {
   return {
-    bench: avg(rows.map((r) => r.bench).filter((v): v is number => v != null)),
-    squat: avg(rows.map((r) => r.squat).filter((v): v is number => v != null)),
-    deadlift: avg(rows.map((r) => r.deadlift).filter((v): v is number => v != null)),
+    bench: avg(trained(rows.map((r) => r.bench))),
+    squat: avg(trained(rows.map((r) => r.squat))),
+    deadlift: avg(trained(rows.map((r) => r.deadlift))),
   };
+}
+
+function byRange(rows: WeeklySbdRpeRow[], fromIso: string, toIso: string) {
+  return rows.filter((r) => r.weekStartIso >= fromIso && r.weekStartIso <= toIso);
 }
 
 export function compareMonthVsPrevious(series: WeeklySbdRpeRow[]): PeriodCompare | null {

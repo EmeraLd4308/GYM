@@ -26,7 +26,7 @@ export function WeekVolumeCompare({
 }: {
   data: WeekComparePayload | null;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   decimals?: number;
 }) {
   if (!data) {
@@ -47,7 +47,7 @@ export function WeekVolumeCompare({
   return (
     <div className="sbd-card sbd-surface-shine flex h-full flex-col rounded-xl p-5">
       <h3 className="font-display text-sm font-bold uppercase tracking-wide text-white">{title}</h3>
-      <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
+      {subtitle ? <p className="mt-1 text-xs text-zinc-500">{subtitle}</p> : null}
       <p className="mt-2 text-xs text-zinc-500">
         {prev.weekLabel} → {curr.weekLabel}
       </p>

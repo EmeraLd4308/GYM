@@ -3,6 +3,11 @@
 import Link from "next/link";
 import type { WeeklyAttendanceRow } from "@/features/stats/lib/weekly-attendance";
 import {
+  monthAxisLabel,
+  monthKeyFromWeekStart,
+  spacedMonthTicks,
+} from "@/features/stats/lib/chart-month-axis";
+import {
   CartesianGrid,
   Line,
   LineChart,
@@ -34,11 +39,15 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
   }
 
   const data = series.map((r) => ({
+    weekStartIso: r.weekStartIso,
     weekLabel: r.weekLabel,
+    monthKey: monthKeyFromWeekStart(r.weekStartIso),
     cumulative: r.cumulative,
     workoutCount: r.workoutCount,
     weekDelta: r.weekDelta,
   }));
+
+  const monthTicks = spacedMonthTicks(data);
 
   return (
     <div className={card}>
@@ -47,13 +56,18 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
       </h3>
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height={224} minWidth={0}>
-          <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
             <XAxis
-              dataKey="weekLabel"
-              tick={{ fontSize: 9, fill: "#71717a" }}
-              interval="preserveStartEnd"
-              height={36}
+              dataKey="weekStartIso"
+              ticks={monthTicks}
+              tickFormatter={(iso) =>
+                typeof iso === "string" ? monthAxisLabel(iso) : String(iso ?? "")
+              }
+              tick={{ fontSize: 10, fill: "#71717a" }}
+              interval={0}
+              minTickGap={64}
+              padding={{ left: 12, right: 12 }}
             />
             <YAxis tick={{ fontSize: 10, fill: "#71717a" }} width={40} />
             <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />

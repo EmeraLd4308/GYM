@@ -23,7 +23,11 @@ function sameCalendarDay(a: Date, b: Date): boolean {
 
 function labelForPoint(rows: { recordedAt: Date }[], index: number): string {
   const d = new Date(rows[index].recordedAt);
-  const base = d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+  const base = d.toLocaleDateString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).replace(/\s*р\.?\s*$/u, "");
   if (index > 0 && sameCalendarDay(new Date(rows[index - 1].recordedAt), d)) {
     return d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
   }

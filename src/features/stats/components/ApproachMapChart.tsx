@@ -25,9 +25,9 @@ import {
 const card = "sbd-card sbd-card-interactive rounded-xl p-5";
 
 const LIFT_COLORS: Record<ApproachMapLift, string> = {
+  bench: "#34d399",
   squat: "#e31e24",
-  bench: "#60a5fa",
-  deadlift: "#a3e635",
+  deadlift: "#fbbf24",
 };
 
 const LIFT_ORDER: ApproachMapLift[] = ["squat", "bench", "deadlift"];
@@ -87,7 +87,7 @@ function zoneBandsKg(
   const p90 = profileMaxKg * 0.9;
   const bands = [
     { y1: yMin, y2: p70, fill: "#3f3f46", fillOpacity: 0.12 },
-    { y1: p70, y2: p80, fill: "#60a5fa", fillOpacity: 0.07 },
+    { y1: p70, y2: p80, fill: "#34d399", fillOpacity: 0.07 },
     { y1: p80, y2: p90, fill: "#fbbf24", fillOpacity: 0.07 },
     { y1: p90, y2: yMax, fill: "#e31e24", fillOpacity: 0.08 },
   ];
@@ -142,19 +142,19 @@ function LiftScatterPanel({
       : [];
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 p-3 sm:p-4">
+    <div className="rounded-xl border border-white/[0.06] bg-zinc-950/40 p-4 sm:p-5">
       <div className="mb-3 flex items-baseline justify-between gap-2">
-        <h4 className="font-display text-xs font-bold uppercase tracking-wide" style={{ color }}>
+        <h4 className="font-display text-sm font-bold uppercase tracking-wide" style={{ color }}>
           {approachMapLiftLabelUk(lift)}
         </h4>
-        <span className="text-[11px] tabular-nums text-zinc-500">
+        <span className="text-xs tabular-nums text-zinc-500">
           {points.length}{" "}
           {points.length === 1 ? "підхід" : points.length < 5 ? "підходи" : "підходів"}
         </span>
       </div>
-      <div className="h-52 w-full min-w-0 sm:h-56">
+      <div className="h-72 w-full min-w-0 sm:h-80 lg:h-[28rem]">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <ScatterChart margin={{ top: 4, right: 8, left: 2, bottom: 4 }}>
+          <ScatterChart margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
             {zones.map((z, i) => (
               <ReferenceArea
                 key={i}
@@ -173,7 +173,7 @@ function LiftScatterPanel({
                 { length: repsDomain[1] - repsDomain[0] + 1 },
                 (_, i) => repsDomain[0] + i,
               )}
-              tick={{ fontSize: 9, fill: "#71717a" }}
+              tick={{ fontSize: 11, fill: "#71717a" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
             />
@@ -181,13 +181,13 @@ function LiftScatterPanel({
               type="number"
               dataKey="weightKg"
               domain={weightDomain}
-              tick={{ fontSize: 9, fill: "#71717a" }}
+              tick={{ fontSize: 11, fill: "#71717a" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-              width={40}
+              width={44}
               tickFormatter={(v: number) => formatKg(v)}
             />
-            <ZAxis range={[52, 52]} />
+            <ZAxis range={[72, 72]} />
             {refLines.map((kg) => (
               <ReferenceLine
                 key={kg}
@@ -271,13 +271,13 @@ export function ApproachMapChart({
       </p>
 
       {profileMaxKg.squat || profileMaxKg.bench || profileMaxKg.deadlift ? (
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-500">
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
           <span>Зони від максу в профілі:</span>
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-3 rounded-sm bg-zinc-600/40" aria-hidden /> &lt;70%
           </span>
           <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-3 rounded-sm bg-sky-500/30" aria-hidden /> 70–80%
+            <span className="h-2 w-3 rounded-sm bg-emerald-400/30" aria-hidden /> 70–80%
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-3 rounded-sm bg-amber-400/30" aria-hidden /> 80–90%
@@ -288,15 +288,7 @@ export function ApproachMapChart({
         </div>
       ) : null}
 
-      <div
-        className={`mt-4 grid gap-4 ${
-          activeLifts.length === 1
-            ? "max-w-md"
-            : activeLifts.length === 2
-              ? "sm:grid-cols-2"
-              : "lg:grid-cols-3"
-        }`}
-      >
+      <div className="mt-4 grid gap-5">
         {activeLifts.map((lift) => (
           <LiftScatterPanel
             key={lift}
