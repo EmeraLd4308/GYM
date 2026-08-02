@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { WeeklyAttendanceRow } from "@/features/stats/lib/weekly-attendance";
 import {
-  monthAxisLabel,
+  ChartAxisTick,
   monthKeyFromWeekStart,
   spacedMonthTicks,
 } from "@/features/stats/lib/chart-month-axis";
@@ -47,7 +47,7 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
     weekDelta: r.weekDelta,
   }));
 
-  const monthTicks = spacedMonthTicks(data);
+  const ticks = spacedMonthTicks(data);
 
   return (
     <div className={card}>
@@ -56,18 +56,16 @@ export function AttendanceChart({ series }: { series: WeeklyAttendanceRow[] }) {
       </h3>
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height={224} minWidth={0}>
-          <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
+          <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 6 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
             <XAxis
               dataKey="weekStartIso"
-              ticks={monthTicks}
-              tickFormatter={(iso) =>
-                typeof iso === "string" ? monthAxisLabel(iso) : String(iso ?? "")
-              }
-              tick={{ fontSize: 10, fill: "#71717a" }}
+              ticks={ticks}
+              tick={<ChartAxisTick format="month" />}
               interval={0}
-              minTickGap={64}
-              padding={{ left: 12, right: 12 }}
+              minTickGap={36}
+              padding={{ left: 4, right: 4 }}
+              height={28}
             />
             <YAxis tick={{ fontSize: 10, fill: "#71717a" }} width={40} />
             <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />

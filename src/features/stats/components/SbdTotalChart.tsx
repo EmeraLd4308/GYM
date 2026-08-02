@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ProfileMaxHistoryPoint } from "@/features/stats/lib/profile-max-history";
+import { ChartAxisTick, thinAxisTicks } from "@/features/stats/lib/chart-month-axis";
 import {
   CartesianGrid,
   Line,
@@ -16,11 +17,16 @@ const card = "sbd-card sbd-card-interactive rounded-xl p-5";
 
 export function SbdTotalChart({ data }: { data: ProfileMaxHistoryPoint[] }) {
   const chartData = data.map((r) => ({
+    recordedAtIso: r.recordedAtIso,
     pointLabel: r.pointLabel,
     totalKg: r.totalKg,
   }));
 
   const hasAny = chartData.some((d) => d.totalKg > 0);
+  const ticks = thinAxisTicks(
+    chartData.map((d) => d.recordedAtIso),
+    3,
+  );
 
   if (!hasAny) {
     return (
@@ -31,7 +37,7 @@ export function SbdTotalChart({ data }: { data: ProfileMaxHistoryPoint[] }) {
         <p className="text-sm text-zinc-500">Заповни максимуми SBD у профілі.</p>
         <Link
           href="/profile"
-          className="mt-4 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 transition hover:underline"
+          className="mt-4 inline-flex min-h-[40px] items-center text-sm font-semibold text-[#e31e24] underline-offset-2 hover:underline"
         >
           Відкрити профіль
         </Link>
@@ -46,12 +52,16 @@ export function SbdTotalChart({ data }: { data: ProfileMaxHistoryPoint[] }) {
       </h3>
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height={224} minWidth={0}>
-          <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 8, right: 12, left: 4, bottom: 6 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
             <XAxis
-              dataKey="pointLabel"
-              tick={{ fontSize: 10, fill: "#71717a" }}
-              interval="preserveStartEnd"
+              dataKey="recordedAtIso"
+              ticks={ticks}
+              tick={<ChartAxisTick format="date" />}
+              interval={0}
+              minTickGap={36}
+              padding={{ left: 4, right: 4 }}
+              height={28}
             />
             <YAxis
               tick={{ fontSize: 10, fill: "#71717a" }}
@@ -65,6 +75,10 @@ export function SbdTotalChart({ data }: { data: ProfileMaxHistoryPoint[] }) {
                 background: "#111",
                 fontSize: 12,
                 color: "#e4e4e7",
+              }}
+              labelFormatter={(_label, payload) => {
+                const full = payload?.[0]?.payload?.pointLabel;
+                return typeof full === "string" ? full : "";
               }}
               formatter={(value) => {
                 const v = typeof value === "number" ? value.toFixed(1) : String(value ?? "");

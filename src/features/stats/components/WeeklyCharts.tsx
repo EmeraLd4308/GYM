@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { WeeklySbdRpeRow } from "@/features/stats/lib/weekly-rpe";
 import {
-  monthAxisLabel,
+  ChartAxisTick,
   monthKeyFromWeekStart,
   spacedMonthTicks,
 } from "@/features/stats/lib/chart-month-axis";
@@ -112,7 +112,7 @@ function LiftRpePanel({
       ) : (
         <div className="h-60 w-full min-w-0">
           <ResponsiveContainer width="100%" height={240} minWidth={0}>
-            <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 6 }}>
               <defs>
                 <linearGradient id={`rpe-grad-${lift}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={color} stopOpacity={0.4} />
@@ -123,13 +123,11 @@ function LiftRpePanel({
               <XAxis
                 dataKey="weekStartIso"
                 ticks={monthTicks}
-                tickFormatter={(iso) =>
-                  typeof iso === "string" ? monthAxisLabel(iso) : String(iso ?? "")
-                }
-                tick={{ fontSize: 10, fill: "#71717a" }}
+                tick={<ChartAxisTick format="month" />}
                 interval={0}
-                minTickGap={64}
+                minTickGap={36}
                 padding={{ left: 4, right: 4 }}
+                height={28}
               />
               <YAxis
                 domain={[5, 10]}
